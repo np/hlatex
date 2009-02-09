@@ -1,0 +1,29 @@
+name:            hlatex
+cabal-Version:   >=1.2
+version:         0.1
+license:         BSD3
+license-File:    LICENSE
+copyright:       (c) Nicolas Pouillard
+author:          Nicolas Pouillard
+maintainer:      Nicolas Pouillard <nicolas.pouillard@gmail.com>
+category:        Codec, Text
+synopsis:        A library to build valid LaTeX files
+description:     ...
+stability:       Provisional
+build-type:      Simple
+build-depends:   base>=3.0, containers>=0.1, template-haskell, mtl>=1.1
+exposed-modules: Language.LaTeX.Data,
+                 Language.LaTeX.Types,
+                 Language.LaTeX.Builder,
+                 Language.LaTeX.Printer
+ghc-options:     -Wall
+
+--source-repository head
+--  type:     darcs
+--  location: http://code.haskell.org/hlatex
+
+--source-repository this
+--  type:     darcs
+--  location: http://code.haskell.org/hlatex
+--  tag:      0.1
+
