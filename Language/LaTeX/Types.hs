@@ -36,6 +36,8 @@ $(
   )
  )
 
+type Opts = [String]
+
 data Root = Root Preamble Document
 
 data Document = Document ParMode
@@ -48,7 +50,7 @@ data DocumentClass = Article
 
 data Preamble = PreambleCmd String
               | PreambleCmdArg String Latex
-              | PreambleCmdArgWithOpts String [String] Latex
+              | PreambleCmdArgWithOpts String Opts Latex
               | PreambleConcat [Preamble]
 
 instance Monoid Preamble where
@@ -62,7 +64,7 @@ data Latex = LatexCmd String Latex
            | LatexCmdArgs String [Latex]
            | TexCmd String
            | TexCmdArg String Latex
-           | Environment String [String] Latex
+           | Environment String Opts Latex
            | MathsInline MathsItem
            | LatexSize LatexSize
            | RawTex String
@@ -79,8 +81,10 @@ instance Monoid Latex where
 data ParMode = Para Latex
              | ParCmd String
              | ParCmdArg String Latex
-             | ParEnvironmentLR String [String] Latex
+             | ParEnvironmentLR String Opts Latex
+             | ParEnvironmentPar String Opts ParMode
              | DisplayMaths MathsItem
+             | Equation [MathsItem]
              | Tabular [Row]
              | RawParMode String
              | ParGroup ParMode -- check validity of this
@@ -95,6 +99,7 @@ instance Monoid ParMode where
 
 data MathsItem = MathsCmd MathsCmd -- String
                | MathsCmdArg String MathsItem
+               | MathsCmdArgs String Opts [MathsItem]
                | MathsCmdArgNoMath String [String]
                | RawMaths String
                | MathsInt Int
