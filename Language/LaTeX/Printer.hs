@@ -5,10 +5,7 @@ import Data.List (intercalate, intersperse)
 
 import Language.LaTeX.Types
 import Language.LaTeX.Builder (amp)
-
-infixr 5 <>
-(<>) :: Monoid m => m -> m -> m
-(<>) = mappend
+import Language.LaTeX.Internal
 
 text :: String -> ShowS
 text = showString
@@ -27,6 +24,7 @@ nl = text "\n"
 vcat :: [ShowS] -> ShowS
 vcat = mconcat . intersperse nl
 
+ppOpts :: [String] -> ShowS
 ppOpts opts | null opts = text ""
             | otherwise = brackets (text $ intercalate "," opts)
 
@@ -35,54 +33,58 @@ ppEnv envName opts contents =
   text "\\begin" <> braces (text envName) <> ppOpts opts <> nl <>
   contents <> text "\n\\end" <> braces (text envName) <> nl
 
+mayBraces :: ShowS -> ShowS
 mayBraces = braces
 -- mayBraces = id
 
 pp :: Latex -> ShowS
 pp (LatexCmd cmdName contents)
- = mayBraces (backslash <> text cmdName <> braces (mconcat (map pp contents)))
+ = mayBraces (backslash <> text cmdName <> braces (pp contents))
 
 pp (LatexCmdArgs cmdName args)
- = mayBraces (backslash <> text cmdName <> mconcat (map (braces . mconcat . map pp) args))
+ = mayBraces (backslash <> text cmdName <> mconcat (map (braces . pp) args))
 
 pp (LatexSize size) = text $ showSize size
 
 pp (TexCmd cmdName) = mayBraces (backslash <> text cmdName)
 
 pp (TexCmdArg cmdName contents)
- = braces (backslash <> text cmdName <> text " " <> mconcat (map pp contents))
+ = braces (backslash <> text cmdName <> text " " <> pp contents)
 
-pp (Environment envName opts contents) = ppEnv envName opts (vcat $ map pp contents)
+pp (Environment envName opts contents) = ppEnv envName opts $ pp contents
 
 pp (RawTex s) = text s
 
-pp (MathsBlock ms) = text "\\[ "<>mconcat (map ppMaths ms)<>text " \\]"
-pp (MathsInline ms) = text "\\( "<>mconcat (map ppMaths ms)<>text " \\)"
+pp (MathsBlock m) = text "\\[ " <> ppMaths m <> text " \\]"
+pp (MathsInline m) = text "\\( " <> ppMaths m <> text " \\)"
 
 pp (Tabular rows) =
   ppEnv "tabular" [] (mconcat (intersperse (backslash <> backslash) $ map ppRow rows))
 
-pp (TexGroup ts) = braces $ mconcat $ map pp ts
+pp (TexGroup t) = braces $ pp t
+
+pp (LatexConcat contents) = vcat $ map pp contents -- TODO horiz
 
 ppMaths :: MathsItem -> ShowS
 ppMaths (MathsCmd cmd) = mayBraces (backslash <> text (mathsCmdName cmd))
-ppMaths (MathsCmdArg cmdName ms) = mayBraces (backslash<>text cmdName<>braces (mconcat (map ppMaths ms)))
+ppMaths (MathsCmdArg cmdName m) = mayBraces (backslash<>text cmdName<>braces (ppMaths m))
 ppMaths (MathsCmdArgNoMath cmdName ss) = mayBraces (backslash <> text cmdName <> braces (mconcat $ map text ss))
 ppMaths (RawMaths s) = text s
 ppMaths (MathsInt i) = shows i
-ppMaths (MathsGroup ms) = braces $ mconcat $ map ppMaths ms
+ppMaths (MathsGroup m) = braces $ ppMaths m
 ppMaths (MathsConcat ms) = mconcat $ map ppMaths ms
 
 ppRow :: Row -> ShowS
-ppRow = mconcat . map pp . intersperse amp . getRaw
+ppRow = mconcat . map pp . intersperse amp . getRow
 
 ppPreamble :: Preamble -> ShowS
 ppPreamble (PreambleCmd s) = backslash <> text s
-ppPreamble (PreambleCmdArg cmdName args)
-  = backslash <> text cmdName <> braces (mconcat $ map pp args)
-ppPreamble (PreambleCmdArgWithOpts cmdName opts args)
-  = backslash <> text cmdName <> ppOpts opts <> braces (mconcat $ map pp args)
+ppPreamble (PreambleCmdArg cmdName arg)
+  = backslash <> text cmdName <> braces (pp arg)
+ppPreamble (PreambleCmdArgWithOpts cmdName opts arg)
+  = backslash <> text cmdName <> ppOpts opts <> braces (pp arg)
+ppPreamble (PreambleConcat ps) = vcat $ map ppPreamble ps
 
 ppRoot :: Root -> ShowS
-ppRoot (Root preamb doc) = vcat (map ppPreamble preamb) $$ vcat (map pp doc)
+ppRoot (Root preamb doc) = ppPreamble preamb $$ pp doc
 
