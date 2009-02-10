@@ -76,13 +76,13 @@ ppMaths (MathsConcat ms) = mconcat $ map ppMaths ms
 ppRow :: Row -> ShowS
 ppRow = mconcat . map pp . intersperse amp . getRaw
 
-ppPreambule :: Preambule -> ShowS
-ppPreambule (PreambuleCmd s) = backslash <> text s
-ppPreambule (PreambuleCmdArg cmdName args)
+ppPreamble :: Preamble -> ShowS
+ppPreamble (PreambleCmd s) = backslash <> text s
+ppPreamble (PreambleCmdArg cmdName args)
   = backslash <> text cmdName <> braces (mconcat $ map pp args)
-ppPreambule (PreambuleCmdArgWithOpts cmdName opts args)
+ppPreamble (PreambleCmdArgWithOpts cmdName opts args)
   = backslash <> text cmdName <> ppOpts opts <> braces (mconcat $ map pp args)
 
 ppRoot :: Root -> ShowS
-ppRoot (Root preamb doc) = vcat (map ppPreambule preamb) $$ vcat (map pp doc)
+ppRoot (Root preamb doc) = vcat (map ppPreamble preamb) $$ vcat (map pp doc)
 

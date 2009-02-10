@@ -35,7 +35,7 @@ $(
   )
  )
 
-data Root = Root [Preambule] [Latex]
+data Root = Root [Preamble] [Latex]
 
 data DocumentClass = Article
                    | Book
@@ -43,9 +43,9 @@ data DocumentClass = Article
                    | Letter
                    | OtherDocumentClass
 
-data Preambule = PreambuleCmd String
-               | PreambuleCmdArg String [Latex]
-               | PreambuleCmdArgWithOpts String [String] [Latex]
+data Preamble = PreambleCmd String
+              | PreambleCmdArg String [Latex]
+              | PreambleCmdArgWithOpts String [String] [Latex]
 
 data Latex = LatexCmd String [Latex]
            | LatexCmdArgs String [[Latex]]

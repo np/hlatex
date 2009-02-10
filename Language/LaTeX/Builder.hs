@@ -180,24 +180,24 @@ article = Article
 report = Report
 letter = Letter
 
-documentclass :: Maybe LatexSize -> Maybe LatexPaper -> DocumentClass -> Preambule
+documentclass :: Maybe LatexSize -> Maybe LatexPaper -> DocumentClass -> Preamble
 documentclass msize mpaper dc =
-  PreambuleCmdArgWithOpts "documentclass" (maybeToList (fmap showSize msize) ++
-                                           maybeToList (fmap showPaper mpaper))
-                                          [RawTex (showDocumentClass dc)]
+  PreambleCmdArgWithOpts "documentclass" (maybeToList (fmap showSize msize) ++
+                                          maybeToList (fmap showPaper mpaper))
+                                         [RawTex (showDocumentClass dc)]
 
-usepackage = PreambuleCmdArg "usepackage"
-title = PreambuleCmdArg "title"
-subtitle = PreambuleCmdArg "subtitle"
-date = PreambuleCmdArg "date"
-author = PreambuleCmdArg "author"
+usepackage = PreambleCmdArg "usepackage"
+title = PreambleCmdArg "title"
+subtitle = PreambleCmdArg "subtitle"
+date = PreambleCmdArg "date"
+author = PreambleCmdArg "author"
 and = TexCmd "and"
 authors = author . intersperse and
-institute = PreambuleCmdArg "institute"
+institute = PreambleCmdArg "institute"
 
 -- beamer
 -- alert
 -- AtBeginSubsection, AtBeginSection
 only = LatexCmd "only"
-usetheme = PreambuleCmdArg "usetheme"
-usefontthem = PreambuleCmdArg "usefontthem"
+usetheme = PreambleCmdArg "usetheme"
+usefontthem = PreambleCmdArg "usefontthem"
