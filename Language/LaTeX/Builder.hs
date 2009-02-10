@@ -5,11 +5,13 @@ module Language.LaTeX.Builder where
 import Prelude hiding (and)
 import Data.List (intersperse)
 import Data.Maybe
-import Control.Arrow
 import Data.Ratio
+import Data.Monoid
+import Control.Arrow
 
 import Language.LaTeX.Types
 import Language.LaTeX.Data
+import Language.LaTeX.Internal
 import Language.Haskell.TH
 
 $(
@@ -24,7 +26,7 @@ $(
 
   mkMathsCmdArg name = 
     let lname = lowerName name in
-    [sigD lname [t| [MathsItem] -> MathsItem |]
+    [sigD lname [t| MathsItem -> MathsItem |]
     ,valD (varP lname) (normalB [| MathsCmdArg $(stringE name) |]) []
     ]
 
@@ -36,7 +38,7 @@ $(
 
   mkLatexCmd name = 
     let lname = lowerName name in
-    [sigD lname [t| [Latex] -> Latex |]
+    [sigD lname [t| Latex -> Latex |]
     ,valD (varP lname) (normalB [| LatexCmd $(stringE name) |]) []
     ]
 
@@ -48,8 +50,7 @@ $(
       ]
  )
 
-(<<) :: Latex -> [Latex] -> Latex
-(<<) x xs = TexGroup (x:xs)
+texgroup = TexGroup
 
 amp = RawTex " & "
 
@@ -64,16 +65,16 @@ sup x = MathsConcat [RawMaths "^", MathsGroup x]
 
 
 href x y = LatexCmdArgs "href" [x,y]
-person name email = href [string ("mailto:"++email)] [string name]
+person name email = href (string ("mailto:"++email)) (string name)
 
 pt = Pt
 -- em = Em
 cm = Cm
 
-rule x y = LatexCmdArgs "rule" [[x],[LatexSize y]]
+rule x y = LatexCmdArgs "rule" [x,LatexSize y]
 
 -- simulate the <hr> html tag
-hrule = noindent << [rule linewidth (pt 1.5)]
+hrule = texgroup $ noindent <> rule linewidth (pt 1.5)
 
 normSpaces = unlines . map (unwords . words) . lines
 
@@ -98,7 +99,7 @@ protect :: String -> [Latex]
 protect ""        = []
 protect ('\n':cs) = newline : protect cs
 protect (' ':cs)  = uncurry (++) $ (hspace_ . (+1) . length *** protect) $ break (/=' ') cs
-  where hspace_ n = [hspace [LatexSize $ Em $ 1%2 * fromIntegral n]]
+  where hspace_ n = [hspace $ LatexSize $ Em $ 1%2 * fromIntegral n]
 protect (c:cs)    = uncurry (++) $ ((:[]) . string . (c :) *** protect) $ break (`elem` " \n") cs
 
 includegraphics = LatexCmd "includegraphics"
@@ -131,7 +132,7 @@ huge = TexCmd "huge"
 _Huge = TexCmd "Huge"
 _HUGE = TexCmd "HUGE"
 
-newline = LatexCmd "newline" []
+newline = LatexCmd "newline" mempty
 caption = LatexCmd "caption"
 label = LatexCmd "label"
 ref = LatexCmd "ref"
@@ -141,7 +142,7 @@ chapter = LatexCmd "chapter"
 section = LatexCmd "section"
 subsection = LatexCmd "subsection"
 subsubsection = LatexCmd "subsubsection"
-paragraph = TexGroup . (LatexCmd "paragraph" [] :)
+paragraph = TexGroup . (LatexCmd "paragraph" mempty <>)
 bibliography = LatexCmd "bibliography"
 bibliographystyle = LatexCmd "bibliographystyle"
 hspace = LatexCmd "hspace"
@@ -151,9 +152,9 @@ thispagestyle = LatexCmd "thispagestyle"
 setlength = LatexCmd "setlength"
 
 listLikeEnv name items =
-  Environment name [] $ map (TexCmdArg "item" . getLatexItem) items
+  Environment name [] $ mconcat $ map (TexCmdArg "item" . getLatexItem) items
 
-item :: [Latex] -> LatexItem
+item :: Latex -> LatexItem
 item = LatexItem
 
 itemize :: [LatexItem] -> Latex
@@ -184,7 +185,7 @@ documentclass :: Maybe LatexSize -> Maybe LatexPaper -> DocumentClass -> Preambl
 documentclass msize mpaper dc =
   PreambleCmdArgWithOpts "documentclass" (maybeToList (fmap showSize msize) ++
                                           maybeToList (fmap showPaper mpaper))
-                                         [RawTex (showDocumentClass dc)]
+                                         (RawTex (showDocumentClass dc))
 
 usepackage = PreambleCmdArg "usepackage"
 title = PreambleCmdArg "title"
@@ -192,7 +193,7 @@ subtitle = PreambleCmdArg "subtitle"
 date = PreambleCmdArg "date"
 author = PreambleCmdArg "author"
 and = TexCmd "and"
-authors = author . intersperse and
+authors = author . mconcat . intersperse and
 institute = PreambleCmdArg "institute"
 
 -- beamer
