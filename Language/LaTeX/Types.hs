@@ -41,7 +41,7 @@ data DocumentClass = Article
                    | Book
                    | Report
                    | Letter
-                   | OtherDocumentClass
+                   | OtherDocumentClass String
 
 data Preamble = PreambleCmd String
               | PreambleCmdArg String Latex
@@ -119,3 +119,4 @@ showDocumentClass Article = "article"
 showDocumentClass Book    = "book"
 showDocumentClass Report  = "report"
 showDocumentClass Letter  = "letter"
+showDocumentClass (OtherDocumentClass x) = x
