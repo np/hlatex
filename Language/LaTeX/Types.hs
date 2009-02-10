@@ -36,7 +36,9 @@ $(
   )
  )
 
-data Root = Root Preamble Latex
+data Root = Root Preamble Document
+
+data Document = Document ParMode
 
 data DocumentClass = Article
                    | Book
@@ -61,9 +63,7 @@ data Latex = LatexCmd String Latex
            | TexCmd String
            | TexCmdArg String Latex
            | Environment String [String] Latex
-           | MathsBlock MathsItem
            | MathsInline MathsItem
-           | Tabular [Row]
            | LatexSize LatexSize
            | RawTex String
            | TexGroup Latex
@@ -75,6 +75,23 @@ instance Monoid Latex where
   LatexConcat xs `mappend` y              = LatexConcat (xs ++ [y])
   x              `mappend` LatexConcat ys = LatexConcat (x : ys)
   x              `mappend` y              = LatexConcat [x, y]
+
+data ParMode = Para Latex
+             | ParCmd String
+             | ParCmdArg String Latex
+             | ParEnvironmentLR String [String] Latex
+             | DisplayMaths MathsItem
+             | Tabular [Row]
+             | RawParMode String
+             | ParGroup ParMode -- check validity of this
+             | ParConcat [ParMode]
+
+instance Monoid ParMode where
+  mempty  = ParConcat []
+  ParConcat xs `mappend` ParConcat ys = ParConcat (xs ++ ys)
+  ParConcat xs `mappend` y            = ParConcat (xs ++ [y])
+  x            `mappend` ParConcat ys = ParConcat (x : ys)
+  x            `mappend` y            = ParConcat [x, y]
 
 data MathsItem = MathsCmd MathsCmd -- String
                | MathsCmdArg String MathsItem
