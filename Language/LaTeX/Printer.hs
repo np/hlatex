@@ -55,15 +55,24 @@ pp (Environment envName opts contents) = ppEnv envName opts $ pp contents
 
 pp (RawTex s) = text s
 
-pp (MathsBlock m) = text "\\[ " <> ppMaths m <> text " \\]"
 pp (MathsInline m) = text "\\( " <> ppMaths m <> text " \\)"
-
-pp (Tabular rows) =
-  ppEnv "tabular" [] (mconcat (intersperse (backslash <> backslash) $ map ppRow rows))
 
 pp (TexGroup t) = braces $ pp t
 
-pp (LatexConcat contents) = vcat $ map pp contents -- TODO horiz
+pp (LatexConcat contents) = mconcat $ map pp contents
+
+ppParMode :: ParMode -> ShowS
+ppParMode (Para t) = nl <> pp t <> nl <> nl
+ppParMode (ParCmd cmdName) = braces $ backslash <> text cmdName
+ppParMode (ParCmdArg cmdName arg) = backslash <> text cmdName <> braces (pp arg)
+ppParMode (RawParMode x) = text x
+ppParMode (ParGroup p) = braces $ ppParMode p
+ppParMode (ParEnvironmentLR envName opts contents) = ppEnv envName opts $ pp contents
+ppParMode (DisplayMaths m) = text "\\[ " <> ppMaths m <> text " \\]"
+ppParMode (Tabular rows) =
+  ppEnv "tabular" [] (mconcat (intersperse (backslash <> backslash) $ map ppRow rows))
+ppParMode (ParConcat contents) = vcat $ map ppParMode contents
+
 
 ppMaths :: MathsItem -> ShowS
 ppMaths (MathsCmd cmd) = mayBraces (backslash <> text (mathsCmdName cmd))
@@ -86,5 +95,5 @@ ppPreamble (PreambleCmdArgWithOpts cmdName opts arg)
 ppPreamble (PreambleConcat ps) = vcat $ map ppPreamble ps
 
 ppRoot :: Root -> ShowS
-ppRoot (Root preamb doc) = ppPreamble preamb $$ pp doc
+ppRoot (Root preamb (Document doc)) = ppPreamble preamb $$ ppEnv "document" [] (ppParMode doc)
 
