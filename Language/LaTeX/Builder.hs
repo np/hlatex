@@ -65,7 +65,7 @@ sup x = MathsConcat [RawMaths "^", MathsGroup x]
 
 
 href x y = LatexCmdArgs "href" [x,y]
-person name email = href (string ("mailto:"++email)) (string name)
+person name email = href (hstring ("mailto:"++email)) (hstring name)
 
 pt = Pt
 -- em = Em
@@ -78,16 +78,16 @@ hrule = texgroup $ noindent <> rule linewidth (pt 1.5)
 
 normSpaces = unlines . map (unwords . words) . lines
 
-string = RawTex . concatMap char
+hstring = RawTex . concatMap hchar . concat . intersperse "\n" . filter (not . null) . lines
 
-char '\\' = "\backslash"
-char '~' = "$\\tilde{}$"
-char '<' = "\\textless{}"
-char '>' = "\\textgreater{}"
-char '|' = "\\textbar{}"
-char ':' = "$:$"
-char c | c `elem` "#_&{}$%" = ['\\',c]
-       | otherwise          = [c]
+hchar '\\' = "\backslash"
+hchar '~'  = "$\\tilde{}$"
+hchar '<'  = "\\textless{}"
+hchar '>'  = "\\textgreater{}"
+hchar '|'  = "\\textbar{}"
+hchar ':'  = "$:$"
+hchar c | c `elem` "#_&{}$%" = ['\\',c]
+        | otherwise          = [c]
 
 mchar '\\' = "\backslash"
 mchar '~' = "\\tilde{}"
@@ -100,28 +100,28 @@ protect ""        = []
 protect ('\n':cs) = newline : protect cs
 protect (' ':cs)  = uncurry (++) $ (hspace_ . (+1) . length *** protect) $ break (/=' ') cs
   where hspace_ n = [hspace $ LatexSize $ Em $ 1%2 * fromIntegral n]
-protect (c:cs)    = uncurry (++) $ ((:[]) . string . (c :) *** protect) $ break (`elem` " \n") cs
+protect (c:cs)    = uncurry (++) $ ((:[]) . hstring . (c :) *** protect) $ break (`elem` " \n") cs
 
-includegraphics = LatexCmd "includegraphics"
-tableofcontents = TexCmd "tableofcontents"
-vfill = TexCmd "vfill"
-hfill = TexCmd "hfill"
-textwidth = TexCmd "textwidth"
-linewidth = TexCmd "linewidth"
-maketitle = TexCmd "maketitle"
-newpage = TexCmd "newpage"
-par = TexCmd "par"
-topsep = TexCmd "topsep"
-headheight = TexCmd "headheight"
-leftmargin = TexCmd "leftmargin"
-rightmargin = TexCmd "rightmargin"
-listparindent = TexCmd "listparindent"
-parindent = TexCmd "parindent"
-itemindent = TexCmd "itemindent"
-parsep = TexCmd "parsep"
-parskip = TexCmd "parskip"
-hline = TexCmd "hline"
-noindent = TexCmd "noindent"
+includegraphics = ParCmdArg "includegraphics"
+tableofcontents = TexCmd "tableofcontents" -- TODO
+vfill = TexCmd "vfill" -- TODO
+hfill = TexCmd "hfill" -- TODO
+textwidth = TexCmd "textwidth" -- TODO
+linewidth = TexCmd "linewidth" -- TODO
+maketitle = ParCmd "maketitle"
+newpage = TexCmd "newpage" -- TODO
+par = TexCmd "par" -- TODO
+topsep = TexCmd "topsep" -- TODO
+headheight = TexCmd "headheight" -- TODO
+leftmargin = TexCmd "leftmargin" -- TODO
+rightmargin = TexCmd "rightmargin" -- TODO
+listparindent = TexCmd "listparindent" -- TODO
+parindent = TexCmd "parindent" -- TODO
+itemindent = TexCmd "itemindent" -- TODO
+parsep = TexCmd "parsep" -- TODO
+parskip = TexCmd "parskip" -- TODO
+hline = TexCmd "hline" -- TODO
+noindent = TexCmd "noindent" -- TODO
 
 -- those could be seen as taking an argument
 _Large = TexCmd "Large"
@@ -132,17 +132,20 @@ huge = TexCmd "huge"
 _Huge = TexCmd "Huge"
 _HUGE = TexCmd "HUGE"
 
-newline = LatexCmd "newline" mempty
+newline = TexCmd "newline"
 caption = LatexCmd "caption"
 label = LatexCmd "label"
 ref = LatexCmd "ref"
 cite = LatexCmd "cite"
-part = LatexCmd "part"
-chapter = LatexCmd "chapter"
-section = LatexCmd "section"
-subsection = LatexCmd "subsection"
-subsubsection = LatexCmd "subsubsection"
-paragraph = TexGroup . (LatexCmd "paragraph" mempty <>)
+
+part = ParCmdArg "part"
+chapter = ParCmdArg "chapter"
+section = ParCmdArg "section"
+subsection = ParCmdArg "subsection"
+subsubsection = ParCmdArg "subsubsection"
+-- paragraph and subparagraph are omitted on purpose
+
+para = Para
 bibliography = LatexCmd "bibliography"
 bibliographystyle = LatexCmd "bibliographystyle"
 hspace = LatexCmd "hspace"
@@ -152,21 +155,21 @@ thispagestyle = LatexCmd "thispagestyle"
 setlength = LatexCmd "setlength"
 
 listLikeEnv name items =
-  Environment name [] $ mconcat $ map (TexCmdArg "item" . getLatexItem) items
+  ParEnvironmentLR name [] $ mconcat $ map (TexCmdArg "item" . getLatexItem) items
 
 item :: Latex -> LatexItem
 item = LatexItem
 
-itemize :: [LatexItem] -> Latex
+itemize :: [LatexItem] -> ParMode
 itemize = listLikeEnv "itemize"
-enumerate :: [LatexItem] -> Latex
+enumerate :: [LatexItem] -> ParMode
 enumerate = listLikeEnv "enumerate"
 
-document = Environment "document"
-titlepage = Environment "titlepage"
-flushleft = Environment "flushleft"
-figure = Environment "figure"
-boxedminipage = Environment "boxedminipage"
+document = Document
+titlepage = ParEnvironmentLR "titlepage"
+flushleft = ParEnvironmentLR "flushleft"
+figure = ParEnvironmentLR "figure"
+boxedminipage = ParEnvironmentLR "boxedminipage" -- parmode?
 
 -- tabular ...
 
