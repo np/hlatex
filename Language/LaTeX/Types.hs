@@ -2,14 +2,12 @@
 module Language.LaTeX.Types where
 
 import Prelude hiding (and)
-import Data.Monoid
+import Data.Monoid ()
 import Data.List hiding (and)
 import Data.Char
-import Data.Ratio ((%), numerator, denominator)
+import Data.Ratio (numerator, denominator)
 import GHC.Float (formatRealFloat, FFFormat(FFFixed))
 import Control.Monad.Writer
-import Control.Applicative
-import Control.Arrow
 import Language.Haskell.TH
 import Language.LaTeX.Data
 
