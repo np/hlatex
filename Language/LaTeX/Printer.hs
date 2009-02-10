@@ -68,7 +68,9 @@ ppParMode (ParCmdArg cmdName arg) = backslash <> text cmdName <> braces (pp arg)
 ppParMode (RawParMode x) = text x
 ppParMode (ParGroup p) = braces $ ppParMode p
 ppParMode (ParEnvironmentLR envName opts contents) = ppEnv envName opts $ pp contents
+ppParMode (ParEnvironmentPar envName opts contents) = ppEnv envName opts $ ppParMode contents
 ppParMode (DisplayMaths m) = text "\\[ " <> ppMaths m <> text " \\]"
+ppParMode (Equation m) = ppEnv "equation" [] (vcat $ map ppMaths m)
 ppParMode (Tabular rows) =
   ppEnv "tabular" [] (mconcat (intersperse (backslash <> backslash) $ map ppRow rows))
 ppParMode (ParConcat contents) = vcat $ map ppParMode contents
@@ -77,6 +79,8 @@ ppParMode (ParConcat contents) = vcat $ map ppParMode contents
 ppMaths :: MathsItem -> ShowS
 ppMaths (MathsCmd cmd) = mayBraces (backslash <> text (mathsCmdName cmd))
 ppMaths (MathsCmdArg cmdName m) = mayBraces (backslash<>text cmdName<>braces (ppMaths m))
+ppMaths (MathsCmd2Args cmdName m1 m2) = mayBraces (backslash<>text cmdName<>
+                                                   braces (ppMaths m1)<>braces (ppMaths m2))
 ppMaths (MathsCmdArgNoMath cmdName ss) = mayBraces (backslash <> text cmdName <> braces (mconcat $ map text ss))
 ppMaths (RawMaths s) = text s
 ppMaths (MathsInt i) = shows i
