@@ -22,14 +22,17 @@ $(
   let sigValD n ty e = [sigD n ty, valD (varP n) (normalB e) []]
       upperMCName name = mkName ("MC"++name)
       mkCon (name, _) = normalC (upperMCName name) []
-      other = normalC (mkName "OtherMathsCmd") [liftM2 (,) notStrict [t| String |]]
+      otherMathsCmd = mkName "OtherMathsCmd"
+      other = normalC otherMathsCmd [liftM2 (,) notStrict [t| String |]]
       mathsCmd = mkName "MathsCmd"
       mkClause (name, cmd) = match (conP (upperMCName name) []) (normalB (stringE cmd)) []
+      catchAll = match (conP otherMathsCmd [varP x]) (normalB (varE x)) []
+        where x = mkName "x"
   in
   sequence
   (dataD (return []) mathsCmd [] (map mkCon mathsCmds ++ [other]) [''Eq]
   :sigValD (mkName "mathsCmdName") (arrowT `appT` conT mathsCmd `appT` [t| String |])
-     [| \x -> $(caseE [| x |] (map mkClause mathsCmds)) |]
+     [| \x -> $(caseE [| x |] (map mkClause mathsCmds ++ [catchAll])) |]
   )
  )
 
