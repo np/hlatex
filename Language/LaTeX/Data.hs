@@ -11,6 +11,7 @@ mathsCmds =
   [("lbrace", "{")
   ,("rbrace", "}")
   ,("space", " ")
+  ,("at", "@")
   ,("in_", "in")
   ,("forall_", "forall")
   ] ++ map (id &&& id)
@@ -52,9 +53,11 @@ mathsCmdsArg =
    "mathbf","mathbb","mathcal","mathtt","mathfrak"
   ]
 
-texCmds = ["em","bf","it","sc"]
+typeStyles = ["em","bf","sf","sl","sc","it","tt"]
 
-latexCmds = ["textem", "textbf", "textit", "textsc"]
+texCmds = typeStyles
+
+latexCmds = map ("text"++) typeStyles
 
 lowerName name | isLower (head name) = mkName name
                | otherwise           = mkName $ '_':name
