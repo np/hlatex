@@ -14,17 +14,17 @@ ex = B.root expreamb exdoc
 
 expreamb = B.documentclass (Just (B.pt 11)) (Just B.a4paper) B.book
 
-exdoc = B.document [] $
-     B.part (B.string "The prologue")
-  <> B.chapter (B.string "Introduction")
-  <> B.section (B.string "The context")
-  <> B.subsection (B.string "The precise context")
-  <> B.paragraph (B.string "The initial formula was " <>
-                  B.maths (B.sum <> B.sub (B.mstring "i = 0") <> B.sup (B.infty) <>
-                           B.mstring "i" <> B.sup (B.mint 2) <> B.alpha) <>
-                  B.string " but it turns out to be not that accurate.")
-  <> B.section (B.string "The action plan")
-  <> B.itemize [B.item (B.string "Find a better formula")
-               ,B.item (B.string "Write some proofs about it")
-               ,B.item (B.string "Convince people around that this one is much better")]
-  <> B.chapter (B.string "Related Works")
+exdoc = B.document $
+     B.part (B.hstring "The prologue")
+  <> B.chapter (B.hstring "Introduction")
+  <> B.section (B.hstring "The context")
+  <> B.subsection (B.hstring "The precise context")
+  <> B.para (B.hstring "The initial formula was " <>
+             B.maths (B.sum <> B.sub (B.mstring "i = 0") <> B.sup (B.infty) <>
+                      B.mstring "i" <> B.sup (B.mint 2) <> B.alpha) <>
+             B.hstring " but it turns out to be not that accurate.")
+  <> B.section (B.hstring "The action plan")
+  <> B.itemize [B.item (B.hstring "Find a better formula")
+               ,B.item (B.hstring "Write some proofs about it")
+               ,B.item (B.hstring "Convince people around that this one is much better")]
+  <> B.chapter (B.hstring "Related Works")
