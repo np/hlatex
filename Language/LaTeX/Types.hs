@@ -35,7 +35,7 @@ $(
   )
  )
 
-data Root = Root [Preamble] [Latex]
+data Root = Root Preamble Latex
 
 data DocumentClass = Article
                    | Book
@@ -44,28 +44,51 @@ data DocumentClass = Article
                    | OtherDocumentClass
 
 data Preamble = PreambleCmd String
-              | PreambleCmdArg String [Latex]
-              | PreambleCmdArgWithOpts String [String] [Latex]
+              | PreambleCmdArg String Latex
+              | PreambleCmdArgWithOpts String [String] Latex
+              | PreambleConcat [Preamble]
 
-data Latex = LatexCmd String [Latex]
-           | LatexCmdArgs String [[Latex]]
+instance Monoid Preamble where
+  mempty  = PreambleConcat []
+  PreambleConcat xs `mappend` PreambleConcat ys = PreambleConcat (xs ++ ys)
+  PreambleConcat xs `mappend` y                 = PreambleConcat (xs ++ [y])
+  x                 `mappend` PreambleConcat ys = PreambleConcat (x : ys)
+  x                 `mappend` y                 = PreambleConcat [x, y]
+
+data Latex = LatexCmd String Latex
+           | LatexCmdArgs String [Latex]
            | TexCmd String
-           | TexCmdArg String [Latex]
-           | Environment String [String] [Latex]
-           | MathsBlock [MathsItem]
-           | MathsInline [MathsItem]
+           | TexCmdArg String Latex
+           | Environment String [String] Latex
+           | MathsBlock MathsItem
+           | MathsInline MathsItem
            | Tabular [Row]
            | LatexSize LatexSize
            | RawTex String
-           | TexGroup [Latex]
+           | TexGroup Latex
+           | LatexConcat [Latex]
+
+instance Monoid Latex where
+  mempty  = LatexConcat []
+  LatexConcat xs `mappend` LatexConcat ys = LatexConcat (xs ++ ys)
+  LatexConcat xs `mappend` y              = LatexConcat (xs ++ [y])
+  x              `mappend` LatexConcat ys = LatexConcat (x : ys)
+  x              `mappend` y              = LatexConcat [x, y]
 
 data MathsItem = MathsCmd MathsCmd -- String
-               | MathsCmdArg String [MathsItem]
+               | MathsCmdArg String MathsItem
                | MathsCmdArgNoMath String [String]
                | RawMaths String
                | MathsInt Int
-               | MathsGroup [MathsItem]
+               | MathsGroup MathsItem
                | MathsConcat [MathsItem]
+
+instance Monoid MathsItem where
+  mempty  = MathsConcat []
+  MathsConcat xs `mappend` MathsConcat ys = MathsConcat (xs ++ ys)
+  MathsConcat xs `mappend` y              = MathsConcat (xs ++ [y])
+  x              `mappend` MathsConcat ys = MathsConcat (x : ys)
+  x              `mappend` y              = MathsConcat [x, y]
 
 data LatexSize = Pt Rational
                | Em Rational
@@ -73,11 +96,11 @@ data LatexSize = Pt Rational
 
 data LatexPaper = A4paper
 
-newtype Row = Row { getRaw :: [Latex] }
+newtype Row = Row { getRow :: [Latex] }
 
-newtype LatexItem = LatexItem { getLatexItem :: [Latex] }
+newtype LatexItem = LatexItem { getLatexItem :: Latex }
 
-type LatexM = Writer [Latex] ()
+type LatexM = Writer Latex ()
 
 showSize :: LatexSize -> String
 showSize s =
