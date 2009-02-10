@@ -54,6 +54,13 @@ texgroup = TexGroup
 
 amp = RawTex " & "
 
+dash1 = RawTex "{-}"
+dash2 = RawTex "{--}"
+dash3 = RawTex "{---}"
+
+nbsp = RawTex "{~}"
+tilde = nbsp
+
 maths = MathsInline
 mathsBlock = MathsInline
 
@@ -62,7 +69,11 @@ mint = MathsInt
 
 sub x = MathsConcat [RawMaths "_", MathsGroup x]
 sup x = MathsConcat [RawMaths "^", MathsGroup x]
+frac x y = MathsCmdArgs "frac" [] [x,y]
+sqrt x = MathsCmdArgs "sqrt" [] [x]
 
+sqrt' :: Int -> MathsItem -> MathsItem
+sqrt' n x = MathsCmdArgs "sqrt" [show n] [x]
 
 href x y = LatexCmdArgs "href" [x,y]
 person name email = href (hstring ("mailto:"++email)) (hstring name)
@@ -86,12 +97,14 @@ hchar '<'  = "\\textless{}"
 hchar '>'  = "\\textgreater{}"
 hchar '|'  = "\\textbar{}"
 hchar ':'  = "$:$"
+hchar '-'  = "{-}" -- to avoid multiple dashes
 hchar c | c `elem` "#_&{}$%" = ['\\',c]
         | otherwise          = [c]
 
 mchar '\\' = "\backslash"
-mchar '~' = "\\tilde{}"
-mchar ':' = ":"
+mchar '~'  = "\\tilde{}"
+mchar ':'  = ":"
+mchar '-'  = "{-}" -- to avoid multiple dashes
 mchar c | c `elem` "#_&{}$%" = ['\\',c]
         | otherwise          = [c]
 
@@ -133,6 +146,9 @@ _Huge = TexCmd "Huge"
 _HUGE = TexCmd "HUGE"
 
 newline = TexCmd "newline"
+
+mbox = LatexCmd "mbox"
+footnote = LatexCmd "footnote"
 caption = LatexCmd "caption"
 label = LatexCmd "label"
 ref = LatexCmd "ref"
@@ -164,12 +180,17 @@ itemize :: [LatexItem] -> ParMode
 itemize = listLikeEnv "itemize"
 enumerate :: [LatexItem] -> ParMode
 enumerate = listLikeEnv "enumerate"
+description :: [LatexItem] -> ParMode
+description = listLikeEnv "description"
 
 document = Document
 titlepage = ParEnvironmentLR "titlepage"
 flushleft = ParEnvironmentLR "flushleft"
 figure = ParEnvironmentLR "figure"
 boxedminipage = ParEnvironmentLR "boxedminipage" -- parmode?
+quote = ParEnvironmentLR "quote"
+quotation = ParEnvironmentPar "quotation"
+verse = ParEnvironmentPar "verse"
 
 -- tabular ...
 
