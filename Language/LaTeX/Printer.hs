@@ -10,13 +10,18 @@ import Language.LaTeX.Internal
 text :: String -> ShowS
 text = showString
 
-braces, brackets :: ShowS -> ShowS
-braces x = text "{" <> x <> text "}"
-brackets x = text "[" <> x <> text "]"
+between opening closing x = text opening <> x <> text closing
 
-nl, backslash :: ShowS
+braces, brackets :: ShowS -> ShowS
+braces   = between "{" "}"
+brackets = between "[" "]"
+parens   = between "(" ")"
+
+
+nl, backslash, sp :: ShowS
 backslash = text "\\"
 nl = text "\n"
+sp = text " "
 
 ($$) :: ShowS -> ShowS -> ShowS
 ($$) x y = x <> nl <> y
@@ -95,6 +100,7 @@ ppMaths (RawMaths s) = text s
 ppMaths (MathsInt i) = shows i
 ppMaths (MathsGroup m) = braces $ ppMaths m
 ppMaths (MathsConcat ms) = mconcat $ map ppMaths ms
+ppMaths (MathsBinOp op l r) = parens (ppMaths l <> sp <> text op <> sp <> ppMaths r)
 
 ppRow :: Row -> ShowS
 ppRow = mconcat . map pp . intersperse amp . getRow
