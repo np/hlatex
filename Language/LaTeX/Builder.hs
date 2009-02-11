@@ -96,6 +96,8 @@ person name email = href (hstring ("mailto:"++email)) (hstring name)
 pt = Pt
 -- em = Em
 cm = Cm
+mm = Mm
+xm = Xm
 
 rule x y = LatexCmdArgs "rule" [] [x,LatexSize y]
 
