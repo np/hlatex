@@ -30,7 +30,7 @@ $(
         where x = mkName "x"
   in
   sequence
-  (dataD (return []) mathsCmd [] (map mkCon mathsCmds ++ [other]) [''Eq]
+  (dataD (return []) mathsCmd [] (map mkCon mathsCmds ++ [other]) [''Eq, ''Show]
   :sigValD (mkName "mathsCmdName") (arrowT `appT` conT mathsCmd `appT` [t| String |])
      [| \x -> $(caseE [| x |] (map mkClause mathsCmds ++ [catchAll])) |]
   )
@@ -71,6 +71,7 @@ data Latex = LatexCmd String Latex
            | RawTex String
            | TexGroup Latex
            | LatexConcat [Latex]
+  deriving (Show, Eq)
 
 instance Monoid Latex where
   mempty  = LatexConcat []
@@ -91,6 +92,7 @@ data ParMode = Para Latex
              | RawParMode String
              | ParGroup ParMode -- check validity of this
              | ParConcat [ParMode]
+  deriving (Show, Eq)
 
 instance Monoid ParMode where
   mempty  = ParConcat []
@@ -105,9 +107,12 @@ data MathsItem = MathsCmd MathsCmd -- String
                | MathsCmdArgs String [Opts] [MathsItem]
                | MathsCmdArgNoMath String [String]
                | RawMaths String
-               | MathsInt Int
+               | MathsInt Integer
                | MathsGroup MathsItem
                | MathsConcat [MathsItem]
+               | MathsBinOp String MathsItem MathsItem
+               | MathsUnOp String MathsItem
+  deriving (Show, Eq)
 
 instance Monoid MathsItem where
   mempty  = MathsConcat []
@@ -116,15 +121,26 @@ instance Monoid MathsItem where
   x              `mappend` MathsConcat ys = MathsConcat (x : ys)
   x              `mappend` y              = MathsConcat [x, y]
 
+instance Num MathsItem where
+  (+) = MathsBinOp "+"
+  (*) = MathsBinOp "*"
+  (-) = MathsBinOp "-"
+  negate = MathsUnOp "-"
+  abs = MathsCmdArg "abs" -- TODO check
+  signum = error "MathsItem.signum undefined"
+  fromInteger = MathsInt
+
 data LatexSize = Pt Rational
                | Em Rational
                | Xm Rational
                | Cm Rational
                | Mm Rational
+  deriving (Show, Eq)
 
 data LatexPaper = A4paper
 
 newtype Row = Row { getRow :: [Latex] }
+  deriving (Show, Eq)
 
 data Item = Item { itemLabel :: Maybe String, itemContents :: ParMode }
 
