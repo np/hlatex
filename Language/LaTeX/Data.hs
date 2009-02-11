@@ -4,7 +4,7 @@ import Data.Char
 import Control.Arrow
 import Language.Haskell.TH
 
-mathsCmdsArg, texCmds, latexCmds :: [String]
+mathsCmdsArg, texDecls, latexCmds :: [String]
 mathsCmds :: [(String, String)]
 
 mathsCmds =
@@ -55,7 +55,7 @@ mathsCmdsArg =
 
 typeStyles = ["em","bf","sf","sl","sc","it","tt"]
 
-texCmds = typeStyles
+texDecls = typeStyles
 
 latexCmds = map ("text"++) typeStyles
 
