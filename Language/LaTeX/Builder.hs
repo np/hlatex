@@ -76,8 +76,8 @@ sqrt' :: Int -> MathsItem -> MathsItem
 sqrt' n x = MathsCmdArgs "sqrt" [[show n]] [x]
 
 mleft, mright :: Char -> MathsItem
-mleft x = RawMaths ("\\left" ++ [checkParens x])
-mright x = RawMaths ("\\right" ++ [checkParens x])
+mleft x = RawMaths ("\\left" ++ parenChar x)
+mright x = RawMaths ("\\right" ++ parenChar x)
 
 between opening closing x = mleft opening <> x <> mright closing
 
@@ -85,8 +85,10 @@ parens   = between '(' ')'
 braces   = between '{' '}'
 brackets = between '[' ']'
 
-checkParens x | x `elem` "([{}])" = x
-              | otherwise         = error $ "checkParens: invalid parenthesis-like: " ++ show x
+parenChar x | x `elem` "([.])" = [x]
+            | x == '{'         = "\\{"
+            | x == '}'         = "\\}"
+            | otherwise        = error $ "invalid parenthesis-like: " ++ show x
 
 href x y = LatexCmdArgs "href" [] [x,y]
 person name email = href (hstring ("mailto:"++email)) (hstring name)
