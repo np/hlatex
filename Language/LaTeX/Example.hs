@@ -24,7 +24,7 @@ exdoc = B.document $
                       B.mstring "i" <> B.sup (B.mint 2) <> B.alpha) <>
              B.hstring " but it turns out to be not that accurate.")
   <> B.section (B.hstring "The action plan")
-  <> B.itemize [B.item (B.hstring "Find a better formula")
-               ,B.item (B.hstring "Write some proofs about it")
-               ,B.item (B.hstring "Convince people around that this one is much better")]
+  <> B.itemize [B.item (B.para $ B.hstring "Find a better formula")
+               ,B.item (B.pstring "Write some proofs about it")
+               ,B.item (B.pstring "Convince people around that this one is much better")]
   <> B.chapter (B.hstring "Related Works")
