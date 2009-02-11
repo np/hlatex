@@ -61,8 +61,9 @@ instance Monoid Preamble where
   x                 `mappend` y                 = PreambleConcat [x, y]
 
 data Latex = LatexCmd String Latex
-           | LatexCmdArgs String [Latex]
-           | TexCmd String
+           | LatexCmdArgs String [Opts] [Latex] -- ^ Neither args nor options are mandatory
+           | TexDecl String Opts
+           | TexCmdNoArg String
            | TexCmdArg String Latex
            | Environment String Opts Latex
            | MathsInline MathsItem
@@ -79,8 +80,9 @@ instance Monoid Latex where
   x              `mappend` y              = LatexConcat [x, y]
 
 data ParMode = Para Latex
-             | ParCmd String
+             | ParDecl String Opts
              | ParCmdArg String Latex
+             | ParCmdArgs String [Opts] [Latex]
              | ParEnvironmentLR String Opts Latex
              | ParEnvironmentPar String Opts ParMode
              | DisplayMaths MathsItem
@@ -98,8 +100,9 @@ instance Monoid ParMode where
   x            `mappend` y            = ParConcat [x, y]
 
 data MathsItem = MathsCmd MathsCmd -- String
+               | MathsDecl String Opts
                | MathsCmdArg String MathsItem
-               | MathsCmdArgs String Opts [MathsItem]
+               | MathsCmdArgs String [Opts] [MathsItem]
                | MathsCmdArgNoMath String [String]
                | RawMaths String
                | MathsInt Int
@@ -115,13 +118,15 @@ instance Monoid MathsItem where
 
 data LatexSize = Pt Rational
                | Em Rational
+               | Xm Rational
                | Cm Rational
+               | Mm Rational
 
 data LatexPaper = A4paper
 
 newtype Row = Row { getRow :: [Latex] }
 
-newtype LatexItem = LatexItem { getLatexItem :: Latex }
+data Item = Item { itemLabel :: Maybe String, itemContents :: ParMode }
 
 type LatexM = Writer Latex ()
 
@@ -129,7 +134,9 @@ showSize :: LatexSize -> String
 showSize s =
   case s of
     Cm i -> showr i ++ "cm" 
+    Mm i -> showr i ++ "mm" 
     Em i -> showr i ++ "em" 
+    Xm i -> showr i ++ "xm" 
     Pt i -> showr i ++ "pt" 
   where showr r | denominator r == 1 = show $ numerator r
                 | otherwise          = formatRealFloat FFFixed (Just 2) (fromRational r :: Double)
