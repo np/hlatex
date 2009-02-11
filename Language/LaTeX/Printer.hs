@@ -24,14 +24,21 @@ nl = text "\n"
 vcat :: [ShowS] -> ShowS
 vcat = mconcat . intersperse nl
 
-ppOpts :: [String] -> ShowS
-ppOpts opts | null opts = text ""
-            | otherwise = brackets (text $ intercalate "," opts)
+ppOpts :: Opts -> ShowS
+ppOpts []   = text ""
+ppOpts opts = brackets (text $ intercalate "," opts)
 
 ppEnv :: String -> [String] -> ShowS -> ShowS
 ppEnv envName opts contents =
   text "\\begin" <> braces (text envName) <> ppOpts opts <> nl <>
   contents <> text "\n\\end" <> braces (text envName) <> nl
+
+ppLatexCmdArgs :: String -> [Opts] -> [ShowS] -> ShowS
+ppLatexCmdArgs cmdName optss args
+ = mayBraces (backslash <> text cmdName <> mconcat (map ppOpts optss) <> mconcat (map braces args))
+
+ppDecl :: String -> Opts -> ShowS
+ppDecl declName opts = backslash <> text declName <> ppOpts opts <> text " " -- or {}
 
 mayBraces :: ShowS -> ShowS
 mayBraces = braces
@@ -41,12 +48,13 @@ pp :: Latex -> ShowS
 pp (LatexCmd cmdName contents)
  = mayBraces (backslash <> text cmdName <> braces (pp contents))
 
-pp (LatexCmdArgs cmdName args)
- = mayBraces (backslash <> text cmdName <> mconcat (map (braces . pp) args))
+pp (LatexCmdArgs cmdName optss args) = ppLatexCmdArgs cmdName optss $ map pp args
 
 pp (LatexSize size) = text $ showSize size
 
-pp (TexCmd cmdName) = mayBraces (backslash <> text cmdName)
+pp (TexDecl cmdName opts) = ppDecl cmdName opts
+
+pp (TexCmdNoArg cmdName) = ppLatexCmdArgs cmdName [] []
 
 pp (TexCmdArg cmdName contents)
  = braces (backslash <> text cmdName <> text " " <> pp contents)
@@ -63,8 +71,9 @@ pp (LatexConcat contents) = mconcat $ map pp contents
 
 ppParMode :: ParMode -> ShowS
 ppParMode (Para t) = nl <> pp t <> nl <> nl
-ppParMode (ParCmd cmdName) = braces $ backslash <> text cmdName
 ppParMode (ParCmdArg cmdName arg) = backslash <> text cmdName <> braces (pp arg)
+ppParMode (ParCmdArgs cmdName optss args) = ppLatexCmdArgs cmdName optss $ map pp args
+ppParMode (ParDecl declName opts) = ppDecl declName opts
 ppParMode (RawParMode x) = text x
 ppParMode (ParGroup p) = braces $ ppParMode p
 ppParMode (ParEnvironmentLR envName opts contents) = ppEnv envName opts $ pp contents
@@ -77,10 +86,10 @@ ppParMode (ParConcat contents) = vcat $ map ppParMode contents
 
 
 ppMaths :: MathsItem -> ShowS
+ppMaths (MathsDecl decl opts) = ppDecl decl opts
 ppMaths (MathsCmd cmd) = mayBraces (backslash <> text (mathsCmdName cmd))
 ppMaths (MathsCmdArg cmdName m) = mayBraces (backslash<>text cmdName<>braces (ppMaths m))
-ppMaths (MathsCmd2Args cmdName m1 m2) = mayBraces (backslash<>text cmdName<>
-                                                   braces (ppMaths m1)<>braces (ppMaths m2))
+ppMaths (MathsCmdArgs cmdName optss args) = ppLatexCmdArgs cmdName optss $ map ppMaths args
 ppMaths (MathsCmdArgNoMath cmdName ss) = mayBraces (backslash <> text cmdName <> braces (mconcat $ map text ss))
 ppMaths (RawMaths s) = text s
 ppMaths (MathsInt i) = shows i
