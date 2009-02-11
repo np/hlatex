@@ -16,7 +16,7 @@ import Language.Haskell.TH
 
 $(
  let
-  mkMathsCmd (name, _) = 
+  mkMathsCmd (name, _) =
     let lname = lowerName name
         upperMCName = mkName ("MC"++name)
     in
@@ -24,19 +24,19 @@ $(
     ,valD (varP lname) (normalB [| MathsCmd $(conE upperMCName) |]) []
     ]
 
-  mkMathsCmdArg name = 
+  mkMathsCmdArg name =
     let lname = lowerName name in
     [sigD lname [t| MathsItem -> MathsItem |]
     ,valD (varP lname) (normalB [| MathsCmdArg $(stringE name) |]) []
     ]
 
-  mkTexCmd name = 
+  mkTexDecl name =
     let lname = lowerName name in
     [sigD lname [t| Latex |]
-    ,valD (varP lname) (normalB [| TexCmd $(stringE name) |]) []
+    ,valD (varP lname) (normalB [| TexDecl $(stringE name) [] |]) []
     ]
 
-  mkLatexCmd name = 
+  mkLatexCmd name =
     let lname = lowerName name in
     [sigD lname [t| Latex -> Latex |]
     ,valD (varP lname) (normalB [| LatexCmd $(stringE name) |]) []
@@ -45,7 +45,7 @@ $(
  in sequence $ concat $ concat
       [ map mkMathsCmd mathsCmds
       , map mkMathsCmdArg mathsCmdsArg
-      , map mkTexCmd texCmds
+      , map mkTexDecl texDecls
       , map mkLatexCmd latexCmds
       ]
  )
@@ -73,16 +73,29 @@ frac x y = MathsCmdArgs "frac" [] [x,y]
 sqrt x = MathsCmdArgs "sqrt" [] [x]
 
 sqrt' :: Int -> MathsItem -> MathsItem
-sqrt' n x = MathsCmdArgs "sqrt" [show n] [x]
+sqrt' n x = MathsCmdArgs "sqrt" [[show n]] [x]
 
-href x y = LatexCmdArgs "href" [x,y]
+mleft, mright :: Char -> MathsItem
+mleft x = RawMaths ("\\left" ++ [checkParens x])
+mright x = RawMaths ("\\right" ++ [checkParens x])
+
+between opening closing x = mleft opening <> x <> mright closing
+
+parens   = between '(' ')'
+braces   = between '{' '}'
+brackets = between '[' ']'
+
+checkParens x | x `elem` "([{}])" = x
+              | otherwise         = error $ "checkParens: invalid parenthesis-like: " ++ show x
+
+href x y = LatexCmdArgs "href" [] [x,y]
 person name email = href (hstring ("mailto:"++email)) (hstring name)
 
 pt = Pt
 -- em = Em
 cm = Cm
 
-rule x y = LatexCmdArgs "rule" [x,LatexSize y]
+rule x y = LatexCmdArgs "rule" [] [x,LatexSize y]
 
 -- simulate the <hr> html tag
 hrule = texgroup $ noindent <> rule linewidth (pt 1.5)
@@ -90,6 +103,8 @@ hrule = texgroup $ noindent <> rule linewidth (pt 1.5)
 normSpaces = unlines . map (unwords . words) . lines
 
 hstring = RawTex . concatMap hchar . concat . intersperse "\n" . filter (not . null) . lines
+
+pstring = para . hstring
 
 hchar '\\' = "\backslash"
 hchar '~'  = "$\\tilde{}$"
@@ -115,37 +130,37 @@ protect (' ':cs)  = uncurry (++) $ (hspace_ . (+1) . length *** protect) $ break
   where hspace_ n = [hspace $ LatexSize $ Em $ 1%2 * fromIntegral n]
 protect (c:cs)    = uncurry (++) $ ((:[]) . hstring . (c :) *** protect) $ break (`elem` " \n") cs
 
-includegraphics = ParCmdArg "includegraphics"
-tableofcontents = TexCmd "tableofcontents" -- TODO
-vfill = TexCmd "vfill" -- TODO
-hfill = TexCmd "hfill" -- TODO
-textwidth = TexCmd "textwidth" -- TODO
-linewidth = TexCmd "linewidth" -- TODO
-maketitle = ParCmd "maketitle"
-newpage = TexCmd "newpage" -- TODO
-par = TexCmd "par" -- TODO
-topsep = TexCmd "topsep" -- TODO
-headheight = TexCmd "headheight" -- TODO
-leftmargin = TexCmd "leftmargin" -- TODO
-rightmargin = TexCmd "rightmargin" -- TODO
-listparindent = TexCmd "listparindent" -- TODO
-parindent = TexCmd "parindent" -- TODO
-itemindent = TexCmd "itemindent" -- TODO
-parsep = TexCmd "parsep" -- TODO
-parskip = TexCmd "parskip" -- TODO
-hline = TexCmd "hline" -- TODO
-noindent = TexCmd "noindent" -- TODO
+includegraphics = ParCmdArgs "includegraphics"
+tableofcontents = TexCmdNoArg "tableofcontents" -- TODO
+vfill = TexCmdNoArg "vfill" -- TODO
+hfill = TexCmdNoArg "hfill" -- TODO
+textwidth = TexCmdNoArg "textwidth" -- TODO
+linewidth = TexCmdNoArg "linewidth" -- TODO
+maketitle = ParCmdArgs "maketitle" [] []
+newpage = TexCmdNoArg "newpage" -- TODO
+par = TexCmdNoArg "par" -- TODO
+topsep = TexCmdNoArg "topsep" -- TODO
+headheight = TexCmdNoArg "headheight" -- TODO
+leftmargin = TexCmdNoArg "leftmargin" -- TODO
+rightmargin = TexCmdNoArg "rightmargin" -- TODO
+listparindent = TexCmdNoArg "listparindent" -- TODO
+parindent = TexCmdNoArg "parindent" -- TODO
+itemindent = TexCmdNoArg "itemindent" -- TODO
+parsep = TexCmdNoArg "parsep" -- TODO
+parskip = TexCmdNoArg "parskip" -- TODO
+hline = TexCmdNoArg "hline" -- TODO
+noindent = TexCmdNoArg "noindent" -- TODO
 
 -- those could be seen as taking an argument
-_Large = TexCmd "Large"
-mdseries = TexCmd "mdseries"
-ssfamily = TexCmd "ssfamily"
-small = TexCmd "small"
-huge = TexCmd "huge"
-_Huge = TexCmd "Huge"
-_HUGE = TexCmd "HUGE"
+_Large = TexDecl "Large" []
+mdseries = TexDecl "mdseries" []
+ssfamily = TexDecl "ssfamily" []
+small = TexDecl "small" []
+huge = TexDecl "huge" []
+_Huge = TexDecl "Huge" []
+_HUGE = TexDecl "HUGE" []
 
-newline = TexCmd "newline"
+newline = TexCmdNoArg "newline"
 
 mbox = LatexCmd "mbox"
 footnote = LatexCmd "footnote"
@@ -154,11 +169,11 @@ label = LatexCmd "label"
 ref = LatexCmd "ref"
 cite = LatexCmd "cite"
 
-part = ParCmdArg "part"
-chapter = ParCmdArg "chapter"
-section = ParCmdArg "section"
-subsection = ParCmdArg "subsection"
-subsubsection = ParCmdArg "subsubsection"
+part          = ParCmdArg "part" -- TODO options
+chapter       = ParCmdArg "chapter" -- TODO options
+section       = ParCmdArg "section" -- TODO options
+subsection    = ParCmdArg "subsection" -- TODO options
+subsubsection = ParCmdArg "subsubsection" -- TODO options
 -- paragraph and subparagraph are omitted on purpose
 
 para = Para
@@ -171,23 +186,27 @@ thispagestyle = LatexCmd "thispagestyle"
 setlength = LatexCmd "setlength"
 
 listLikeEnv name items =
-  ParEnvironmentLR name [] $ mconcat $ map (TexCmdArg "item" . getLatexItem) items
+  ParEnvironmentPar name [] $ mconcat $ map mkItem items
+  where mkItem (Item mlabel contents) = ParDecl "item" (maybeToList mlabel) <> contents
 
-item :: Latex -> LatexItem
-item = LatexItem
+item :: ParMode -> Item
+item = Item Nothing
 
-itemize :: [LatexItem] -> ParMode
+item' :: String -> ParMode -> Item
+item' = Item . Just
+
+itemize :: [Item] -> ParMode
 itemize = listLikeEnv "itemize"
-enumerate :: [LatexItem] -> ParMode
+enumerate :: [Item] -> ParMode
 enumerate = listLikeEnv "enumerate"
-description :: [LatexItem] -> ParMode
+description :: [Item] -> ParMode
 description = listLikeEnv "description"
 
 document = Document
-titlepage = ParEnvironmentLR "titlepage"
-flushleft = ParEnvironmentLR "flushleft"
-figure = ParEnvironmentLR "figure"
-boxedminipage = ParEnvironmentLR "boxedminipage" -- parmode?
+titlepage = ParEnvironmentPar "titlepage"
+flushleft = ParEnvironmentPar "flushleft"
+figure = ParEnvironmentPar "figure"
+boxedminipage = ParEnvironmentPar "boxedminipage"
 quote = ParEnvironmentLR "quote"
 quotation = ParEnvironmentPar "quotation"
 verse = ParEnvironmentPar "verse"
@@ -216,7 +235,7 @@ title = PreambleCmdArg "title"
 subtitle = PreambleCmdArg "subtitle"
 date = PreambleCmdArg "date"
 author = PreambleCmdArg "author"
-and = TexCmd "and"
+and = TexCmdNoArg "and"
 authors = author . mconcat . intersperse and
 institute = PreambleCmdArg "institute"
 
