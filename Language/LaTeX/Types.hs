@@ -5,8 +5,7 @@ import Prelude hiding (and)
 import Data.Monoid ()
 import Data.List hiding (and)
 import Data.Char
-import Data.Ratio (numerator, denominator)
-import GHC.Float (formatRealFloat, FFFormat(FFFixed))
+import Data.Ratio ((%))
 import Control.Monad.Writer
 import Language.Haskell.TH
 import Language.LaTeX.Data
@@ -61,13 +60,16 @@ instance Monoid Preamble where
   x                 `mappend` y                 = PreambleConcat [x, y]
 
 data Latex = LatexCmd String Latex
-           | LatexCmdArgs String [Opts] [Latex] -- ^ Neither args nor options are mandatory
+           | LatexCmdArgs String [(Bool,Latex)] -- ^ Neither args nor options are mandatory
            | TexDecl String Opts
            | TexCmdNoArg String
            | TexCmdArg String Latex
            | Environment String Opts Latex
            | MathsInline MathsItem
            | LatexSize LatexSize
+           | LatexKeys [Key]
+           | LatexSaveBin SaveBin
+           | LatexParMode ParMode
            | RawTex String
            | TexGroup Latex
            | LatexConcat [Latex]
@@ -80,7 +82,7 @@ instance Monoid Latex where
   x              `mappend` LatexConcat ys = LatexConcat (x : ys)
   x              `mappend` y              = LatexConcat [x, y]
 
-data ParMode = Para Latex
+data ParMode = Para Latex -- Here Latex does not mean LR mode
              | ParDecl String Opts
              | ParCmdArg String Latex
              | ParCmdArgs String [Opts] [Latex]
@@ -88,7 +90,8 @@ data ParMode = Para Latex
              | ParEnvironmentPar String Opts ParMode
              | DisplayMaths MathsItem
              | Equation [MathsItem]
-             | Tabular [Row]
+             | Tabular [RowSpec] [Row Latex]
+             | FigureLike String [LocSpec] ParMode
              | RawParMode String
              | ParGroup ParMode -- check validity of this
              | ParConcat [ParMode]
@@ -106,8 +109,11 @@ data MathsItem = MathsCmd MathsCmd -- String
                | MathsCmdArg String MathsItem
                | MathsCmdArgs String [Opts] [MathsItem]
                | MathsCmdArgNoMath String [String]
+               | MathsToLR String Latex
+               | MathsArray [RowSpec] [Row MathsItem]
+               | MathsNeedsPackage String MathsItem
                | RawMaths String
-               | MathsInt Integer
+               | MathsRat Rational
                | MathsGroup MathsItem
                | MathsConcat [MathsItem]
                | MathsBinOp String MathsItem MathsItem
@@ -127,35 +133,91 @@ instance Num MathsItem where
   (-) = MathsBinOp "-"
   negate = MathsUnOp "-"
   abs = MathsCmdArg "abs" -- TODO check
-  signum = error "MathsItem.signum undefined"
-  fromInteger = MathsInt
+  signum = error "MathsItem.signum is undefined"
+  fromInteger = MathsRat . (%1)
 
-data LatexSize = Pt Rational
-               | Em Rational
-               | Xm Rational
-               | Cm Rational
-               | Mm Rational
+instance Fractional MathsItem where
+  (/) = MathsBinOp "/"
+  fromRational = MathsRat
+
+{-
+instance Real MathsItem where
+  toRational = error "MathsItem.toRational is undefined"
+
+instance Integral MathsItem where
+  mod = MathsBinOp "bmod"
+  -- TODO quot, rem
+-}
+
+data LatexSize = Pt Rational -- ^ Point unit size
+               | Em Rational -- ^ One em is about the width of the letter M in the current font
+               | Ex Rational -- ^ One ex is about the hoigh of the letter x in the current font
+               | Cm Rational -- ^ Centimeter unit size
+               | Mm Rational -- ^ Milimeter unit size
+               | In Rational -- ^ Inch unit size (1in = 72.27pt)
+               | Pc Rational -- ^ Picas (1pc = 12pt)
+               | SizeCmd String
+               | SizeCmdRatArg String Rational
+               | SizeBinOp String LatexSize LatexSize
+               | SizeUnOp String LatexSize
+               | SizeInt Integer
   deriving (Show, Eq)
+
+instance Num LatexSize where
+  (+) = SizeBinOp "+"
+  (*) = SizeBinOp "*"
+  (-) = SizeBinOp "-"
+  negate = SizeUnOp "-"
+  abs = error "LatexSize.abs is undefined"
+  signum = error "LatexSize.signum is undefined"
+  fromInteger = SizeInt
+
+-- @{text}, p{wd}, and *{num}{cols} are explicitly
+-- not supported, it seems much more natural and
+-- simple to obtain the same goals using standard
+-- programming uppon the rows and cells.
+data RowSpec = Rc --- ^ Centered
+             | Rl --- ^ Left
+             | Rr --- ^ Right
+             | Rvline --- ^ A vertical line
+  deriving (Show, Eq)
+
+rowSpecChar :: RowSpec -> Char
+rowSpecChar Rc     = 'c'
+rowSpecChar Rl     = 'l'
+rowSpecChar Rr     = 'r'
+rowSpecChar Rvline = '|'
+
+data LocSpec = Lh --- ^ Here
+             | Lt --- ^ Top
+             | Lb --- ^ Bottom
+             | Lp --- ^ Page of floats: on a sperate page containing no text,
+                  ---   only figures and tables.
+  deriving (Show, Eq)
+
+locSpecChar :: LocSpec -> Char
+locSpecChar Lh = 'h'
+locSpecChar Lt = 't'
+locSpecChar Lb = 'b'
+locSpecChar Lp = 'p'
 
 data LatexPaper = A4paper
 
-newtype Row = Row { getRow :: [Latex] }
+{- NOTE: their is no handling of the \multicolumn command at the moment -}
+data Row cell = Cells [cell]
+              | Hline
+              | Cline Int Int
   deriving (Show, Eq)
 
 data Item = Item { itemLabel :: Maybe String, itemContents :: ParMode }
 
-type LatexM = Writer Latex ()
+newtype Key = Key { getKey :: String }
+  deriving (Eq, Show)
 
-showSize :: LatexSize -> String
-showSize s =
-  case s of
-    Cm i -> showr i ++ "cm" 
-    Mm i -> showr i ++ "mm" 
-    Em i -> showr i ++ "em" 
-    Xm i -> showr i ++ "xm" 
-    Pt i -> showr i ++ "pt" 
-  where showr r | denominator r == 1 = show $ numerator r
-                | otherwise          = formatRealFloat FFFixed (Just 2) (fromRational r :: Double)
+newtype SaveBin = UnsafeMakeSaveBin { unsafeGetSaveBin :: Int }
+  deriving (Eq, Show)
+
+type LatexM = Writer Latex ()
 
 showPaper :: LatexPaper -> String
 showPaper A4paper = "a4paper"
