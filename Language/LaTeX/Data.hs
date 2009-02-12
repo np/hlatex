@@ -4,7 +4,7 @@ import Data.Char
 import Control.Arrow
 import Language.Haskell.TH
 
-mathsCmdsArg, texDecls, latexCmds :: [String]
+mathsCmdsArg, texDecls, mathsDecls :: [String]
 mathsCmds :: [(String, String)]
 
 mathsCmds =
@@ -14,6 +14,11 @@ mathsCmds =
   ,("at", "@")
   ,("in_", "in")
   ,("forall_", "forall")
+  ,("mthinspace", ",")
+  ,("mnegthinspace", "!")
+  ,("mmediumspace", ":")
+  ,("mthickspace", ";")
+  ,("msup", "sup")
   ] ++ map (id &&& id)
   [-- Greek letters
    "alpha","beta","chi","delta","Delta","epsilon","varepsilon","eta","gamma"
@@ -37,11 +42,12 @@ mathsCmds =
 
   -- Miscellaneous symbols
   ,"int","oint","partial","nabla","pm","emptyset","infty","aleph","ldots"
-  ,"cdots","quad","diamond","square","lfloor","rfloor","lceiling","rceiling"
+  ,"cdots","vdots","ddots","quad","diamond","square","lfloor","rfloor","lceiling","rceiling"
 
   -- Standard functions
   ,"sin","cos","tan","csc","sec","cot","sinh","cosh","tanh","log"
-  ,"ln","det","dim","lim","mod","gcd","lcm"
+  ,"ln","det","dim","lim","mod","gcd","lcm","liminf","inf","limsup"
+  ,"max","min","Pr"
 
   -- Arrows
   ,"uparrow","downarrow","rightarrow","to","leftarrow"
@@ -51,13 +57,23 @@ mathsCmds =
 mathsCmdsArg =
   [-- Font commands
    "mathbf","mathbb","mathcal","mathtt","mathfrak"
+  -------
+  ,"pmod"
+  -- Putting one thing above another
+  ,"tilde", "hat", "check", "breve", "acute", "grave", "bar", "vec"
+  , "dot", "ddot", "overbrace", "underbrace"
+  ,"overline","underline","widehat","widetilde","imath","jmath"
   ]
 
+typeStyles :: [String]
 typeStyles = ["em","bf","sf","sl","sc","it","tt"]
 
 texDecls = typeStyles
 
-latexCmds = map ("text"++) typeStyles
+mathsDecls = ["displaystyle", "textstyle", "scriptstyle", "scriptscriptstyle"
+             ,"mit","cal"
+             ]
 
+lowerName :: String -> Name
 lowerName name | isLower (head name) = mkName name
                | otherwise           = mkName $ '_':name
