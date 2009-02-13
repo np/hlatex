@@ -1,4 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
 module Language.LaTeX.Types where
 
 import Prelude hiding (and)
@@ -7,33 +6,6 @@ import Data.List hiding (and)
 import Data.Char
 import Data.Ratio ((%))
 import Control.Monad.Writer
-import Language.Haskell.TH
-import Language.LaTeX.Data
-
-{-
-   data MathsCmd = Alpha | Beta | ... | Leftrightarrow | OtherMathsCmd String
-     deriving (Eq)
-   mathsCmdName ::  MathsCmd -> String
-   mathsCmdName Alpha = "alpha"
-   ...
- -}
-$(
-  let sigValD n ty e = [sigD n ty, valD (varP n) (normalB e) []]
-      upperMCName name = mkName ("MC"++name)
-      mkCon (name, _) = normalC (upperMCName name) []
-      otherMathsCmd = mkName "OtherMathsCmd"
-      other = normalC otherMathsCmd [liftM2 (,) notStrict [t| String |]]
-      mathsCmd = mkName "MathsCmd"
-      mkClause (name, cmd) = match (conP (upperMCName name) []) (normalB (stringE cmd)) []
-      catchAll = match (conP otherMathsCmd [varP x]) (normalB (varE x)) []
-        where x = mkName "x"
-  in
-  sequence
-  (dataD (return []) mathsCmd [] (map mkCon mathsCmds ++ [other]) [''Eq, ''Show]
-  :sigValD (mkName "mathsCmdName") (arrowT `appT` conT mathsCmd `appT` [t| String |])
-     [| \x -> $(caseE [| x |] (map mkClause mathsCmds ++ [catchAll])) |]
-  )
- )
 
 type Opts = [String]
 
@@ -104,7 +76,7 @@ instance Monoid ParMode where
   x            `mappend` ParConcat ys = ParConcat (x : ys)
   x            `mappend` y            = ParConcat [x, y]
 
-data MathsItem = MathsCmd MathsCmd -- String
+data MathsItem = MathsCmd String
                | MathsDecl String Opts
                | MathsCmdArg String MathsItem
                | MathsCmdArgs String [Opts] [MathsItem]
