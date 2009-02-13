@@ -107,7 +107,7 @@ ppParMode (ParConcat contents) = vcat $ map ppParMode contents
 
 ppMaths :: MathsItem -> ShowS
 ppMaths (MathsDecl decl opts) = ppDecl decl opts
-ppMaths (MathsCmd cmd) = mayBraces (backslash <> text (mathsCmdName cmd))
+ppMaths (MathsCmd cmd) = mayBraces (backslash <> text cmd)
 ppMaths (MathsCmdArg cmdName m) = mayBraces (backslash<>text cmdName<>braces (ppMaths m))
 ppMaths (MathsCmdArgs cmdName optss args) = ppCmd cmdName optss $ map ppMaths args
 ppMaths (MathsCmdArgNoMath cmdName ss) = mayBraces (backslash <> text cmdName <> braces (mconcat $ map text ss))
