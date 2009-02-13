@@ -30,7 +30,7 @@ exdoc = B.document $
   <> B.itemize [B.item (B.para $ B.hstring "Find a better formula")
                ,B.item (B.pstring "Write some proofs about it")
                ,B.item (B.pstring "[I'm not a label] of this item")
-               ,B.item' "label here" (B.pstring "item text")
+               ,B.item' (B.hstring "label here") (B.pstring "item text")
                ,B.item (B.pstring "Convince people around that this one is much better")]
   <> B.chapter (B.hstring "Related Works")
   <> B.tabular [B.c,B.l,B.r]
@@ -57,5 +57,6 @@ exdoc = B.document $
                 ,B.array [B.r] (map (B.cells . (:[]) . B.text . B.hstring) ["if x is positive", "otherwise"])
                 ]
        ])
+  <> B.displaymath (B.sqrt' B.alpha B.beta)
 
   where mat33 = B.array (replicate 3 B.c) (map B.cells [[1,B.cdots,3],[B.vdots,B.ddots,B.vdots],[4,B.cdots,6]])
