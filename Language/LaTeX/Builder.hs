@@ -39,6 +39,9 @@ parCmdArg x y = ParCmdArgs x [mandatory y]
 latexCmdArg :: String -> Latex -> Latex
 latexCmdArg x y = LatexCmdArgs x [mandatory y]
 
+mathsCmd :: String -> MathsItem
+mathsCmd x = MathsCmdArgs x []
+
 dash1 = RawTex "{-}"
 dash2 = RawTex "{--}"
 dash3 = RawTex "{---}"
@@ -644,7 +647,7 @@ $(
     let lname = lowerName name
     in
     [sigD lname [t| MathsItem |]
-    , valD (varP lname) (normalB [| MathsCmd $(stringE name) |]) []
+    , valD (varP lname) (normalB [| mathsCmd $(stringE name) |]) []
     ]
 
   mkMathsCmdArg name =
@@ -697,283 +700,283 @@ institute = PreambleCmdArg "institute"
 
 
 lbrace :: MathsItem
-lbrace = MathsCmd "lbrace"
+lbrace = mathsCmd "lbrace"
 rbrace :: MathsItem
-rbrace = MathsCmd "rbrace"
+rbrace = mathsCmd "rbrace"
 space :: MathsItem
-space = MathsCmd "space"
+space = mathsCmd "space"
 at :: MathsItem
-at = MathsCmd "at"
+at = mathsCmd "at"
 in_ :: MathsItem
-in_ = MathsCmd "in_"
+in_ = mathsCmd "in_"
 forall_ :: MathsItem
-forall_ = MathsCmd "forall_"
+forall_ = mathsCmd "forall_"
 mthinspace :: MathsItem
-mthinspace = MathsCmd "mthinspace"
+mthinspace = mathsCmd "mthinspace"
 mnegthinspace :: MathsItem
-mnegthinspace = MathsCmd "mnegthinspace"
+mnegthinspace = mathsCmd "mnegthinspace"
 mmediumspace :: MathsItem
-mmediumspace = MathsCmd "mmediumspace"
+mmediumspace = mathsCmd "mmediumspace"
 mthickspace :: MathsItem
-mthickspace = MathsCmd "mthickspace"
+mthickspace = mathsCmd "mthickspace"
 msup :: MathsItem
-msup = MathsCmd "msup"
+msup = mathsCmd "msup"
 alpha :: MathsItem
-alpha = MathsCmd "alpha"
+alpha = mathsCmd "alpha"
 beta :: MathsItem
-beta = MathsCmd "beta"
+beta = mathsCmd "beta"
 chi :: MathsItem
-chi = MathsCmd "chi"
+chi = mathsCmd "chi"
 delta :: MathsItem
-delta = MathsCmd "delta"
+delta = mathsCmd "delta"
 _Delta :: MathsItem
-_Delta = MathsCmd "Delta"
+_Delta = mathsCmd "Delta"
 epsilon :: MathsItem
-epsilon = MathsCmd "epsilon"
+epsilon = mathsCmd "epsilon"
 varepsilon :: MathsItem
-varepsilon = MathsCmd "varepsilon"
+varepsilon = mathsCmd "varepsilon"
 eta :: MathsItem
-eta = MathsCmd "eta"
+eta = mathsCmd "eta"
 gamma :: MathsItem
-gamma = MathsCmd "gamma"
+gamma = mathsCmd "gamma"
 _Gamma :: MathsItem
-_Gamma = MathsCmd "Gamma"
+_Gamma = mathsCmd "Gamma"
 iota :: MathsItem
-iota = MathsCmd "iota"
+iota = mathsCmd "iota"
 kappa :: MathsItem
-kappa = MathsCmd "kappa"
+kappa = mathsCmd "kappa"
 lambda :: MathsItem
-lambda = MathsCmd "lambda"
+lambda = mathsCmd "lambda"
 _Lambda :: MathsItem
-_Lambda = MathsCmd "Lambda"
+_Lambda = mathsCmd "Lambda"
 mu :: MathsItem
-mu = MathsCmd "mu"
+mu = mathsCmd "mu"
 nu :: MathsItem
-nu = MathsCmd "nu"
+nu = mathsCmd "nu"
 omega :: MathsItem
-omega = MathsCmd "omega"
+omega = mathsCmd "omega"
 _Omega :: MathsItem
-_Omega = MathsCmd "Omega"
+_Omega = mathsCmd "Omega"
 phi :: MathsItem
-phi = MathsCmd "phi"
+phi = mathsCmd "phi"
 varphi :: MathsItem
-varphi = MathsCmd "varphi"
+varphi = mathsCmd "varphi"
 _Phi :: MathsItem
-_Phi = MathsCmd "Phi"
+_Phi = mathsCmd "Phi"
 pi :: MathsItem
-pi = MathsCmd "pi"
+pi = mathsCmd "pi"
 _Pi :: MathsItem
-_Pi = MathsCmd "Pi"
+_Pi = mathsCmd "Pi"
 psi :: MathsItem
-psi = MathsCmd "psi"
+psi = mathsCmd "psi"
 rho :: MathsItem
-rho = MathsCmd "rho"
+rho = mathsCmd "rho"
 sigma :: MathsItem
-sigma = MathsCmd "sigma"
+sigma = mathsCmd "sigma"
 _Sigma :: MathsItem
-_Sigma = MathsCmd "Sigma"
+_Sigma = mathsCmd "Sigma"
 tau :: MathsItem
-tau = MathsCmd "tau"
+tau = mathsCmd "tau"
 theta :: MathsItem
-theta = MathsCmd "theta"
+theta = mathsCmd "theta"
 vartheta :: MathsItem
-vartheta = MathsCmd "vartheta"
+vartheta = mathsCmd "vartheta"
 _Theta :: MathsItem
-_Theta = MathsCmd "Theta"
+_Theta = mathsCmd "Theta"
 upsilon :: MathsItem
-upsilon = MathsCmd "upsilon"
+upsilon = mathsCmd "upsilon"
 xi :: MathsItem
-xi = MathsCmd "xi"
+xi = mathsCmd "xi"
 _Xi :: MathsItem
-_Xi = MathsCmd "Xi"
+_Xi = mathsCmd "Xi"
 zeta :: MathsItem
-zeta = MathsCmd "zeta"
+zeta = mathsCmd "zeta"
 backslash :: MathsItem
-backslash = MathsCmd "backslash"
+backslash = mathsCmd "backslash"
 times :: MathsItem
-times = MathsCmd "times"
+times = mathsCmd "times"
 divide :: MathsItem
-divide = MathsCmd "divide"
+divide = mathsCmd "divide"
 circ :: MathsItem
-circ = MathsCmd "circ"
+circ = mathsCmd "circ"
 oplus :: MathsItem
-oplus = MathsCmd "oplus"
+oplus = mathsCmd "oplus"
 otimes :: MathsItem
-otimes = MathsCmd "otimes"
+otimes = mathsCmd "otimes"
 sum :: MathsItem
-sum = MathsCmd "sum"
+sum = mathsCmd "sum"
 prod :: MathsItem
-prod = MathsCmd "prod"
+prod = mathsCmd "prod"
 wedge :: MathsItem
-wedge = MathsCmd "wedge"
+wedge = mathsCmd "wedge"
 bigwedge :: MathsItem
-bigwedge = MathsCmd "bigwedge"
+bigwedge = mathsCmd "bigwedge"
 vee :: MathsItem
-vee = MathsCmd "vee"
+vee = mathsCmd "vee"
 bigvee :: MathsItem
-bigvee = MathsCmd "bigvee"
+bigvee = mathsCmd "bigvee"
 cup :: MathsItem
-cup = MathsCmd "cup"
+cup = mathsCmd "cup"
 bigcup :: MathsItem
-bigcup = MathsCmd "bigcup"
+bigcup = mathsCmd "bigcup"
 cap :: MathsItem
-cap = MathsCmd "cap"
+cap = mathsCmd "cap"
 bigcap :: MathsItem
-bigcap = MathsCmd "bigcap"
+bigcap = mathsCmd "bigcap"
 ne :: MathsItem
-ne = MathsCmd "ne"
+ne = mathsCmd "ne"
 le :: MathsItem
-le = MathsCmd "le"
+le = mathsCmd "le"
 leq :: MathsItem
-leq = MathsCmd "leq"
+leq = mathsCmd "leq"
 ge :: MathsItem
-ge = MathsCmd "ge"
+ge = mathsCmd "ge"
 geq :: MathsItem
-geq = MathsCmd "geq"
+geq = mathsCmd "geq"
 prec :: MathsItem
-prec = MathsCmd "prec"
+prec = mathsCmd "prec"
 succ :: MathsItem
-succ = MathsCmd "succ"
+succ = mathsCmd "succ"
 notin :: MathsItem
-notin = MathsCmd "notin"
+notin = mathsCmd "notin"
 subset :: MathsItem
-subset = MathsCmd "subset"
+subset = mathsCmd "subset"
 supset :: MathsItem
-supset = MathsCmd "supset"
+supset = mathsCmd "supset"
 subseteq :: MathsItem
-subseteq = MathsCmd "subseteq"
+subseteq = mathsCmd "subseteq"
 supseteq :: MathsItem
-supseteq = MathsCmd "supseteq"
+supseteq = mathsCmd "supseteq"
 equiv :: MathsItem
-equiv = MathsCmd "equiv"
+equiv = mathsCmd "equiv"
 cong :: MathsItem
-cong = MathsCmd "cong"
+cong = mathsCmd "cong"
 approx :: MathsItem
-approx = MathsCmd "approx"
+approx = mathsCmd "approx"
 propto :: MathsItem
-propto = MathsCmd "propto"
+propto = mathsCmd "propto"
 neg :: MathsItem
-neg = MathsCmd "neg"
+neg = mathsCmd "neg"
 implies :: MathsItem
-implies = MathsCmd "implies"
+implies = mathsCmd "implies"
 iff :: MathsItem
-iff = MathsCmd "iff"
+iff = mathsCmd "iff"
 exists :: MathsItem
-exists = MathsCmd "exists"
+exists = mathsCmd "exists"
 bot :: MathsItem
-bot = MathsCmd "bot"
+bot = mathsCmd "bot"
 top :: MathsItem
-top = MathsCmd "top"
+top = mathsCmd "top"
 vdash :: MathsItem
-vdash = MathsCmd "vdash"
+vdash = mathsCmd "vdash"
 models :: MathsItem
-models = MathsCmd "models"
+models = mathsCmd "models"
 langle :: MathsItem
-langle = MathsCmd "langle"
+langle = mathsCmd "langle"
 rangle :: MathsItem
-rangle = MathsCmd "rangle"
+rangle = mathsCmd "rangle"
 int :: MathsItem
-int = MathsCmd "int"
+int = mathsCmd "int"
 oint :: MathsItem
-oint = MathsCmd "oint"
+oint = mathsCmd "oint"
 partial :: MathsItem
-partial = MathsCmd "partial"
+partial = mathsCmd "partial"
 nabla :: MathsItem
-nabla = MathsCmd "nabla"
+nabla = mathsCmd "nabla"
 pm :: MathsItem
-pm = MathsCmd "pm"
+pm = mathsCmd "pm"
 emptyset :: MathsItem
-emptyset = MathsCmd "emptyset"
+emptyset = mathsCmd "emptyset"
 infty :: MathsItem
-infty = MathsCmd "infty"
+infty = mathsCmd "infty"
 aleph :: MathsItem
-aleph = MathsCmd "aleph"
+aleph = mathsCmd "aleph"
 ldots :: MathsItem
-ldots = MathsCmd "ldots"
+ldots = mathsCmd "ldots"
 cdots :: MathsItem
-cdots = MathsCmd "cdots"
+cdots = mathsCmd "cdots"
 vdots :: MathsItem
-vdots = MathsCmd "vdots"
+vdots = mathsCmd "vdots"
 ddots :: MathsItem
-ddots = MathsCmd "ddots"
+ddots = mathsCmd "ddots"
 quad :: MathsItem
-quad = MathsCmd "quad"
+quad = mathsCmd "quad"
 diamond :: MathsItem
-diamond = MathsCmd "diamond"
+diamond = mathsCmd "diamond"
 square :: MathsItem
-square = MathsCmd "square"
+square = mathsCmd "square"
 lfloor :: MathsItem
-lfloor = MathsCmd "lfloor"
+lfloor = mathsCmd "lfloor"
 rfloor :: MathsItem
-rfloor = MathsCmd "rfloor"
+rfloor = mathsCmd "rfloor"
 lceiling :: MathsItem
-lceiling = MathsCmd "lceiling"
+lceiling = mathsCmd "lceiling"
 rceiling :: MathsItem
-rceiling = MathsCmd "rceiling"
+rceiling = mathsCmd "rceiling"
 sin :: MathsItem
-sin = MathsCmd "sin"
+sin = mathsCmd "sin"
 cos :: MathsItem
-cos = MathsCmd "cos"
+cos = mathsCmd "cos"
 tan :: MathsItem
-tan = MathsCmd "tan"
+tan = mathsCmd "tan"
 csc :: MathsItem
-csc = MathsCmd "csc"
+csc = mathsCmd "csc"
 sec :: MathsItem
-sec = MathsCmd "sec"
+sec = mathsCmd "sec"
 cot :: MathsItem
-cot = MathsCmd "cot"
+cot = mathsCmd "cot"
 sinh :: MathsItem
-sinh = MathsCmd "sinh"
+sinh = mathsCmd "sinh"
 cosh :: MathsItem
-cosh = MathsCmd "cosh"
+cosh = mathsCmd "cosh"
 tanh :: MathsItem
-tanh = MathsCmd "tanh"
+tanh = mathsCmd "tanh"
 log :: MathsItem
-log = MathsCmd "log"
+log = mathsCmd "log"
 ln :: MathsItem
-ln = MathsCmd "ln"
+ln = mathsCmd "ln"
 det :: MathsItem
-det = MathsCmd "det"
+det = mathsCmd "det"
 dim :: MathsItem
-dim = MathsCmd "dim"
+dim = mathsCmd "dim"
 lim :: MathsItem
-lim = MathsCmd "lim"
+lim = mathsCmd "lim"
 mod :: MathsItem
-mod = MathsCmd "mod"
+mod = mathsCmd "mod"
 gcd :: MathsItem
-gcd = MathsCmd "gcd"
+gcd = mathsCmd "gcd"
 lcm :: MathsItem
-lcm = MathsCmd "lcm"
+lcm = mathsCmd "lcm"
 liminf :: MathsItem
-liminf = MathsCmd "liminf"
+liminf = mathsCmd "liminf"
 inf :: MathsItem
-inf = MathsCmd "inf"
+inf = mathsCmd "inf"
 limsup :: MathsItem
-limsup = MathsCmd "limsup"
+limsup = mathsCmd "limsup"
 max :: MathsItem
-max = MathsCmd "max"
+max = mathsCmd "max"
 min :: MathsItem
-min = MathsCmd "min"
+min = mathsCmd "min"
 _Pr :: MathsItem
-_Pr = MathsCmd "Pr"
+_Pr = mathsCmd "Pr"
 uparrow :: MathsItem
-uparrow = MathsCmd "uparrow"
+uparrow = mathsCmd "uparrow"
 downarrow :: MathsItem
-downarrow = MathsCmd "downarrow"
+downarrow = mathsCmd "downarrow"
 rightarrow :: MathsItem
-rightarrow = MathsCmd "rightarrow"
+rightarrow = mathsCmd "rightarrow"
 to :: MathsItem
-to = MathsCmd "to"
+to = mathsCmd "to"
 leftarrow :: MathsItem
-leftarrow = MathsCmd "leftarrow"
+leftarrow = mathsCmd "leftarrow"
 leftrightarrow :: MathsItem
-leftrightarrow = MathsCmd "leftrightarrow"
+leftrightarrow = mathsCmd "leftrightarrow"
 _Rightarrow :: MathsItem
-_Rightarrow = MathsCmd "Rightarrow"
+_Rightarrow = mathsCmd "Rightarrow"
 _Leftarrow :: MathsItem
-_Leftarrow = MathsCmd "Leftarrow"
+_Leftarrow = mathsCmd "Leftarrow"
 _Leftrightarrow :: MathsItem
-_Leftrightarrow = MathsCmd "Leftrightarrow"
+_Leftrightarrow = mathsCmd "Leftrightarrow"
 mathbf :: MathsItem -> MathsItem
 mathbf = mathsCmdArg "mathbf"
 mathbb :: MathsItem -> MathsItem

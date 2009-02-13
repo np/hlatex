@@ -83,8 +83,7 @@ instance Monoid ParMode where
   x            `mappend` ParConcat ys = ParConcat (x : ys)
   x            `mappend` y            = ParConcat [x, y]
 
-data MathsItem = MathsCmd String
-               | MathsDecl String
+data MathsItem = MathsDecl String
                | MathsCmdArgs String [Arg MathsItem]
                | MathsToLR String Latex
                | MathsArray [RowSpec] [Row MathsItem]
