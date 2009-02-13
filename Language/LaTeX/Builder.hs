@@ -33,6 +33,9 @@ optional x = Arg Optional x
 mathsCmdArg :: String -> MathsItem -> MathsItem
 mathsCmdArg x y = MathsCmdArgs x [mandatory y]
 
+parCmdArg :: String -> Latex -> ParMode
+parCmdArg x y = ParCmdArgs x [mandatory y]
+
 dash1 = RawTex "{-}"
 dash2 = RawTex "{--}"
 dash3 = RawTex "{---}"
@@ -278,7 +281,7 @@ hyphen = RawTex "{\\-}" -- check if {...} does not cause trouble here
 
 -- robust
 hyphenation :: [String] -> ParMode
-hyphenation = ParCmdArg "hyphenation" . RawTex . unwords -- RawTex is a bit rough here
+hyphenation = parCmdArg "hyphenation" . RawTex . unwords -- RawTex is a bit rough here
 
 sloppy = TexDecl "sloppy"
 fussy = TexDecl "fussy"
@@ -438,14 +441,32 @@ cite' txt keys = LatexCmdArgs "cite" [optional txt, mandatory $ LatexKeys keys]
 -- fragile
 nocite = LatexCmd "nocite" . LatexKeys
 
-part          = ParCmdArg "part" -- TODO options
-chapter       = ParCmdArg "chapter" -- TODO options
-section       = ParCmdArg "section" -- TODO options
-subsection    = ParCmdArg "subsection" -- TODO options
-subsubsection = ParCmdArg "subsubsection" -- TODO options
--- paragraph and subparagraph are omitted on purpose
+-- sectioning
 
+-- Sectioning commands arguments are 'moving'.
+sectioning :: String -> ((Latex -> ParMode), (Star -> Maybe Latex -> Latex -> ParMode))
+sectioning name = (sect, sect')
+  where sect = sect' NoStar Nothing
+        sect' star opt arg = ParCmdArgs (name ++ addstar star)
+                                        (maybeToList (fmap optional opt) ++ [mandatory arg])
+        addstar Star   = "*"
+        addstar NoStar = ""
+
+part, chapter, section, subsection,  subsubsection :: Latex -> ParMode
+part', chapter', section', subsection', subsubsection' :: Star -> Maybe Latex -> Latex -> ParMode
+
+(part, part')       = sectioning "part"
+(chapter, chapter') = sectioning "chapter"
+(section, section') = sectioning "section"
+(subsection, subsection')       = sectioning "subsection"
+(subsubsection, subsubsection') = sectioning "subsubsection"
+(paragraph, paragraph')         = sectioning "paragraph"
+(subparagraph, subparagraph')   = sectioning "subparagraph"
+
+-- | Don't confuse 'paragraph' with 'para', 'para' is to make a paragraph,
+-- 'paragraph' is to group a set of paragraphs.
 para = Para
+
 bibliography = LatexCmd "bibliography"
 bibliographystyle = LatexCmd "bibliographystyle"
 thispagestyle = LatexCmd "thispagestyle"
