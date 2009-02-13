@@ -1027,18 +1027,25 @@ imath :: MathsItem -> MathsItem
 imath = mathsCmdArg "imath"
 jmath :: MathsItem -> MathsItem
 jmath = mathsCmdArg "jmath"
+{-# DEPRECATED em "Use emph instead" #-}
 em :: Latex
 em = TexDecl "em"
+{-# DEPRECATED bf "Use textbf instead" #-}
 bf :: Latex
 bf = TexDecl "bf"
+{-# DEPRECATED sf "Use textsf instead" #-}
 sf :: Latex
 sf = TexDecl "sf"
+{-# DEPRECATED sl "Use textsl instead" #-}
 sl :: Latex
 sl = TexDecl "sl"
+{-# DEPRECATED sc "Use textsc instead" #-}
 sc :: Latex
 sc = TexDecl "sc"
+{-# DEPRECATED it "Use textit instead" #-}
 it :: Latex
 it = TexDecl "it"
+{-# DEPRECATED tt "Use texttt instead" #-}
 tt :: Latex
 tt = TexDecl "tt"
 displaystyle :: MathsItem
