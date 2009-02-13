@@ -36,6 +36,9 @@ mathsCmdArg x y = MathsCmdArgs x [mandatory y]
 parCmdArg :: String -> Latex -> ParMode
 parCmdArg x y = ParCmdArgs x [mandatory y]
 
+latexCmdArg :: String -> Latex -> Latex
+latexCmdArg x y = LatexCmdArgs x [mandatory y]
+
 dash1 = RawTex "{-}"
 dash2 = RawTex "{--}"
 dash3 = RawTex "{---}"
@@ -207,16 +210,16 @@ normalmarginpar = TexDecl "normalmarginpar"
 -- Spaces
 
 -- robust
-hspace = LatexCmd "hspace" . LatexSize
+hspace = latexCmdArg "hspace" . LatexSize
 
 -- robust
-hspaceStar = LatexCmd "hspace*" . LatexSize
+hspaceStar = latexCmdArg "hspace*" . LatexSize
 
 -- fragile
-vspace = LatexCmd "vspace" . LatexSize
+vspace = latexCmdArg "vspace" . LatexSize
 
 -- fragile
-vspaceStar = LatexCmd "vspace*" . LatexSize
+vspaceStar = latexCmdArg "vspace*" . LatexSize
 
 vfill = TexCmdNoArg "vfill" -- = vspace fill
 hfill = TexCmdNoArg "hfill" -- = hspace fill
@@ -232,7 +235,7 @@ medskip = TexCmdNoArg "medskip" -- = vspace medskipamount
 -- fragile
 smallskip = TexCmdNoArg "smallskip" -- = vspace smallskipamount
 
-addvspace = LatexCmd "addvspace" . LatexSize
+addvspace = latexCmdArg "addvspace" . LatexSize
 
 
 -- Font sizes
@@ -253,17 +256,17 @@ mdseries = TexDecl "mdseries"
 ssfamily = TexDecl "ssfamily"
 
 -- textXYZ commands should work in maths too (use a typeclass)
-emph = LatexCmd "emph"
-textrm = LatexCmd "textrm"
-textsf = LatexCmd "textsf"
-texttt = LatexCmd "texttt"
-textmd = LatexCmd "textmd"
-textbf = LatexCmd "textbf"
-textup = LatexCmd "textup"
-textit = LatexCmd "textit"
-textsl = LatexCmd "textsl"
-textsc = LatexCmd "textsc"
-textnormal = LatexCmd "textnormal"
+emph = latexCmdArg "emph"
+textrm = latexCmdArg "textrm"
+textsf = latexCmdArg "textsf"
+texttt = latexCmdArg "texttt"
+textmd = latexCmdArg "textmd"
+textbf = latexCmdArg "textbf"
+textup = latexCmdArg "textup"
+textit = latexCmdArg "textit"
+textsl = latexCmdArg "textsl"
+textsc = latexCmdArg "textsc"
+textnormal = latexCmdArg "textnormal"
 
 -- Line and page breaking
 
@@ -329,7 +332,7 @@ instance Mbox ParMode where
 text = MathsNeedsPackage "amsmath" . MathsToLR "text"
 
 -- robust
-mbox = LatexCmd "mbox"
+mbox = latexCmdArg "mbox"
 
 -- fragile
 makebox width txt = LatexCmdArgs "makebox" [optional $ LatexSize width,mandatory txt]
@@ -343,7 +346,7 @@ makeboxRight width txt =
   LatexCmdArgs "makebox" [optional $ LatexSize width,optional $ RawTex "r",mandatory txt]
 
 -- robust
-fbox = LatexCmd "fbox"
+fbox = latexCmdArg "fbox"
 
 -- fragile
 framebox width txt = LatexCmdArgs "framebox" [optional $ LatexSize width,mandatory txt]
@@ -360,7 +363,7 @@ frameboxRight width txt =
 -- fragile
 unsafeNewsavebox i =
   let bin = UnsafeMakeSaveBin i
-  in LatexCmd "newsavebox" $ LatexSaveBin bin
+  in latexCmdArg "newsavebox" $ LatexSaveBin bin
 
 -- robust
 sbox bin txt = LatexCmdArgs "sbox" [mandatory $ LatexSaveBin bin, mandatory txt]
@@ -420,7 +423,7 @@ raisebox' raise_len height depth txt =
   LatexCmdArgs "raisebox" [mandatory $ LatexSize raise_len
                           ,optional $ LatexSize height,optional $ LatexSize depth,mandatory  txt]
 
-footnote = LatexCmd "footnote"
+footnote = latexCmdArg "footnote"
 
 caption :: Latex -> Latex
 caption txt = LatexCmdArgs "caption" [mandatory txt]
@@ -430,16 +433,16 @@ caption' lstentry txt = LatexCmdArgs "caption" [optional $ checkentry lstentry, 
           | all isAlphaNum x = RawTex x
           | otherwise        = error "caption': restriction to alphanumeric characters for the lstentry"
 
-label = LatexCmd "label" . LatexKeys . (:[])
-ref = LatexCmd "ref" . LatexKeys . (:[])
-pageref = LatexCmd "pageref" . LatexKeys . (:[])
+label = latexCmdArg "label" . LatexKeys . (:[])
+ref = latexCmdArg "ref" . LatexKeys . (:[])
+pageref = latexCmdArg "pageref" . LatexKeys . (:[])
 
 -- fragile
-cite = LatexCmd "cite" . LatexKeys
+cite = latexCmdArg "cite" . LatexKeys
 cite' txt keys = LatexCmdArgs "cite" [optional txt, mandatory $ LatexKeys keys]
 
 -- fragile
-nocite = LatexCmd "nocite" . LatexKeys
+nocite = latexCmdArg "nocite" . LatexKeys
 
 -- sectioning
 
@@ -467,12 +470,12 @@ part', chapter', section', subsection', subsubsection' :: Star -> Maybe Latex ->
 -- 'paragraph' is to group a set of paragraphs.
 para = Para
 
-bibliography = LatexCmd "bibliography"
-bibliographystyle = LatexCmd "bibliographystyle"
-thispagestyle = LatexCmd "thispagestyle"
+bibliography = latexCmdArg "bibliography"
+bibliographystyle = latexCmdArg "bibliographystyle"
+thispagestyle = latexCmdArg "thispagestyle"
 
 -- should be \setlength{a}{b}{c} ...
-setlength = LatexCmd "setlength"
+setlength = latexCmdArg "setlength"
 
 listLikeEnv name items =
   ParEnvironmentPar name [] $ mconcat $ map mkItem items
@@ -1087,6 +1090,6 @@ texDecls = [em, bf, sf, sl, sc, it, tt]
 -- beamer
 -- alert
 -- AtBeginSubsection, AtBeginSection
-only = LatexCmd "only"
+only = latexCmdArg "only"
 usetheme = PreambleCmdArg "usetheme"
 usefontthem = PreambleCmdArg "usefontthem"
