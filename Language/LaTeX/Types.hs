@@ -87,9 +87,7 @@ instance Monoid ParMode where
 
 data MathsItem = MathsCmd String
                | MathsDecl String
-               | MathsCmdArg String MathsItem
                | MathsCmdArgs String [Arg MathsItem]
-               | MathsCmdArgNoMath String [String]
                | MathsToLR String Latex
                | MathsArray [RowSpec] [Row MathsItem]
                | MathsNeedsPackage String MathsItem
@@ -113,7 +111,7 @@ instance Num MathsItem where
   (*) = MathsBinOp "*"
   (-) = MathsBinOp "-"
   negate = MathsUnOp "-"
-  abs = MathsCmdArg "abs" -- TODO check
+  abs x = MathsCmdArgs "abs" [Arg Mandatory x] -- TODO check
   signum = error "MathsItem.signum is undefined"
   fromInteger = MathsRat . (%1)
 

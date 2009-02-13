@@ -124,9 +124,7 @@ ppParMode (ParConcat contents) = vcat $ map ppParMode contents
 ppMaths :: MathsItem -> ShowS
 ppMaths (MathsDecl decl) = ppDecl decl
 ppMaths (MathsCmd cmd) = ppCmdNoArg cmd
-ppMaths (MathsCmdArg cmdName m) = ppCmdArg cmdName (ppMaths m)
 ppMaths (MathsCmdArgs cmdName args) = ppCmdArgs cmdName $ map (fmap ppMaths) args
-ppMaths (MathsCmdArgNoMath cmdName ss) = ppCmdArg cmdName (mconcat $ map text ss)
 ppMaths (RawMaths s) = text s
 ppMaths (MathsRat r) | denominator r == 1 = shows (numerator r)
                      | otherwise          = shows (numerator r) <> text " / " <> shows (denominator r)
