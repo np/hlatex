@@ -29,8 +29,7 @@ instance Monoid Preamble where
   x                 `mappend` PreambleConcat ys = PreambleConcat (x : ys)
   x                 `mappend` y                 = PreambleConcat [x, y]
 
-data Latex = LatexCmd String Latex
-           | LatexCmdArgs String [Arg Latex]
+data Latex = LatexCmdArgs String [Arg Latex]
            | TexDecl String
            | TexDeclOpt String Latex
            | TexCmdNoArg String

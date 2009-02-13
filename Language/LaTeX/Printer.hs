@@ -71,7 +71,6 @@ mayBraces = braces
 -- mayBraces = id
 
 pp :: Latex -> ShowS
-pp (LatexCmd cmdName contents) = ppCmdArg cmdName (pp contents)
 
 pp (LatexCmdArgs cmdName args) = ppCmdArgs cmdName $ map (fmap pp) args
 
