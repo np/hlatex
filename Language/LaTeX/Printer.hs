@@ -126,7 +126,7 @@ ppMaths (RawMaths s) = text s
 ppMaths (MathsRat r) | denominator r == 1 = shows (numerator r)
                      | otherwise          = shows (numerator r) <> text " / " <> shows (denominator r)
 ppMaths (MathsArray specs rows) = 
-  ppEnv "array" [Arg Mandatory $ braces $ text $ map rowSpecChar specs] (ppRows ppMaths rows)
+  ppEnv "array" [Arg Mandatory $ text $ map rowSpecChar specs] (ppRows ppMaths rows)
 ppMaths (MathsGroup m) = braces $ ppMaths m
 ppMaths (MathsConcat ms) = mconcat $ map ppMaths ms
 ppMaths (MathsUnOp op m) = text op <> sp <> ppMaths m
