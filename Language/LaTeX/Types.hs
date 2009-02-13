@@ -65,7 +65,6 @@ data ArgKind = Optional | Mandatory | Coordinate
 data ParMode = Para Latex -- Here Latex does not mean LR mode
              | ParDecl String
              | ParDeclOpt String Latex
-             | ParCmdArg String Latex
              | ParCmdArgs String [Arg Latex]
              | ParEnvironmentLR String Latex
              | ParEnvironmentPar String [Arg Latex] ParMode

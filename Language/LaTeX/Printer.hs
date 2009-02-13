@@ -104,7 +104,6 @@ pp (LatexConcat contents) = mconcat $ map pp contents
 
 ppParMode :: ParMode -> ShowS
 ppParMode (Para t) = nl <> pp t <> nl <> nl
-ppParMode (ParCmdArg cmdName arg) = ppCmdArg cmdName (pp arg)
 ppParMode (ParCmdArgs cmdName args) = ppCmdArgs cmdName $ map (fmap pp) args
 ppParMode (ParDecl declName) = ppDecl declName
 ppParMode (ParDeclOpt declName opt) = ppDeclOpt declName $ pp opt
