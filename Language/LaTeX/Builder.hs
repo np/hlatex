@@ -30,6 +30,9 @@ mandatory, optional :: a -> Arg a
 mandatory x = Arg Mandatory x
 optional x = Arg Optional x
 
+mathsCmdArg :: String -> MathsItem -> MathsItem
+mathsCmdArg x y = MathsCmdArgs x [mandatory y]
+
 dash1 = RawTex "{-}"
 dash2 = RawTex "{--}"
 dash3 = RawTex "{---}"
@@ -623,7 +626,7 @@ $(
   mkMathsCmdArg name =
     let lname = lowerName name in
     [sigD lname [t| MathsItem -> MathsItem |]
-    , valD (varP lname) (normalB [| MathsCmdArg $(stringE name) |]) []
+    , valD (varP lname) (normalB [| mathsCmdArg $(stringE name) |]) []
     ]
 
   mkTexDecl name =
@@ -948,53 +951,53 @@ _Leftarrow = MathsCmd "Leftarrow"
 _Leftrightarrow :: MathsItem
 _Leftrightarrow = MathsCmd "Leftrightarrow"
 mathbf :: MathsItem -> MathsItem
-mathbf = MathsCmdArg "mathbf"
+mathbf = mathsCmdArg "mathbf"
 mathbb :: MathsItem -> MathsItem
-mathbb = MathsCmdArg "mathbb"
+mathbb = mathsCmdArg "mathbb"
 mathcal :: MathsItem -> MathsItem
-mathcal = MathsCmdArg "mathcal"
+mathcal = mathsCmdArg "mathcal"
 mathtt :: MathsItem -> MathsItem
-mathtt = MathsCmdArg "mathtt"
+mathtt = mathsCmdArg "mathtt"
 mathfrak :: MathsItem -> MathsItem
-mathfrak = MathsCmdArg "mathfrak"
+mathfrak = mathsCmdArg "mathfrak"
 pmod :: MathsItem -> MathsItem
-pmod = MathsCmdArg "pmod"
+pmod = mathsCmdArg "pmod"
 tilde :: MathsItem -> MathsItem
-tilde = MathsCmdArg "tilde"
+tilde = mathsCmdArg "tilde"
 hat :: MathsItem -> MathsItem
-hat = MathsCmdArg "hat"
+hat = mathsCmdArg "hat"
 check :: MathsItem -> MathsItem
-check = MathsCmdArg "check"
+check = mathsCmdArg "check"
 breve :: MathsItem -> MathsItem
-breve = MathsCmdArg "breve"
+breve = mathsCmdArg "breve"
 acute :: MathsItem -> MathsItem
-acute = MathsCmdArg "acute"
+acute = mathsCmdArg "acute"
 grave :: MathsItem -> MathsItem
-grave = MathsCmdArg "grave"
+grave = mathsCmdArg "grave"
 bar :: MathsItem -> MathsItem
-bar = MathsCmdArg "bar"
+bar = mathsCmdArg "bar"
 vec :: MathsItem -> MathsItem
-vec = MathsCmdArg "vec"
+vec = mathsCmdArg "vec"
 dot :: MathsItem -> MathsItem
-dot = MathsCmdArg "dot"
+dot = mathsCmdArg "dot"
 ddot :: MathsItem -> MathsItem
-ddot = MathsCmdArg "ddot"
+ddot = mathsCmdArg "ddot"
 overbrace :: MathsItem -> MathsItem
-overbrace = MathsCmdArg "overbrace"
+overbrace = mathsCmdArg "overbrace"
 underbrace :: MathsItem -> MathsItem
-underbrace = MathsCmdArg "underbrace"
+underbrace = mathsCmdArg "underbrace"
 overline :: MathsItem -> MathsItem
-overline = MathsCmdArg "overline"
+overline = mathsCmdArg "overline"
 underline :: MathsItem -> MathsItem
-underline = MathsCmdArg "underline"
+underline = mathsCmdArg "underline"
 widehat :: MathsItem -> MathsItem
-widehat = MathsCmdArg "widehat"
+widehat = mathsCmdArg "widehat"
 widetilde :: MathsItem -> MathsItem
-widetilde = MathsCmdArg "widetilde"
+widetilde = mathsCmdArg "widetilde"
 imath :: MathsItem -> MathsItem
-imath = MathsCmdArg "imath"
+imath = mathsCmdArg "imath"
 jmath :: MathsItem -> MathsItem
-jmath = MathsCmdArg "jmath"
+jmath = mathsCmdArg "jmath"
 em :: Latex
 em = TexDecl "em"
 bf :: Latex
