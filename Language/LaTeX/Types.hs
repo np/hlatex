@@ -7,8 +7,6 @@ import Data.Char
 import Data.Ratio ((%))
 import Control.Monad.Writer
 
-type Opts = [String]
-
 data Root = Root Preamble Document
 
 data Document = Document ParMode
@@ -21,7 +19,7 @@ data DocumentClass = Article
 
 data Preamble = PreambleCmd String
               | PreambleCmdArg String Latex
-              | PreambleCmdArgWithOpts String Opts Latex
+              | PreambleCmdArgWithOpts String [String] Latex
               | PreambleConcat [Preamble]
 
 instance Monoid Preamble where
@@ -32,11 +30,12 @@ instance Monoid Preamble where
   x                 `mappend` y                 = PreambleConcat [x, y]
 
 data Latex = LatexCmd String Latex
-           | LatexCmdArgs String [(Bool,Latex)] -- ^ Neither args nor options are mandatory
-           | TexDecl String Opts
+           | LatexCmdArgs String [Arg Latex]
+           | TexDecl String
+           | TexDeclOpt String Latex
            | TexCmdNoArg String
            | TexCmdArg String Latex
-           | Environment String Opts Latex
+           | Environment String [Arg Latex] Latex
            | MathsInline MathsItem
            | LatexSize LatexSize
            | LatexKeys [Key]
@@ -54,12 +53,22 @@ instance Monoid Latex where
   x              `mappend` LatexConcat ys = LatexConcat (x : ys)
   x              `mappend` y              = LatexConcat [x, y]
 
+data Arg a = Arg ArgKind a
+  deriving (Show, Eq)
+
+instance Functor Arg where
+  f `fmap` Arg k x = Arg k (f x)
+
+data ArgKind = Optional | Mandatory | Coordinate
+  deriving (Show, Eq)
+
 data ParMode = Para Latex -- Here Latex does not mean LR mode
-             | ParDecl String Opts
+             | ParDecl String
+             | ParDeclOpt String Latex
              | ParCmdArg String Latex
-             | ParCmdArgs String [Opts] [Latex]
-             | ParEnvironmentLR String Opts Latex
-             | ParEnvironmentPar String Opts ParMode
+             | ParCmdArgs String [Arg Latex]
+             | ParEnvironmentLR String Latex
+             | ParEnvironmentPar String [Arg Latex] ParMode
              | DisplayMaths MathsItem
              | Equation [MathsItem]
              | Tabular [RowSpec] [Row Latex]
@@ -77,9 +86,9 @@ instance Monoid ParMode where
   x            `mappend` y            = ParConcat [x, y]
 
 data MathsItem = MathsCmd String
-               | MathsDecl String Opts
+               | MathsDecl String
                | MathsCmdArg String MathsItem
-               | MathsCmdArgs String [Opts] [MathsItem]
+               | MathsCmdArgs String [Arg MathsItem]
                | MathsCmdArgNoMath String [String]
                | MathsToLR String Latex
                | MathsArray [RowSpec] [Row MathsItem]
@@ -181,7 +190,7 @@ data Row cell = Cells [cell]
               | Cline Int Int
   deriving (Show, Eq)
 
-data Item = Item { itemLabel :: Maybe String, itemContents :: ParMode }
+data Item = Item { itemLabel :: Maybe Latex, itemContents :: ParMode }
 
 newtype Key = Key { getKey :: String }
   deriving (Eq, Show)
