@@ -1,9 +1,9 @@
-{-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS -fno-warn-missing-signatures #-}
 module Language.LaTeX.Builder where
 
-import Prelude hiding (and)
-import Data.List (intersperse)
+import Prelude ( (.), ($), (<), (>), Eq(..), Num(..), Functor(..), error, show, otherwise
+               , Bool(..), not, fromIntegral, fromRational, Int, uncurry)
+import Data.List hiding (sum, and, group) -- (map, (++), elem, intersperse, length, unwords, filter, break, all,)
 import Data.Maybe
 import Data.Ratio
 import Data.Monoid
@@ -11,45 +11,13 @@ import Data.Char
 import Control.Arrow
 
 import Language.LaTeX.Types
-import Language.LaTeX.Data
 import Language.LaTeX.Internal
 import Language.LaTeX.Printer (ppSize)
+
+{-
+import Prelude (writeFile, id, sequence, Monad(..), fst)
 import Language.Haskell.TH
-
-$(
- let
-  mkMathsCmd (name, _) =
-    let lname = lowerName name
-        upperMCName = mkName ("MC"++name)
-    in
-    [sigD lname [t| MathsItem |]
-    ,valD (varP lname) (normalB [| MathsCmd $(conE upperMCName) |]) []
-    ]
-
-  mkMathsCmdArg name =
-    let lname = lowerName name in
-    [sigD lname [t| MathsItem -> MathsItem |]
-    ,valD (varP lname) (normalB [| MathsCmdArg $(stringE name) |]) []
-    ]
-
-  mkTexDecl name =
-    let lname = lowerName name in
-    [sigD lname [t| Latex |]
-    ,valD (varP lname) (normalB [| TexDecl $(stringE name) [] |]) []
-    ]
-
-  mkMathsDecl name =
-    let lname = lowerName name in
-    [sigD lname [t| MathsItem |]
-    ,valD (varP lname) (normalB [| MathsDecl $(stringE name) [] |]) []
-    ]
-
- in sequence $ concat $ concat
-      [ map mkMathsCmd mathsCmds
-      , map mkMathsCmdArg mathsCmdsArg
-      , map mkTexDecl texDecls
-      ]
- )
+-}
 
 class Group a where
   group :: a -> a
@@ -559,6 +527,129 @@ documentclass msize mpaper dc =
                                           maybeToList (fmap showPaper mpaper))
                                          (RawTex $ showDocumentClass dc)
 
+{-
+$(
+ let
+  mathsCmdsArg, texDecls, mathsDecls :: [String]
+  mathsCmds :: [(String, String)]
+
+  mathsCmds =
+    [("lbrace", "{")
+    ,("rbrace", "}")
+    ,("space", " ")
+    ,("at", "@")
+    ,("in_", "in")
+    ,("forall_", "forall")
+    ,("mthinspace", ",")
+    ,("mnegthinspace", "!")
+    ,("mmediumspace", ":")
+    ,("mthickspace", ";")
+    ,("msup", "sup")
+    ] ++ map (id &&& id)
+    [-- Greek letters
+    "alpha","beta","chi","delta","Delta","epsilon","varepsilon","eta","gamma"
+    ,"Gamma","iota","kappa","lambda","Lambda","mu","nu","omega","Omega","phi"
+    ,"varphi","Phi","pi","Pi","psi","rho","sigma","Sigma","tau","theta"
+    ,"vartheta","Theta","upsilon","xi","Xi","zeta"
+
+    -- Operation symbols
+    ,"backslash","times","divide","circ","oplus","otimes","sum","prod","wedge"
+    ,"bigwedge","vee","bigvee","cup","bigcup","cap","bigcap"
+
+    -- Relation symbols
+    ,"ne","le","leq","ge","geq","prec","succ","notin","subset","supset"
+    ,"subseteq","supseteq","equiv","cong","approx","propto"
+
+    -- Logical symbols
+    ,"neg","implies","iff","exists","bot","top","vdash","models"
+
+    -- Grouping brackets
+    ,"langle","rangle"
+
+    -- Miscellaneous symbols
+    ,"int","oint","partial","nabla","pm","emptyset","infty","aleph","ldots"
+    ,"cdots","vdots","ddots","quad","diamond","square","lfloor","rfloor","lceiling","rceiling"
+
+    -- Standard functions
+    ,"sin","cos","tan","csc","sec","cot","sinh","cosh","tanh","log"
+    ,"ln","det","dim","lim","mod","gcd","lcm","liminf","inf","limsup"
+    ,"max","min","Pr"
+
+    -- Arrows
+    ,"uparrow","downarrow","rightarrow","to","leftarrow"
+    ,"leftrightarrow","Rightarrow","Leftarrow","Leftrightarrow"
+    ]
+
+  mathsCmdsArg =
+    [-- Font commands
+    "mathbf","mathbb","mathcal","mathtt","mathfrak"
+    -------
+    ,"pmod"
+    -- Putting one thing above another
+    ,"tilde", "hat", "check", "breve", "acute", "grave", "bar", "vec"
+    , "dot", "ddot", "overbrace", "underbrace"
+    ,"overline","underline","widehat","widetilde","imath","jmath"
+    ]
+
+  typeStyles :: [String]
+  typeStyles = ["em","bf","sf","sl","sc","it","tt"]
+
+  texDecls = typeStyles
+
+  mathsDecls = ["displaystyle", "textstyle", "scriptstyle", "scriptscriptstyle"
+              ,"mit","cal"
+              ]
+
+  lowerName :: String -> Name
+  lowerName name | isLower (head name) = mkName name
+                | otherwise           = mkName $ '_':name
+
+  mkMathsCmd (name, _) =
+    let lname = lowerName name
+    in
+    [sigD lname [t| MathsItem |]
+    , valD (varP lname) (normalB [| MathsCmd $(stringE name) |]) []
+    ]
+
+  mkMathsCmdArg name =
+    let lname = lowerName name in
+    [sigD lname [t| MathsItem -> MathsItem |]
+    , valD (varP lname) (normalB [| MathsCmdArg $(stringE name) |]) []
+    ]
+
+  mkTexDecl name =
+    let lname = lowerName name in
+    [sigD lname [t| Latex |]
+    , valD (varP lname) (normalB [| TexDecl $(stringE name) [] |]) []
+    ]
+
+  mkMathsDecl name =
+    let lname = lowerName name in
+    [sigD lname [t| MathsItem |]
+     , valD (varP lname) (normalB [| MathsDecl $(stringE name) [] |]) []
+    ]
+
+  mkList name ty names =
+    [sigD name ty
+    ,valD (varP name) (normalB (listE $ map (varE . lowerName) names)) []]
+
+  d = sequence $ concat $ concat
+      [ map mkMathsCmd mathsCmds
+      , map mkMathsCmdArg mathsCmdsArg
+      , map mkTexDecl texDecls
+      , map mkMathsDecl mathsDecls
+      , [mkList (mkName "mathsCmds") [t| [MathsItem] |] $ map fst mathsCmds]
+      , [mkList (mkName "mathsCmdsArg") [t| [MathsItem -> MathsItem] |] mathsCmdsArg]
+      , [mkList (mkName "mathsDecls") [t| [MathsItem] |] mathsDecls]
+      , [mkList (mkName "texDecls") [t| [Latex] |] texDecls]
+      ]
+  in do dd <- d
+        runIO $ writeFile "/tmp/a.hs" $ pprint dd
+        return []
+ )
+ -}
+
+{- This chunk was generated by the previous TH splice. -}
 usepackage = PreambleCmdArg "usepackage"
 title = PreambleCmdArg "title"
 subtitle = PreambleCmdArg "subtitle"
@@ -567,6 +658,381 @@ author = PreambleCmdArg "author"
 and = TexCmdNoArg "and"
 authors = author . mconcat . intersperse and
 institute = PreambleCmdArg "institute"
+
+
+lbrace :: MathsItem
+lbrace = MathsCmd "lbrace"
+rbrace :: MathsItem
+rbrace = MathsCmd "rbrace"
+space :: MathsItem
+space = MathsCmd "space"
+at :: MathsItem
+at = MathsCmd "at"
+in_ :: MathsItem
+in_ = MathsCmd "in_"
+forall_ :: MathsItem
+forall_ = MathsCmd "forall_"
+mthinspace :: MathsItem
+mthinspace = MathsCmd "mthinspace"
+mnegthinspace :: MathsItem
+mnegthinspace = MathsCmd "mnegthinspace"
+mmediumspace :: MathsItem
+mmediumspace = MathsCmd "mmediumspace"
+mthickspace :: MathsItem
+mthickspace = MathsCmd "mthickspace"
+msup :: MathsItem
+msup = MathsCmd "msup"
+alpha :: MathsItem
+alpha = MathsCmd "alpha"
+beta :: MathsItem
+beta = MathsCmd "beta"
+chi :: MathsItem
+chi = MathsCmd "chi"
+delta :: MathsItem
+delta = MathsCmd "delta"
+_Delta :: MathsItem
+_Delta = MathsCmd "Delta"
+epsilon :: MathsItem
+epsilon = MathsCmd "epsilon"
+varepsilon :: MathsItem
+varepsilon = MathsCmd "varepsilon"
+eta :: MathsItem
+eta = MathsCmd "eta"
+gamma :: MathsItem
+gamma = MathsCmd "gamma"
+_Gamma :: MathsItem
+_Gamma = MathsCmd "Gamma"
+iota :: MathsItem
+iota = MathsCmd "iota"
+kappa :: MathsItem
+kappa = MathsCmd "kappa"
+lambda :: MathsItem
+lambda = MathsCmd "lambda"
+_Lambda :: MathsItem
+_Lambda = MathsCmd "Lambda"
+mu :: MathsItem
+mu = MathsCmd "mu"
+nu :: MathsItem
+nu = MathsCmd "nu"
+omega :: MathsItem
+omega = MathsCmd "omega"
+_Omega :: MathsItem
+_Omega = MathsCmd "Omega"
+phi :: MathsItem
+phi = MathsCmd "phi"
+varphi :: MathsItem
+varphi = MathsCmd "varphi"
+_Phi :: MathsItem
+_Phi = MathsCmd "Phi"
+pi :: MathsItem
+pi = MathsCmd "pi"
+_Pi :: MathsItem
+_Pi = MathsCmd "Pi"
+psi :: MathsItem
+psi = MathsCmd "psi"
+rho :: MathsItem
+rho = MathsCmd "rho"
+sigma :: MathsItem
+sigma = MathsCmd "sigma"
+_Sigma :: MathsItem
+_Sigma = MathsCmd "Sigma"
+tau :: MathsItem
+tau = MathsCmd "tau"
+theta :: MathsItem
+theta = MathsCmd "theta"
+vartheta :: MathsItem
+vartheta = MathsCmd "vartheta"
+_Theta :: MathsItem
+_Theta = MathsCmd "Theta"
+upsilon :: MathsItem
+upsilon = MathsCmd "upsilon"
+xi :: MathsItem
+xi = MathsCmd "xi"
+_Xi :: MathsItem
+_Xi = MathsCmd "Xi"
+zeta :: MathsItem
+zeta = MathsCmd "zeta"
+backslash :: MathsItem
+backslash = MathsCmd "backslash"
+times :: MathsItem
+times = MathsCmd "times"
+divide :: MathsItem
+divide = MathsCmd "divide"
+circ :: MathsItem
+circ = MathsCmd "circ"
+oplus :: MathsItem
+oplus = MathsCmd "oplus"
+otimes :: MathsItem
+otimes = MathsCmd "otimes"
+sum :: MathsItem
+sum = MathsCmd "sum"
+prod :: MathsItem
+prod = MathsCmd "prod"
+wedge :: MathsItem
+wedge = MathsCmd "wedge"
+bigwedge :: MathsItem
+bigwedge = MathsCmd "bigwedge"
+vee :: MathsItem
+vee = MathsCmd "vee"
+bigvee :: MathsItem
+bigvee = MathsCmd "bigvee"
+cup :: MathsItem
+cup = MathsCmd "cup"
+bigcup :: MathsItem
+bigcup = MathsCmd "bigcup"
+cap :: MathsItem
+cap = MathsCmd "cap"
+bigcap :: MathsItem
+bigcap = MathsCmd "bigcap"
+ne :: MathsItem
+ne = MathsCmd "ne"
+le :: MathsItem
+le = MathsCmd "le"
+leq :: MathsItem
+leq = MathsCmd "leq"
+ge :: MathsItem
+ge = MathsCmd "ge"
+geq :: MathsItem
+geq = MathsCmd "geq"
+prec :: MathsItem
+prec = MathsCmd "prec"
+succ :: MathsItem
+succ = MathsCmd "succ"
+notin :: MathsItem
+notin = MathsCmd "notin"
+subset :: MathsItem
+subset = MathsCmd "subset"
+supset :: MathsItem
+supset = MathsCmd "supset"
+subseteq :: MathsItem
+subseteq = MathsCmd "subseteq"
+supseteq :: MathsItem
+supseteq = MathsCmd "supseteq"
+equiv :: MathsItem
+equiv = MathsCmd "equiv"
+cong :: MathsItem
+cong = MathsCmd "cong"
+approx :: MathsItem
+approx = MathsCmd "approx"
+propto :: MathsItem
+propto = MathsCmd "propto"
+neg :: MathsItem
+neg = MathsCmd "neg"
+implies :: MathsItem
+implies = MathsCmd "implies"
+iff :: MathsItem
+iff = MathsCmd "iff"
+exists :: MathsItem
+exists = MathsCmd "exists"
+bot :: MathsItem
+bot = MathsCmd "bot"
+top :: MathsItem
+top = MathsCmd "top"
+vdash :: MathsItem
+vdash = MathsCmd "vdash"
+models :: MathsItem
+models = MathsCmd "models"
+langle :: MathsItem
+langle = MathsCmd "langle"
+rangle :: MathsItem
+rangle = MathsCmd "rangle"
+int :: MathsItem
+int = MathsCmd "int"
+oint :: MathsItem
+oint = MathsCmd "oint"
+partial :: MathsItem
+partial = MathsCmd "partial"
+nabla :: MathsItem
+nabla = MathsCmd "nabla"
+pm :: MathsItem
+pm = MathsCmd "pm"
+emptyset :: MathsItem
+emptyset = MathsCmd "emptyset"
+infty :: MathsItem
+infty = MathsCmd "infty"
+aleph :: MathsItem
+aleph = MathsCmd "aleph"
+ldots :: MathsItem
+ldots = MathsCmd "ldots"
+cdots :: MathsItem
+cdots = MathsCmd "cdots"
+vdots :: MathsItem
+vdots = MathsCmd "vdots"
+ddots :: MathsItem
+ddots = MathsCmd "ddots"
+quad :: MathsItem
+quad = MathsCmd "quad"
+diamond :: MathsItem
+diamond = MathsCmd "diamond"
+square :: MathsItem
+square = MathsCmd "square"
+lfloor :: MathsItem
+lfloor = MathsCmd "lfloor"
+rfloor :: MathsItem
+rfloor = MathsCmd "rfloor"
+lceiling :: MathsItem
+lceiling = MathsCmd "lceiling"
+rceiling :: MathsItem
+rceiling = MathsCmd "rceiling"
+sin :: MathsItem
+sin = MathsCmd "sin"
+cos :: MathsItem
+cos = MathsCmd "cos"
+tan :: MathsItem
+tan = MathsCmd "tan"
+csc :: MathsItem
+csc = MathsCmd "csc"
+sec :: MathsItem
+sec = MathsCmd "sec"
+cot :: MathsItem
+cot = MathsCmd "cot"
+sinh :: MathsItem
+sinh = MathsCmd "sinh"
+cosh :: MathsItem
+cosh = MathsCmd "cosh"
+tanh :: MathsItem
+tanh = MathsCmd "tanh"
+log :: MathsItem
+log = MathsCmd "log"
+ln :: MathsItem
+ln = MathsCmd "ln"
+det :: MathsItem
+det = MathsCmd "det"
+dim :: MathsItem
+dim = MathsCmd "dim"
+lim :: MathsItem
+lim = MathsCmd "lim"
+mod :: MathsItem
+mod = MathsCmd "mod"
+gcd :: MathsItem
+gcd = MathsCmd "gcd"
+lcm :: MathsItem
+lcm = MathsCmd "lcm"
+liminf :: MathsItem
+liminf = MathsCmd "liminf"
+inf :: MathsItem
+inf = MathsCmd "inf"
+limsup :: MathsItem
+limsup = MathsCmd "limsup"
+max :: MathsItem
+max = MathsCmd "max"
+min :: MathsItem
+min = MathsCmd "min"
+_Pr :: MathsItem
+_Pr = MathsCmd "Pr"
+uparrow :: MathsItem
+uparrow = MathsCmd "uparrow"
+downarrow :: MathsItem
+downarrow = MathsCmd "downarrow"
+rightarrow :: MathsItem
+rightarrow = MathsCmd "rightarrow"
+to :: MathsItem
+to = MathsCmd "to"
+leftarrow :: MathsItem
+leftarrow = MathsCmd "leftarrow"
+leftrightarrow :: MathsItem
+leftrightarrow = MathsCmd "leftrightarrow"
+_Rightarrow :: MathsItem
+_Rightarrow = MathsCmd "Rightarrow"
+_Leftarrow :: MathsItem
+_Leftarrow = MathsCmd "Leftarrow"
+_Leftrightarrow :: MathsItem
+_Leftrightarrow = MathsCmd "Leftrightarrow"
+mathbf :: MathsItem -> MathsItem
+mathbf = MathsCmdArg "mathbf"
+mathbb :: MathsItem -> MathsItem
+mathbb = MathsCmdArg "mathbb"
+mathcal :: MathsItem -> MathsItem
+mathcal = MathsCmdArg "mathcal"
+mathtt :: MathsItem -> MathsItem
+mathtt = MathsCmdArg "mathtt"
+mathfrak :: MathsItem -> MathsItem
+mathfrak = MathsCmdArg "mathfrak"
+pmod :: MathsItem -> MathsItem
+pmod = MathsCmdArg "pmod"
+tilde :: MathsItem -> MathsItem
+tilde = MathsCmdArg "tilde"
+hat :: MathsItem -> MathsItem
+hat = MathsCmdArg "hat"
+check :: MathsItem -> MathsItem
+check = MathsCmdArg "check"
+breve :: MathsItem -> MathsItem
+breve = MathsCmdArg "breve"
+acute :: MathsItem -> MathsItem
+acute = MathsCmdArg "acute"
+grave :: MathsItem -> MathsItem
+grave = MathsCmdArg "grave"
+bar :: MathsItem -> MathsItem
+bar = MathsCmdArg "bar"
+vec :: MathsItem -> MathsItem
+vec = MathsCmdArg "vec"
+dot :: MathsItem -> MathsItem
+dot = MathsCmdArg "dot"
+ddot :: MathsItem -> MathsItem
+ddot = MathsCmdArg "ddot"
+overbrace :: MathsItem -> MathsItem
+overbrace = MathsCmdArg "overbrace"
+underbrace :: MathsItem -> MathsItem
+underbrace = MathsCmdArg "underbrace"
+overline :: MathsItem -> MathsItem
+overline = MathsCmdArg "overline"
+underline :: MathsItem -> MathsItem
+underline = MathsCmdArg "underline"
+widehat :: MathsItem -> MathsItem
+widehat = MathsCmdArg "widehat"
+widetilde :: MathsItem -> MathsItem
+widetilde = MathsCmdArg "widetilde"
+imath :: MathsItem -> MathsItem
+imath = MathsCmdArg "imath"
+jmath :: MathsItem -> MathsItem
+jmath = MathsCmdArg "jmath"
+em :: Latex
+em = TexDecl "em" []
+bf :: Latex
+bf = TexDecl "bf" []
+sf :: Latex
+sf = TexDecl "sf" []
+sl :: Latex
+sl = TexDecl "sl" []
+sc :: Latex
+sc = TexDecl "sc" []
+it :: Latex
+it = TexDecl "it" []
+tt :: Latex
+tt = TexDecl "tt" []
+displaystyle :: MathsItem
+displaystyle = MathsDecl "displaystyle" []
+textstyle :: MathsItem
+textstyle = MathsDecl "textstyle" []
+scriptstyle :: MathsItem
+scriptstyle = MathsDecl "scriptstyle" []
+scriptscriptstyle :: MathsItem
+scriptscriptstyle = MathsDecl "scriptscriptstyle" []
+mit :: MathsItem
+mit = MathsDecl "mit" []
+cal :: MathsItem
+cal = MathsDecl "cal" []
+mathsCmds :: [MathsItem]
+mathsCmds = [lbrace, rbrace, space, at, in_, forall_, mthinspace, mnegthinspace, mmediumspace,
+             mthickspace, msup, alpha, beta, chi, delta, _Delta, epsilon, varepsilon, eta,
+             gamma, _Gamma, iota, kappa, lambda, _Lambda, mu, nu, omega, _Omega, phi, varphi,
+             _Phi, pi, _Pi, psi, rho, sigma, _Sigma, tau, theta, vartheta, _Theta, upsilon,
+             xi, _Xi, zeta, backslash, times, divide, circ, oplus, otimes, sum, prod, wedge,
+             bigwedge, vee, bigvee, cup, bigcup, cap, bigcap, ne, le, leq, ge, geq, prec, succ,
+             notin, subset, supset, subseteq, supseteq, equiv, cong, approx, propto, neg, implies,
+             iff, exists, bot, top, vdash, models, langle, rangle, int, oint, partial, nabla, pm,
+             emptyset, infty, aleph, ldots, cdots, vdots, ddots, quad, diamond, square, lfloor,
+             rfloor, lceiling, rceiling, sin, cos, tan, csc, sec, cot, sinh, cosh, tanh, log, ln,
+             det, dim, lim, mod, gcd, lcm, liminf, inf, limsup, max, min, _Pr, uparrow, downarrow,
+             rightarrow, to, leftarrow, leftrightarrow, _Rightarrow, _Leftarrow, _Leftrightarrow]
+mathsCmdsArg :: [MathsItem -> MathsItem]
+mathsCmdsArg = [mathbf, mathbb, mathcal, mathtt, mathfrak, pmod, tilde, hat, check,
+                breve, acute, grave, bar, vec, dot, ddot, overbrace, underbrace, overline,
+                underline, widehat, widetilde, imath, jmath]
+mathsDecls :: [MathsItem]
+mathsDecls = [displaystyle, textstyle, scriptstyle, scriptscriptstyle, mit, cal]
+texDecls :: [Latex]
+texDecls = [em, bf, sf, sl, sc, it, tt]
 
 -- beamer
 -- alert
