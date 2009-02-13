@@ -3,7 +3,10 @@ import qualified Language.LaTeX.Builder as B
 import Language.LaTeX.Printer (ppRoot)
 import System.Cmd (system)
 
+import Data.Char
 import Data.Monoid
+import Data.List.Split
+import Data.List (intersperse)
 
 infixr 5 <>
 (<>) :: Monoid m => m -> m -> m
@@ -58,5 +61,7 @@ exdoc = B.document $
                 ]
        ])
   <> B.displaymath (B.sqrt' B.alpha B.beta)
+  <> B.newpage
+  <> B.para (B.noindent <> (B.texttt $ mconcat $ intersperse B.newline $ map B.protect (splitEvery 10 $ filter isPrint $ map chr [0..255])))
 
   where mat33 = B.array (replicate 3 B.c) (map B.cells [[1,B.cdots,3],[B.vdots,B.ddots,B.vdots],[4,B.cdots,6]])
