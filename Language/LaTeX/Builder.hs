@@ -138,10 +138,10 @@ protect (' ':xs)  = uncurry (<>) $ (hspace_ . (+1) . length *** protect) $ break
 protect (x:xs)    = uncurry (<>) $ (hstring . (x :) *** protect) $ break (`elem` " \n") xs
 
 includegraphics = ParCmdArgs "includegraphics"
-tableofcontents = TexCmdNoArg "tableofcontents" -- TODO
+tableofcontents = ParDecl "tableofcontents"
 maketitle = ParCmdArgs "maketitle" []
-par = TexCmdNoArg "par" -- TODO
-noindent = TexCmdNoArg "noindent" -- TODO
+-- par = TexCmdNoArg "par"
+noindent = TexCmdNoArg "noindent"
 
 -- robust
 stretch = SizeCmdRatArg "stretch"
