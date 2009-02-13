@@ -196,6 +196,8 @@ newtype Key = Key { getKey :: String }
 newtype SaveBin = UnsafeMakeSaveBin { unsafeGetSaveBin :: Int }
   deriving (Eq, Show)
 
+data Star = Star | NoStar
+
 type LatexM = Writer Latex ()
 
 showPaper :: LatexPaper -> String
