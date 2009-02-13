@@ -109,31 +109,33 @@ pstring = para . hstring
 
 hchar = RawTex . hchar'
 
-hchar' '\\' = "\backslash"
-hchar' '~'  = "$\\tilde{}$"
+hchar' '\\' = "\\textbackslash{}"
+hchar' '~'  = "\\~{}"
 hchar' '<'  = "\\textless{}"
 hchar' '>'  = "\\textgreater{}"
+hchar' '^'  = "\\^{}"
 hchar' '|'  = "\\textbar{}"
-hchar' ':'  = "$:$"
+hchar' ':'  = "$:$" -- or maybe "{:}"
 hchar' x | x `elem` "#_&{}$%" = ['\\',x]
          | x `elem` "-]["     = ['{', x, '}'] -- to avoid multiple dashes or mess up optional args
          | otherwise          = [x]
 
 mchar = RawMaths . mchar'
 
-mchar' '\\' = "\backslash"
-mchar' '~'  = "\\tilde{}"
+mchar' '\\' = "\\textbackslash{}"
+mchar' '~'  = "\\text{\\~{}}"
+mchar' '^'  = "\\^{}"
 mchar' ':'  = ":"
 mchar' x | x `elem` "#_&{}$%" = ['\\',x]
          | x `elem` "-]["     = ['{', x, '}'] -- to avoid multiple dashes or mess up optional args
          | otherwise          = [x]
 
-protect :: String -> [Latex]
-protect ""        = []
-protect ('\n':xs) = newline : protect xs
-protect (' ':xs)  = uncurry (++) $ (hspace_ . (+1) . length *** protect) $ break (/=' ') xs
-  where hspace_ n = [hspace $ Em $ 1%2 * fromIntegral n]
-protect (x:xs)    = uncurry (++) $ ((:[]) . hstring . (x :) *** protect) $ break (`elem` " \n") xs
+protect :: String -> Latex
+protect ""        = mempty
+protect ('\n':xs) = newline <> protect xs
+protect (' ':xs)  = uncurry (<>) $ (hspace_ . (+1) . length *** protect) $ break (/=' ') xs
+  where hspace_ n = hspace $ Em $ 1%2 * fromIntegral n
+protect (x:xs)    = uncurry (<>) $ (hstring . (x :) *** protect) $ break (`elem` " \n") xs
 
 includegraphics = ParCmdArgs "includegraphics"
 tableofcontents = TexCmdNoArg "tableofcontents" -- TODO
