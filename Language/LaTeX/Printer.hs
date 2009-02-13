@@ -93,7 +93,7 @@ pp (LatexParMode pm) = ppParMode pm
 
 pp (RawTex s) = text s
 
-pp (MathsInline m) = text "\\( " <> ppMaths m <> text " \\)"
+pp (MathInline m) = text "\\( " <> ppMath m <> text " \\)"
 
 pp (LatexSaveBin bin) = text $ "hlatexSaveBin" ++ show (unsafeGetSaveBin bin)
 
@@ -111,29 +111,29 @@ ppParMode (ParGroup p) = braces $ ppParMode p
 ppParMode (ParEnvironmentLR envName contents) = ppEnv envName [] $ pp contents
 ppParMode (ParEnvironmentPar envName args contents)
   = ppEnv envName (map (fmap pp) args) $ ppParMode contents
-ppParMode (DisplayMaths m) = text "\\[ " <> ppMaths m <> text " \\]"
-ppParMode (Equation m) = ppEnv "equation" [] $ vcat $ map ppMaths m
+ppParMode (DisplayMath m) = text "\\[ " <> ppMath m <> text " \\]"
+ppParMode (Equation m) = ppEnv "equation" [] $ vcat $ map ppMath m
 ppParMode (Tabular specs rows) =
   ppEnv "tabular" [Arg Mandatory $ text $ map rowSpecChar specs] (ppRows pp rows)
 ppParMode (FigureLike name locs body) = ppEnv name [Arg Optional $ text $ map locSpecChar locs] $ ppParMode body
 
 ppParMode (ParConcat contents) = vcat $ map ppParMode contents
 
-ppMaths :: MathsItem -> ShowS
-ppMaths (MathsDecl decl) = ppDecl decl
-ppMaths (MathsCmdArgs cmdName args) = ppCmdArgs cmdName $ map (fmap ppMaths) args
-ppMaths (RawMaths s) = text s
-ppMaths (MathsRat r) | denominator r == 1 = shows (numerator r)
+ppMath :: MathItem -> ShowS
+ppMath (MathDecl decl) = ppDecl decl
+ppMath (MathCmdArgs cmdName args) = ppCmdArgs cmdName $ map (fmap ppMath) args
+ppMath (RawMath s) = text s
+ppMath (MathRat r) | denominator r == 1 = shows (numerator r)
                      | otherwise          = shows (numerator r) <> text " / " <> shows (denominator r)
-ppMaths (MathsArray specs rows) = 
-  ppEnv "array" [Arg Mandatory $ text $ map rowSpecChar specs] (ppRows ppMaths rows)
-ppMaths (MathsGroup m) = braces $ ppMaths m
-ppMaths (MathsConcat ms) = mconcat $ map ppMaths ms
-ppMaths (MathsUnOp op m) = text op <> sp <> ppMaths m
-ppMaths (MathsBinOp op l r) = parens (ppMaths l <> sp <> text op <> sp <> ppMaths r)
-ppMaths (MathsToLR cmd lr) = ppCmdArg cmd (pp lr)
-ppMaths (MathsNeedsPackage pkg m) | pkg == "amsmath" = ppMaths m
-                                  | otherwise        = error "ppMaths: package system not supported yet"
+ppMath (MathArray specs rows) = 
+  ppEnv "array" [Arg Mandatory $ text $ map rowSpecChar specs] (ppRows ppMath rows)
+ppMath (MathGroup m) = braces $ ppMath m
+ppMath (MathConcat ms) = mconcat $ map ppMath ms
+ppMath (MathUnOp op m) = text op <> sp <> ppMath m
+ppMath (MathBinOp op l r) = parens (ppMath l <> sp <> text op <> sp <> ppMath r)
+ppMath (MathToLR cmd lr) = ppCmdArg cmd (pp lr)
+ppMath (MathNeedPackage pkg m) | pkg == "amsmath" = ppMath m
+                                  | otherwise        = error "ppMath: package system not supported yet"
 
 ppRows :: (a -> ShowS) -> [Row a] -> ShowS
 ppRows _ []

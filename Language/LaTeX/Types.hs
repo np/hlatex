@@ -35,7 +35,7 @@ data Latex = LatexCmdArgs String [Arg Latex]
            | TexCmdNoArg String
            | TexCmdArg String Latex
            | Environment String [Arg Latex] Latex
-           | MathsInline MathsItem
+           | MathInline MathItem
            | LatexSize LatexSize
            | LatexKeys [Key]
            | LatexSaveBin SaveBin
@@ -67,8 +67,8 @@ data ParMode = Para Latex -- Here Latex does not mean LR mode
              | ParCmdArgs String [Arg Latex]
              | ParEnvironmentLR String Latex
              | ParEnvironmentPar String [Arg Latex] ParMode
-             | DisplayMaths MathsItem
-             | Equation [MathsItem]
+             | DisplayMath MathItem
+             | Equation [MathItem]
              | Tabular [RowSpec] [Row Latex]
              | FigureLike String [LocSpec] ParMode
              | RawParMode String
@@ -83,45 +83,45 @@ instance Monoid ParMode where
   x            `mappend` ParConcat ys = ParConcat (x : ys)
   x            `mappend` y            = ParConcat [x, y]
 
-data MathsItem = MathsDecl String
-               | MathsCmdArgs String [Arg MathsItem]
-               | MathsToLR String Latex
-               | MathsArray [RowSpec] [Row MathsItem]
-               | MathsNeedsPackage String MathsItem
-               | RawMaths String
-               | MathsRat Rational
-               | MathsGroup MathsItem
-               | MathsConcat [MathsItem]
-               | MathsBinOp String MathsItem MathsItem
-               | MathsUnOp String MathsItem
+data MathItem  = MathDecl String
+               | MathCmdArgs String [Arg MathItem]
+               | MathToLR String Latex
+               | MathArray [RowSpec] [Row MathItem]
+               | MathNeedPackage String MathItem
+               | RawMath String
+               | MathRat Rational
+               | MathGroup MathItem
+               | MathConcat [MathItem]
+               | MathBinOp String MathItem MathItem
+               | MathUnOp String MathItem
   deriving (Show, Eq)
 
-instance Monoid MathsItem where
-  mempty  = MathsConcat []
-  MathsConcat xs `mappend` MathsConcat ys = MathsConcat (xs ++ ys)
-  MathsConcat xs `mappend` y              = MathsConcat (xs ++ [y])
-  x              `mappend` MathsConcat ys = MathsConcat (x : ys)
-  x              `mappend` y              = MathsConcat [x, y]
+instance Monoid MathItem where
+  mempty  = MathConcat []
+  MathConcat xs `mappend` MathConcat ys = MathConcat (xs ++ ys)
+  MathConcat xs `mappend` y              = MathConcat (xs ++ [y])
+  x              `mappend` MathConcat ys = MathConcat (x : ys)
+  x              `mappend` y              = MathConcat [x, y]
 
-instance Num MathsItem where
-  (+) = MathsBinOp "+"
-  (*) = MathsBinOp "*"
-  (-) = MathsBinOp "-"
-  negate = MathsUnOp "-"
-  abs x = MathsCmdArgs "abs" [Arg Mandatory x] -- TODO check
-  signum = error "MathsItem.signum is undefined"
-  fromInteger = MathsRat . (%1)
+instance Num MathItem where
+  (+) = MathBinOp "+"
+  (*) = MathBinOp "*"
+  (-) = MathBinOp "-"
+  negate = MathUnOp "-"
+  abs x = MathCmdArgs "abs" [Arg Mandatory x] -- TODO check
+  signum = error "MathItem.signum is undefined"
+  fromInteger = MathRat . (%1)
 
-instance Fractional MathsItem where
-  (/) = MathsBinOp "/"
-  fromRational = MathsRat
+instance Fractional MathItem where
+  (/) = MathBinOp "/"
+  fromRational = MathRat
 
 {-
-instance Real MathsItem where
-  toRational = error "MathsItem.toRational is undefined"
+instance Real MathItem where
+  toRational = error "MathItem.toRational is undefined"
 
-instance Integral MathsItem where
-  mod = MathsBinOp "bmod"
+instance Integral MathItem where
+  mod = MathBinOp "bmod"
   -- TODO quot, rem
 -}
 
