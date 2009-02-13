@@ -21,12 +21,13 @@ expreamb = B.documentclass (Just (B.pt 11)) (Just B.a4paper) B.book
         <> B.usepackage (B.hstring "amsmath")
 
 exdoc = B.document $
-     B.part (B.hstring "The prologue")
+     B.tableofcontents
+  <> B.part (B.hstring "The prologue")
   <> B.chapter (B.hstring "Introduction")
   <> B.section (B.hstring "The context")
   <> B.subsection (B.hstring "The precise context")
-  <> B.para (B.hstring "The initial formula was " <>
-             B.maths (B.sum <> B.sub (B.mstring "i = 0") <> B.sup (B.infty) <>
+  <> B.para (B.hstring "The " <> B.textbf (B.hstring "initial") <> B.hstring " formula was " <>
+             B.math (B.sum <> B.sub (B.mstring "i = 0") <> B.sup (B.infty) <>
                       B.mstring "i" <> B.sup (B.mint 2) <> B.alpha) <>
              B.hstring " but it turns out to be not that accurate.")
   <> B.section (B.hstring "The action plan")
@@ -37,9 +38,9 @@ exdoc = B.document $
                ,B.item (B.pstring "Convince people around that this one is much better")]
   <> B.chapter (B.hstring "Related Works")
   <> B.tabular [B.c,B.l,B.r]
-       [ B.cells [B.maths (B.alpha + 3 * B.beta), B.maths B.eq, B.maths (2 * 21)]
+       [ B.cells [B.math (B.alpha + 3 * B.beta), B.math B.eq, B.math (2 * 21)]
        , B.hline, B.hline
-       , B.cells [mempty                        , B.maths B.eq, B.maths 42]
+       , B.cells [mempty                        , B.math B.eq, B.math 42]
        , B.cline 2 3
        ]
   <> B.displaymath
