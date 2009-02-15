@@ -674,9 +674,10 @@ table = figureLike "table"
 tableStar = figureLike "table*"
 
 -- check options
-titlepage, flushleft, boxedminipage, quotation, verse :: ParItem -> ParItem
+titlepage, flushleft, center, boxedminipage, quotation, verse :: ParItem -> ParItem
 titlepage = parEnvironmentPar "titlepage" []
 flushleft = parEnvironmentPar "flushleft" []
+center = parEnvironmentPar "center" []
 boxedminipage = parEnvironmentPar "boxedminipage" []
 quotation = parEnvironmentPar "quotation" []
 verse = parEnvironmentPar "verse" []
@@ -710,6 +711,10 @@ checkRows specs = mapM checkRow
 
 cells :: [a] -> Row a
 cells = Cells
+
+cell :: a -> Row a
+cell = Cells . (:[])
+
 hline :: Row a
 hline = Hline
 cline :: Int -> Int -> Row a
