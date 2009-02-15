@@ -10,6 +10,7 @@ import Data.Char
 import Data.Traversable (sequenceA, mapM)
 import Control.Applicative hiding (optional)
 import Control.Monad hiding (mapM)
+import Control.Monad.Error (throwError)
 import Control.Arrow
 
 import Language.LaTeX.Types
@@ -156,8 +157,8 @@ sqrt' :: MathItem -> MathItem -> MathItem
 sqrt' n x = mathCmdArgs "sqrt" [optional n, mandatory x]
 
 mleft, mright :: Char -> MathItem
-mleft x = rawMath $ "\\left" ++ parenChar x
-mright x = rawMath $ "\\right" ++ parenChar x
+mleft x  = rawMath "\\left"  <> (RawMath <$> parenChar x)
+mright x = rawMath "\\right" <> (RawMath <$> parenChar x)
 
 between :: Char -> Char -> MathItem -> MathItem
 between opening closing x = mleft opening <> x <> mright closing
@@ -167,11 +168,11 @@ parens   = between '(' ')'
 braces   = between '{' '}'
 brackets = between '[' ']'
 
-parenChar :: Char -> String
-parenChar x | x `elem` "([.])" = [x]
-            | x == '{'         = "\\{"
-            | x == '}'         = "\\}"
-            | otherwise        = error $ "invalid parenthesis-like: " ++ show x
+parenChar :: Char -> LatexM String
+parenChar x | x `elem` "([.])" = return [x]
+            | x == '{'         = return "\\{"
+            | x == '}'         = return "\\}"
+            | otherwise        = throwError $ "invalid parenthesis-like: " ++ show x
 
 href :: LatexItem -> LatexItem -> LatexItem
 href x y = latexCmdArgs "href" [mandatory x,mandatory y]
@@ -440,10 +441,10 @@ sloppypar = parEnvironmentPar "sloppypar" []
 -- fragile
 pagebreak, nopagebreak :: Int -> LatexItem
 (pagebreak, nopagebreak) =
-  (texDeclOpt "pagebreak" . hint . check0to4 "pagebreak"
-  ,texDeclOpt "nopagebreak" . hint . check0to4 "nopagebreak")
-  where check0to4 s i | i >= 0 && i <= 4 = i
-                      | otherwise        = error $ s ++ ": option must be between 0 and 4 not " ++ show i
+  ((texDeclOpt "pagebreak" =<<) . check0to4 "pagebreak"
+  ,(texDeclOpt "nopagebreak" =<<) . check0to4 "nopagebreak")
+  where check0to4 s i | i >= 0 && i <= 4 = return $ hint i
+                      | otherwise        = throwError $ s ++ ": option must be between 0 and 4 not " ++ show i
 
 -- fragile
 samepage :: LatexItem
@@ -607,7 +608,7 @@ caption' :: String -> LatexItem -> LatexItem
 caption' lstentry txt = latexCmdArgs "caption" [optional $ checkentry lstentry, mandatory txt]
   where checkentry x
           | all isAlphaNum x = rawTex x
-          | otherwise        = error "caption': restriction to alphanumeric characters for the lstentry"
+          | otherwise        = throwError "caption': restriction to alphanumeric characters for the lstentry"
 
 label :: Key -> LatexItem
 label = latexCmdArg "label" . latexKey
@@ -698,28 +699,27 @@ quote = liftM $ ParEnvironmentLR "quote"
 
 -- The array and tablular Environments
 
--- use a monad to report errors
 tabular :: [RowSpec] -> [Row LatexItem] -> ParItem
-tabular specs rows = Tabular specs . checkRows specs <$> mapM sequenceA rows
+tabular specs rows = Tabular specs <$> (checkRows specs =<< mapM sequenceA rows)
 
 array :: [RowSpec] -> [Row MathItem] -> MathItem
-array specs rows = MathArray specs . checkRows specs <$> mapM sequenceA rows
+array specs rows = MathArray specs <$> (checkRows specs =<< mapM sequenceA rows)
 
-checkRows :: [RowSpec] -> [Row a] -> [Row a]
-checkRows specs = map checkRow
+checkRows :: [RowSpec] -> [Row a] -> LatexM [Row a]
+checkRows specs = mapM checkRow
   where checkRow (Cells cs)
           | cols /= length cs    = err "wrong number of cells" cols "different from" (length cs)
-          | otherwise            = Cells cs
-        checkRow Hline           = Hline
+          | otherwise            = pure $ Cells cs
+        checkRow Hline           = pure Hline
         checkRow (Cline c1 c2)
           | c1 > cols = err "cline: start column too high" c1 ">" cols
-          | c1 < 0    = error "tabular: cline: negative start column"
+          | c1 < 0    = throwError "tabular: cline: negative start column"
           | c2 > cols = err "cline: end column too high" c2 ">" cols
-          | c2 < 0    = error "tabular: cline: negative end column"
-          | otherwise = Cline c1 c2
+          | c2 < 0    = throwError "tabular: cline: negative end column"
+          | otherwise = pure $ Cline c1 c2
         cols = length $ filter isCol specs
         isCol s = s `elem` [Rc,Rl,Rr]
-        err msg x op y = error $ unwords ["tabular:", msg, "(" ++ show x, op, show y ++ ")"] 
+        err msg x op y = throwError $ unwords ["tabular:", msg, "(" ++ show x, op, show y ++ ")"] 
 
 cells :: [a] -> Row a
 cells = Cells
