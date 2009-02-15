@@ -70,7 +70,7 @@ mayBraces :: ShowS -> ShowS
 mayBraces = braces
 -- mayBraces = id
 
-pp :: Latex -> ShowS
+pp :: LatexItm -> ShowS
 
 pp (LatexCmdArgs cmdName args) = ppCmdArgs cmdName $ map (fmap pp) args
 
@@ -101,7 +101,7 @@ pp (TexGroup t) = braces $ pp t
 
 pp (LatexConcat contents) = mconcat $ map pp contents
 
-ppParMode :: ParMode -> ShowS
+ppParMode :: ParItm -> ShowS
 ppParMode (Para t) = nl <> pp t <> nl <> nl
 ppParMode (ParCmdArgs cmdName args) = ppCmdArgs cmdName $ map (fmap pp) args
 ppParMode (ParDecl declName) = ppDecl declName
@@ -119,7 +119,7 @@ ppParMode (FigureLike name locs body) = ppEnv name [Arg Optional $ text $ map lo
 
 ppParMode (ParConcat contents) = vcat $ map ppParMode contents
 
-ppMath :: MathItem -> ShowS
+ppMath :: MathItm -> ShowS
 ppMath (MathDecl decl) = ppDecl decl
 ppMath (MathCmdArgs cmdName args) = ppCmdArgs cmdName $ map (fmap ppMath) args
 ppMath (RawMath s) = text s
@@ -164,7 +164,7 @@ ppSize s =
   where showr r | denominator r == 1 = shows $ numerator r
                 | otherwise          = text $ formatRealFloat FFFixed (Just 2) (fromRational r :: Double)
 
-ppPreamble :: Preamble -> ShowS
+ppPreamble :: PreambleItm -> ShowS
 ppPreamble (PreambleCmd s) = backslash <> text s
 ppPreamble (PreambleCmdArg cmdName arg)
   = backslash <> text cmdName <> braces (pp arg)
