@@ -12,6 +12,7 @@ import Data.String (fromString)
 import Control.Applicative hiding (optional)
 import Control.Monad hiding (mapM)
 import Control.Monad.Error (throwError)
+import Control.Monad.Writer (Writer, execWriter, tell)
 import Control.Arrow
 
 import Language.LaTeX.Types
@@ -31,6 +32,20 @@ instance (Group a) => Group (LatexM a) where
 
 instance Group LatexItm where group = TexGroup
 instance Group MathItm where group = MathGroup
+
+infixr 7 !<
+infixr 7 <!
+infixr 7 !<!
+
+(!<) :: Monoid b => (a -> b) -> a -> Writer b ()
+(!<) f x = tell $ f x
+
+(<!) :: (a -> b) -> Writer a () -> b
+(<!) f m = f $ execWriter m
+
+-- NOTE: This combinator seems pretty promising...
+(!<!) :: Monoid b => (a -> b) -> Writer a () -> Writer b ()
+(!<!) f m = tell $ f $ execWriter m
 
 mandatory, optional :: a -> Arg a
 mandatory x = Arg Mandatory x

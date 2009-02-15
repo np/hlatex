@@ -10,7 +10,7 @@ import Data.Traversable
 import Data.Foldable
 import Data.String (IsString(..))
 import Control.Applicative
--- import Control.Monad.Writer
+import Control.Monad.Writer (Writer)
 import Control.Monad.State
 import Control.Monad.Trans ()
 import Control.Monad.Error
@@ -288,6 +288,11 @@ type ParItem   = LatexM ParItm
 type MathItem  = LatexM MathItm
 type ListItem  = LatexM ListItm
 type PreambleItem = LatexM PreambleItm
+
+type LatexItemW    = Writer LatexItem ()
+type ParItemW      = Writer ParItem ()
+type MathItemW     = Writer MathItem ()
+type PreambleItemW = Writer PreambleItem ()
 
 showPaper :: LatexPaper -> String
 showPaper A4paper = "a4paper"
