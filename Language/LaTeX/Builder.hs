@@ -1,14 +1,15 @@
-{-# OPTIONS -fno-warn-missing-signatures #-}
 module Language.LaTeX.Builder where
 
-import Prelude ( (.), ($), (<), (>), (>=), (<=), Eq(..), Num(..), Functor(..), (&&)
-               , error, show, otherwise, toInteger
-               , Bool(..), not, fromIntegral, fromRational, Int, uncurry)
-import Data.List hiding (sum, and, group) -- (map, (++), elem, intersperse, length, unwords, filter, break, all,)
+import Prelude hiding (sqrt, min, max, lcm, gcd, log, mod, tanh, cosh, tan, sinh,
+                       sin, cos, succ, sum, pi, mapM)
+import Data.List hiding (sum, and, group)
 import Data.Maybe
 import Data.Ratio
 import Data.Monoid
 import Data.Char
+import Data.Traversable (sequenceA, mapM)
+import Control.Applicative hiding (optional)
+import Control.Monad hiding (mapM)
 import Control.Arrow
 
 import Language.LaTeX.Types
@@ -16,76 +17,168 @@ import Language.LaTeX.Internal
 import Language.LaTeX.Printer (ppSize)
 
 {-
-import Prelude (writeFile, id, sequence, Monad(..), fst)
+import Prelude (writeFile, id, Monad(..), fst)
 import Language.Haskell.TH
 -}
 
 class Group a where
   group :: a -> a
 
-instance Group Latex where group = TexGroup
-instance Group MathItem where group = MathGroup
+instance (Group a) => Group (LatexM a) where
+  group = fmap group
+
+instance Group LatexItm where group = TexGroup
+instance Group MathItm where group = MathGroup
 
 mandatory, optional :: a -> Arg a
 mandatory x = Arg Mandatory x
 optional x = Arg Optional x
 
+mathCmdArgs :: String -> [Arg MathItem] -> MathItem
+mathCmdArgs x ys = MathCmdArgs x <$> mapM sequenceA ys
+
 mathCmdArg :: String -> MathItem -> MathItem
-mathCmdArg x y = MathCmdArgs x [mandatory y]
+mathCmdArg x y = mathCmdArgs x [mandatory y]
 
-parCmdArg :: String -> Latex -> ParMode
-parCmdArg x y = ParCmdArgs x [mandatory y]
+mathDecl :: String -> MathItem
+mathDecl = pure . MathDecl
 
-latexCmdArg :: String -> Latex -> Latex
-latexCmdArg x y = LatexCmdArgs x [mandatory y]
+texDecl :: String -> LatexItem
+texDecl = pure . TexDecl
+
+texDeclOpt :: String -> LatexItem -> LatexItem
+texDeclOpt = liftM . TexDeclOpt
+
+parCmdArgs :: String -> [Arg LatexItem] -> ParItem
+parCmdArgs x ys = ParCmdArgs x <$> mapM sequenceA ys
+
+parCmdArg :: String -> LatexItem -> ParItem
+parCmdArg x y = parCmdArgs x [mandatory y]
+
+latexCmdArgs :: String -> [Arg LatexItem] -> LatexItem
+latexCmdArgs x ys = LatexCmdArgs x <$> mapM sequenceA ys
+
+latexCmdArg :: String -> LatexItem -> LatexItem
+latexCmdArg x y = latexCmdArgs x [mandatory y]
 
 mathCmd :: String -> MathItem
-mathCmd x = MathCmdArgs x []
+mathCmd x = pure $ MathCmdArgs x []
 
-dash1 = RawTex "{-}"
-dash2 = RawTex "{--}"
-dash3 = RawTex "{---}"
+mathBinOp :: String -> MathItem -> MathItem -> MathItem
+mathBinOp = liftM2 . MathBinOp
 
-nbsp = RawTex "{~}"
+rawMath :: String -> MathItem
+rawMath = pure . RawMath
 
-math = MathInline
-displaymath = DisplayMath
+mathGroup :: MathItem -> MathItem
+mathGroup = liftM MathGroup
 
-mstring = RawMath . concatMap mchar'
+latexSize :: LatexSize -> LatexItem
+latexSize = pure . LatexSize
+
+latexSaveBin :: SaveBin -> LatexItem
+latexSaveBin = pure . LatexSaveBin
+
+parEnvironmentPar :: String -> [Arg LatexItem] -> ParItem -> ParItem
+parEnvironmentPar x ys = liftM2 (ParEnvironmentPar x) $ mapM sequenceA ys
+
+parDecl :: String -> ParItem
+parDecl = pure . ParDecl
+
+figureLike :: String -> [LocSpec] -> ParItem -> ParItem
+figureLike x y = liftM $ FigureLike x y
+
+listLikeEnv :: String -> [ListItem] -> ParItem
+listLikeEnv name items =
+  parEnvironmentPar name [] (mconcat <$> mapM (fmap mkItem) items)
+  where mkItem (ListItm Nothing contents)    = ParDecl "item" <> contents
+        mkItem (ListItm (Just lab) contents) = ParDeclOpt "item" lab <> contents
+
+rawTex :: String -> LatexItem
+rawTex = pure . RawTex
+
+texCmdNoArg :: String -> LatexItem
+texCmdNoArg = pure . TexCmdNoArg
+
+preambleCmdArg :: String -> LatexItem -> PreambleItem
+preambleCmdArg = liftM . PreambleCmdArg
+
+latexKey :: Key -> LatexItem
+latexKey = pure . LatexKeys . (:[])
+
+latexKeys :: [Key] -> LatexItem
+latexKeys = pure . LatexKeys
+
+root :: PreambleItem -> LatexM Document -> LatexM Root
+root = liftM2 Root
+
+document :: ParItem -> LatexM Document
+document = liftM Document
+
+math :: MathItem -> LatexItem
+math = liftM MathInline
+displaymath :: MathItem -> ParItem
+displaymath = liftM DisplayMath
+
+mathNeedPackage :: String -> MathItem -> MathItem
+mathNeedPackage = liftM . MathNeedPackage
+
+mathToLR :: String -> LatexItem -> MathItem
+mathToLR = liftM . MathToLR
+
+dash1, dash2, dash3, nbsp :: LatexItem
+dash1 = rawTex "{-}"
+dash2 = rawTex "{--}"
+dash3 = rawTex "{---}"
+
+nbsp = rawTex "{~}"
+-- Do we want to treat '\160' as an nbsp too?
+
+mstring :: String -> MathItem
+mstring = rawMath . concatMap mchar'
 mint :: Int -> MathItem
-mint = fromIntegral
+mint = pure . fromIntegral
 mrat :: Rational -> MathItem
-mrat = fromRational
+mrat = pure . fromRational
 
-sub x = RawMath "_" <> MathGroup x
-sup x = RawMath "^" <> MathGroup x
-frac x y = MathCmdArgs "frac" [mandatory x,mandatory y]
-stackrel x y = MathCmdArgs "stackrel" [mandatory x,mandatory y]
+sub, sup :: MathItem -> MathItem
+sub x = rawMath "_" <> mathGroup x
+sup x = rawMath "^" <> mathGroup x
+
+frac, stackrel :: MathItem -> MathItem -> MathItem
+frac x y = mathCmdArgs "frac" [mandatory x,mandatory y]
+stackrel x y = mathCmdArgs "stackrel" [mandatory x,mandatory y]
 
 sqrt :: MathItem -> MathItem
-sqrt x = MathCmdArgs "sqrt" [mandatory x]
+sqrt x = mathCmdArgs "sqrt" [mandatory x]
 
 sqrt' :: MathItem -> MathItem -> MathItem
-sqrt' n x = MathCmdArgs "sqrt" [optional n, mandatory x]
+sqrt' n x = mathCmdArgs "sqrt" [optional n, mandatory x]
 
 mleft, mright :: Char -> MathItem
-mleft x = RawMath $ "\\left" ++ parenChar x
-mright x = RawMath $ "\\right" ++ parenChar x
+mleft x = rawMath $ "\\left" ++ parenChar x
+mright x = rawMath $ "\\right" ++ parenChar x
 
+between :: Char -> Char -> MathItem -> MathItem
 between opening closing x = mleft opening <> x <> mright closing
 
+parens, braces, brackets :: MathItem -> MathItem
 parens   = between '(' ')'
 braces   = between '{' '}'
 brackets = between '[' ']'
 
+parenChar :: Char -> String
 parenChar x | x `elem` "([.])" = [x]
             | x == '{'         = "\\{"
             | x == '}'         = "\\}"
             | otherwise        = error $ "invalid parenthesis-like: " ++ show x
 
-href x y = LatexCmdArgs "href" [mandatory x,mandatory y]
+href :: LatexItem -> LatexItem -> LatexItem
+href x y = latexCmdArgs "href" [mandatory x,mandatory y]
+person :: String -> String -> LatexItem
 person name email = href (hstring ("mailto:"++email)) (hstring name)
 
+inch, pt, cm, mm, ex, pc :: Rational -> LatexSize
 pt = Pt
 -- em = Em
 cm = Cm
@@ -95,20 +188,25 @@ pc = Pc
 inch = In
 
 -- simulate the <hr> html tag
+hr :: LatexItem
 hr = group $ noindent <> rule linewidth (pt 1.5)
 
+normSpaces :: String -> String
 normSpaces = unlines . map (unwords . words) . lines
 
-hint :: Int -> Latex
-hint = LatexSize . SizeInt . toInteger
+hint :: Int -> LatexItem
+hint = latexSize . SizeInt . toInteger
 
-hstring :: String -> Latex
-hstring = RawTex . concatMap hchar' . concat . intersperse "\n" . filter (not . null) . lines
+hstring :: String -> LatexItem
+hstring = rawTex . concatMap hchar' . concat . intersperse "\n" . filter (not . null) . lines
 
+pstring :: String -> ParItem
 pstring = para . hstring
 
-hchar = RawTex . hchar'
+hchar :: Char -> LatexItem
+hchar = rawTex . hchar'
 
+hchar' :: Char -> String
 hchar' '\\' = "\\textbackslash{}"
 hchar' '~'  = "\\~{}"
 hchar' '<'  = "\\textless{}"
@@ -120,8 +218,10 @@ hchar' x | x `elem` "#_&{}$%" = ['\\',x]
          | x `elem` "-]["     = ['{', x, '}'] -- to avoid multiple dashes or mess up optional args
          | otherwise          = [x]
 
-mchar = RawMath . mchar'
+mchar :: Char -> MathItem
+mchar = rawMath . mchar'
 
+mchar' :: Char -> String
 mchar' '\\' = "\\textbackslash{}"
 mchar' '~'  = "\\text{\\~{}}"
 mchar' '^'  = "\\^{}"
@@ -130,21 +230,38 @@ mchar' x | x `elem` "#_&{}$%" = ['\\',x]
          | x `elem` "-]["     = ['{', x, '}'] -- to avoid multiple dashes or mess up optional args
          | otherwise          = [x]
 
-protect :: String -> Latex
+protect :: String -> LatexItem
 protect ""        = mempty
 protect ('\n':xs) = newline <> protect xs
 protect (' ':xs)  = uncurry (<>) $ (hspace_ . (+1) . length *** protect) $ break (/=' ') xs
   where hspace_ n = hspace $ Em $ 1%2 * fromIntegral n
 protect (x:xs)    = uncurry (<>) $ (hstring . (x :) *** protect) $ break (`elem` " \n") xs
 
-includegraphics = ParCmdArgs "includegraphics"
-tableofcontents = ParDecl "tableofcontents"
-maketitle = ParCmdArgs "maketitle" []
--- par = TexCmdNoArg "par"
-noindent = TexCmdNoArg "noindent"
+includegraphics = parCmdArgs "includegraphics"
+
+tableofcontents :: ParItem
+tableofcontents = parDecl "tableofcontents"
+
+maketitle :: ParItem
+maketitle = parCmdArgs "maketitle" []
+
+-- par = texCmdNoArg "par"
+noindent :: LatexItem
+noindent = texCmdNoArg "noindent"
 
 -- robust
+stretch :: Rational -> LatexSize
 stretch = SizeCmdRatArg "stretch"
+
+parindent, textwidth, linewidth, textheight, parsep, parskip, baselineskip, baselinestrech,
+  fill, columnsep, columnseprule, mathindent, oddsidemargin, evensidemargin, marginparwidth,
+  marginparsep, marginparpush, topmargin, headheight, headsep, topskip, footheight, footskip,
+  topsep, partopsep, itemsep, itemindent, labelsep, labelwidth, leftmargin, rightmargin,
+  listparindent, jot, abovedisplayskip, belowdisplayskip, abovedisplayshortskip,
+  belowdisplayshortskip, floatsep, textfloatsep, intextsep, dblfloatsep, dbltextfloatsep,
+  textfraction, floatpagefraction, dbltopfaction, dblfloatpagefraction, arraycolsep,
+  tabcolsep, arrayrulewidth, doublerulesep, arraystretch, bigskipamount, medskipamount,
+  smallskipamount, fboxrule, fboxsep :: LatexSize
 
 parindent = SizeCmd "parindent"
 textwidth = SizeCmd "textwidth"
@@ -205,8 +322,10 @@ fboxsep = SizeCmd "fboxsep"
 
 -- Marginal Notes
 
-reversemarginpar = TexDecl "reversemarginpar"
-normalmarginpar = TexDecl "normalmarginpar"
+reversemarginpar :: LatexItem
+reversemarginpar = texDecl "reversemarginpar"
+normalmarginpar :: LatexItem
+normalmarginpar = texDecl "normalmarginpar"
 
 -- The tabbing Environment
 
@@ -215,51 +334,67 @@ normalmarginpar = TexDecl "normalmarginpar"
 -- Spaces
 
 -- robust
-hspace = latexCmdArg "hspace" . LatexSize
+hspace :: LatexSize -> LatexItem
+hspace = latexCmdArg "hspace" . latexSize
 
 -- robust
-hspaceStar = latexCmdArg "hspace*" . LatexSize
+hspaceStar :: LatexSize -> LatexItem
+hspaceStar = latexCmdArg "hspace*" . latexSize
 
 -- fragile
-vspace = latexCmdArg "vspace" . LatexSize
+vspace :: LatexSize -> LatexItem
+vspace = latexCmdArg "vspace" . latexSize
 
 -- fragile
-vspaceStar = latexCmdArg "vspace*" . LatexSize
+vspaceStar :: LatexSize -> LatexItem
+vspaceStar = latexCmdArg "vspace*" . latexSize
 
-vfill = TexCmdNoArg "vfill" -- = vspace fill
-hfill = TexCmdNoArg "hfill" -- = hspace fill
-dotfill = TexCmdNoArg "dotfill"
-hrulefill = TexCmdNoArg "hrulefill"
+vfill :: LatexItem
+vfill = texCmdNoArg "vfill" -- = vspace fill
+hfill :: LatexItem
+hfill = texCmdNoArg "hfill" -- = hspace fill
+dotfill :: LatexItem
+dotfill = texCmdNoArg "dotfill"
+hrulefill :: LatexItem
+hrulefill = texCmdNoArg "hrulefill"
 
 -- fragile
-bigskip = TexCmdNoArg "bigskip" -- = vspace bigskipamount
+bigskip :: LatexItem
+bigskip = texCmdNoArg "bigskip" -- = vspace bigskipamount
 
 -- fragile
-medskip = TexCmdNoArg "medskip" -- = vspace medskipamount
+medskip :: LatexItem
+medskip = texCmdNoArg "medskip" -- = vspace medskipamount
 
 -- fragile
-smallskip = TexCmdNoArg "smallskip" -- = vspace smallskipamount
+smallskip :: LatexItem
+smallskip = texCmdNoArg "smallskip" -- = vspace smallskipamount
 
-addvspace = latexCmdArg "addvspace" . LatexSize
+addvspace :: LatexSize -> LatexItem
+addvspace = latexCmdArg "addvspace" . latexSize
 
 
 -- Font sizes
 
 -- those could be seen as taking an argument
-tiny         = TexDecl "tiny"
-scriptsize   = TexDecl "scriptsize"
-footnotesize = TexDecl "footnotesize"
-small        = TexDecl "small"
-normalsize   = TexDecl "normalsize"
-large        = TexDecl "large"
-_LARGE       = TexDecl "LARGE"
-_Large       = TexDecl "Large"
-huge         = TexDecl "huge"
-_Huge        = TexDecl "Huge"
+tiny, scriptsize, footnotesize, small, normalsize, large,
+  _LARGE, _Large, huge, _Huge, mdseries, ssfamily :: LatexItem
+tiny         = texDecl "tiny"
+scriptsize   = texDecl "scriptsize"
+footnotesize = texDecl "footnotesize"
+small        = texDecl "small"
+normalsize   = texDecl "normalsize"
+large        = texDecl "large"
+_LARGE       = texDecl "LARGE"
+_Large       = texDecl "Large"
+huge         = texDecl "huge"
+_Huge        = texDecl "Huge"
 
-mdseries = TexDecl "mdseries"
-ssfamily = TexDecl "ssfamily"
+mdseries = texDecl "mdseries"
+ssfamily = texDecl "ssfamily"
 
+emph, textrm, textsf, texttt, textmd, textbf,
+  textup, textit, textsl, textsc, textnormal :: LatexItem -> LatexItem
 -- textXYZ commands should work in math too (use a typeclass)
 emph = latexCmdArg "emph"
 textrm = latexCmdArg "textrm"
@@ -276,192 +411,236 @@ textnormal = latexCmdArg "textnormal"
 -- Line and page breaking
 
 -- fragile
-linebreak, nolinebreak :: Int -> Latex
-linebreak = TexDeclOpt "linebreak" . hint
-nolinebreak = TexDeclOpt "nolinebreak" . hint
+linebreak, nolinebreak :: Int -> LatexItem
+linebreak = texDeclOpt "linebreak" . hint
+nolinebreak = texDeclOpt "nolinebreak" . hint
 
 -- fragile
-newline = TexCmdNoArg "newline"
-newline' = TexDeclOpt "newline" . LatexSize
+newline :: LatexItem
+newline = texCmdNoArg "newline"
+newline' :: LatexSize -> LatexItem
+newline' = texDeclOpt "newline" . latexSize
 
 -- robust
-hyphen = RawTex "{\\-}" -- check if {...} does not cause trouble here
+hyphen :: LatexItem
+hyphen = rawTex "{\\-}" -- check if {...} does not cause trouble here
 
 -- robust
-hyphenation :: [String] -> ParMode
-hyphenation = parCmdArg "hyphenation" . RawTex . unwords -- RawTex is a bit rough here
+hyphenation :: [String] -> ParItem
+hyphenation = parCmdArg "hyphenation" . rawTex . unwords -- rawTex is a bit rough here
 
-sloppy = TexDecl "sloppy"
-fussy = TexDecl "fussy"
+sloppy, fussy :: LatexItem
+sloppy = texDecl "sloppy"
+fussy = texDecl "fussy"
 
-sloppypar = ParEnvironmentPar "sloppypar" []
+
+sloppypar :: ParItem -> ParItem
+sloppypar = parEnvironmentPar "sloppypar" []
 
 -- fragile
-pagebreak, nopagebreak :: Int -> Latex
+pagebreak, nopagebreak :: Int -> LatexItem
 (pagebreak, nopagebreak) =
-  (TexDeclOpt "pagebreak" . hint . check0to4 "pagebreak"
-  ,TexDeclOpt "nopagebreak" . hint . check0to4 "nopagebreak")
+  (texDeclOpt "pagebreak" . hint . check0to4 "pagebreak"
+  ,texDeclOpt "nopagebreak" . hint . check0to4 "nopagebreak")
   where check0to4 s i | i >= 0 && i <= 4 = i
                       | otherwise        = error $ s ++ ": option must be between 0 and 4 not " ++ show i
 
 -- fragile
-samepage = TexDecl "samepage"
+samepage :: LatexItem
+samepage = texDecl "samepage"
 
 -- robust
-newpage = ParDecl "newpage"
+newpage :: ParItem
+newpage = parDecl "newpage"
 -- robust
-clearpage = ParDecl "clearpage"
+clearpage :: ParItem
+clearpage = parDecl "clearpage"
 -- fragile
-cleardoublepage = ParDecl "cleardoublepage"
+cleardoublepage :: ParItem
+cleardoublepage = parDecl "cleardoublepage"
 
 --- Boxes
 
 {-
 class Mbox a where
   -- robust
-  mbox :: Latex -> a
+  mbox :: LatexItem -> a
 
   -- fragile
-  makebox :: LatexSize -> LatexSize -> Latex -> a
+  makebox :: LatexSize -> LatexSize -> LatexItem -> a
 
 instance Mbox MathItem where
   mbox = MathToLR Nothing Nothing
   makebox = mmakebox
 
-instance Mbox Latex where
+instance Mbox LatexItem where
   mbox = id
 
-instance Mbox ParMode where
+instance Mbox ParItem where
 -}
 
-text = MathNeedPackage "amsmath" . MathToLR "text"
+text :: LatexItem -> MathItem
+text = mathNeedPackage "amsmath" . mathToLR "text"
 
 -- robust
+mbox :: LatexItem -> LatexItem
 mbox = latexCmdArg "mbox"
 
 -- fragile
-makebox width txt = LatexCmdArgs "makebox" [optional $ LatexSize width,mandatory txt]
+makebox :: LatexSize -> LatexItem -> LatexItem
+makebox width txt = latexCmdArgs "makebox" [optional $ latexSize width,mandatory txt]
 
 -- fragile
+makeboxLeft :: LatexSize -> LatexItem -> LatexItem
 makeboxLeft width txt =
-  LatexCmdArgs "makebox" [optional $ LatexSize width,optional $ RawTex "l",mandatory txt]
+  latexCmdArgs "makebox" [optional $ latexSize width,optional $ rawTex "l",mandatory txt]
 
 -- fragile
+makeboxRight :: LatexSize -> LatexItem -> LatexItem
 makeboxRight width txt =
-  LatexCmdArgs "makebox" [optional $ LatexSize width,optional $ RawTex "r",mandatory txt]
+  latexCmdArgs "makebox" [optional $ latexSize width,optional $ rawTex "r",mandatory txt]
 
 -- robust
+fbox :: LatexItem -> LatexItem
 fbox = latexCmdArg "fbox"
 
 -- fragile
-framebox width txt = LatexCmdArgs "framebox" [optional $ LatexSize width,mandatory txt]
+framebox :: LatexSize -> LatexItem -> LatexItem
+framebox width txt = latexCmdArgs "framebox" [optional $ latexSize width,mandatory txt]
 
 -- fragile
+frameboxLeft :: LatexSize -> LatexItem -> LatexItem
 frameboxLeft width txt =
-  LatexCmdArgs "framebox" [optional $ LatexSize width,optional $ RawTex "l",mandatory txt]
+  latexCmdArgs "framebox" [optional $ latexSize width,optional $ rawTex "l",mandatory txt]
 
 -- fragile
+frameboxRight :: LatexSize -> LatexItem -> LatexItem
 frameboxRight width txt =
-  LatexCmdArgs "framebox" [optional $ LatexSize width,optional $ RawTex "r",mandatory txt]
+  latexCmdArgs "framebox" [optional $ latexSize width,optional $ rawTex "r",mandatory txt]
 
 -- TODO: make a safe version using a monad
 -- fragile
+unsafeNewsavebox :: Int -> LatexItem
 unsafeNewsavebox i =
   let bin = UnsafeMakeSaveBin i
-  in latexCmdArg "newsavebox" $ LatexSaveBin bin
+  in latexCmdArg "newsavebox" $ latexSaveBin bin
 
 -- robust
-sbox bin txt = LatexCmdArgs "sbox" [mandatory $ LatexSaveBin bin, mandatory txt]
+sbox :: SaveBin -> LatexItem -> LatexItem
+sbox bin txt = latexCmdArgs "sbox" [mandatory $ latexSaveBin bin, mandatory txt]
 
 -- fragile
+savebox :: SaveBin -> LatexSize -> LatexItem -> LatexItem
 savebox bin width txt =
-  LatexCmdArgs "savebox" [mandatory $  LatexSaveBin bin, optional $  LatexSize width,
+  latexCmdArgs "savebox" [mandatory $ latexSaveBin bin, optional $ latexSize width,
                           mandatory  txt]
 
 -- fragile
+saveboxLeft :: SaveBin -> LatexSize -> LatexItem -> LatexItem
 saveboxLeft bin width txt =
-  LatexCmdArgs "savebox" [mandatory $  LatexSaveBin bin, optional $  LatexSize width,
-                          optional $  RawTex "l", mandatory  txt]
+  latexCmdArgs "savebox" [mandatory $ latexSaveBin bin, optional $ latexSize width,
+                          optional $ rawTex "l", mandatory  txt]
 
 -- fragile
+saveboxRight :: SaveBin -> LatexSize -> LatexItem -> LatexItem
 saveboxRight bin width txt =
-  LatexCmdArgs "savebox" [mandatory $  LatexSaveBin bin, optional $  LatexSize width,
-                          optional $  RawTex "r", mandatory  txt]
+  latexCmdArgs "savebox" [mandatory $ latexSaveBin bin, optional $ latexSize width,
+                          optional $ rawTex "r", mandatory  txt]
 
 -- robust
-usebox bin = LatexCmdArgs "usebox" [mandatory $  LatexSaveBin bin]
+usebox :: SaveBin -> LatexItem
+usebox bin = latexCmdArgs "usebox" [mandatory $ latexSaveBin bin]
 
 -- fragile
+parbox :: LatexSize -> LatexItem -> LatexItem
 parbox width txt =
-  LatexCmdArgs "parbox" [mandatory $  LatexSize width, mandatory  txt]
+  latexCmdArgs "parbox" [mandatory $ latexSize width, mandatory  txt]
 
 -- fragile
+parboxTop :: LatexSize -> LatexItem -> LatexItem
 parboxTop width txt =
-  LatexCmdArgs "parbox" [optional $  RawTex "t", mandatory $  LatexSize width, mandatory  txt]
+  latexCmdArgs "parbox" [optional $ rawTex "t", mandatory $ latexSize width, mandatory  txt]
 
 -- fragile
+parboxBot :: LatexSize -> LatexItem -> LatexItem
 parboxBot width txt =
-  LatexCmdArgs "parbox" [optional $  RawTex "b", mandatory $  LatexSize width, mandatory  txt]
+  latexCmdArgs "parbox" [optional $ rawTex "b", mandatory $ latexSize width, mandatory  txt]
 
+minipage :: LatexSize -> ParItem -> LatexItem
 minipage width txt =
-  LatexCmdArgs "minipage" [mandatory $  LatexSize width, mandatory $  LatexParMode txt]
+  latexCmdArgs "minipage" [mandatory $ latexSize width, mandatory $ liftM LatexParMode txt]
 
+minipageTop :: LatexSize -> LatexItem -> LatexItem
 minipageTop width txt =
-  LatexCmdArgs "minipage" [optional $  RawTex "t", mandatory $  LatexSize width, mandatory  txt]
+  latexCmdArgs "minipage" [optional $ rawTex "t", mandatory $ latexSize width, mandatory  txt]
 
+minipageBot :: LatexSize -> LatexItem -> LatexItem
 minipageBot width txt =
-  LatexCmdArgs "minipage" [optional $  RawTex "b", mandatory $  LatexSize width, mandatory  txt]
+  latexCmdArgs "minipage" [optional $ rawTex "b", mandatory $ latexSize width, mandatory  txt]
 
 -- fragile
-rule width height = LatexCmdArgs "rule" [mandatory $ LatexSize width,mandatory $ LatexSize height]
+rule :: LatexSize -> LatexSize -> LatexItem
+rule width height = latexCmdArgs "rule" [mandatory $ latexSize width,mandatory $ latexSize height]
 
 -- fragile
-rule' raise_len width height = LatexCmdArgs "rule" [optional $  LatexSize raise_len
-                                                   ,mandatory $ LatexSize width,mandatory $ LatexSize height]
+rule' :: LatexSize -> LatexSize -> LatexSize -> LatexItem
+rule' raise_len width height = latexCmdArgs "rule" [optional $ latexSize raise_len
+                                                   ,mandatory $ latexSize width,mandatory $ latexSize height]
 
 -- fragile
+raisebox :: LatexSize -> LatexItem -> LatexItem
 raisebox raise_len txt =
-  LatexCmdArgs "raisebox" [mandatory $ LatexSize raise_len,mandatory txt]
+  latexCmdArgs "raisebox" [mandatory $ latexSize raise_len,mandatory txt]
 
 -- fragile
+raisebox' :: LatexSize -> LatexSize -> LatexSize -> LatexItem -> LatexItem
 raisebox' raise_len height depth txt =
-  LatexCmdArgs "raisebox" [mandatory $ LatexSize raise_len
-                          ,optional $ LatexSize height,optional $ LatexSize depth,mandatory  txt]
+  latexCmdArgs "raisebox" [mandatory $ latexSize raise_len
+                          ,optional $ latexSize height,optional $ latexSize depth,mandatory  txt]
 
+footnote :: LatexItem -> LatexItem
 footnote = latexCmdArg "footnote"
 
-caption :: Latex -> Latex
-caption txt = LatexCmdArgs "caption" [mandatory txt]
-caption' :: String -> Latex -> Latex
-caption' lstentry txt = LatexCmdArgs "caption" [optional $ checkentry lstentry, mandatory txt]
+caption :: LatexItem -> LatexItem
+caption txt = latexCmdArgs "caption" [mandatory txt]
+caption' :: String -> LatexItem -> LatexItem
+caption' lstentry txt = latexCmdArgs "caption" [optional $ checkentry lstentry, mandatory txt]
   where checkentry x
-          | all isAlphaNum x = RawTex x
+          | all isAlphaNum x = rawTex x
           | otherwise        = error "caption': restriction to alphanumeric characters for the lstentry"
 
-label = latexCmdArg "label" . LatexKeys . (:[])
-ref = latexCmdArg "ref" . LatexKeys . (:[])
-pageref = latexCmdArg "pageref" . LatexKeys . (:[])
+label :: Key -> LatexItem
+label = latexCmdArg "label" . latexKey
+ref :: Key -> LatexItem
+ref = latexCmdArg "ref" . latexKey
+pageref :: Key -> LatexItem
+pageref = latexCmdArg "pageref" . latexKey
 
 -- fragile
-cite = latexCmdArg "cite" . LatexKeys
-cite' txt keys = LatexCmdArgs "cite" [optional txt, mandatory $ LatexKeys keys]
+cite :: [Key] -> LatexItem
+cite = latexCmdArg "cite" . latexKeys
+cite' :: LatexItem -> [Key] -> LatexItem
+cite' txt keys = latexCmdArgs "cite" [optional txt, mandatory $ latexKeys keys]
 
 -- fragile
-nocite = latexCmdArg "nocite" . LatexKeys
+nocite :: [Key] -> LatexItem
+nocite = latexCmdArg "nocite" . latexKeys
 
 -- sectioning
 
 -- Sectioning commands arguments are 'moving'.
-sectioning :: String -> ((Latex -> ParMode), (Star -> Maybe Latex -> Latex -> ParMode))
+sectioning :: String -> ((LatexItem -> ParItem), (Star -> Maybe LatexItem -> LatexItem -> ParItem))
 sectioning name = (sect, sect')
   where sect = sect' NoStar Nothing
-        sect' star opt arg = ParCmdArgs (name ++ addstar star)
+        sect' star opt arg = parCmdArgs (name ++ addstar star)
                                         (maybeToList (fmap optional opt) ++ [mandatory arg])
         addstar Star   = "*"
         addstar NoStar = ""
 
-part, chapter, section, subsection,  subsubsection :: Latex -> ParMode
-part', chapter', section', subsection', subsubsection' :: Star -> Maybe Latex -> Latex -> ParMode
+part, chapter, section, subsection,  subsubsection, paragraph,
+  subparagraph :: LatexItem -> ParItem
+part', chapter', section', subsection', subsubsection', paragraph',
+  subparagraph' :: Star -> Maybe LatexItem -> LatexItem -> ParItem
 
 (part, part')       = sectioning "part"
 (chapter, chapter') = sectioning "chapter"
@@ -473,53 +652,60 @@ part', chapter', section', subsection', subsubsection' :: Star -> Maybe Latex ->
 
 -- | Don't confuse 'paragraph' with 'para', 'para' is to make a paragraph,
 -- 'paragraph' is to group a set of paragraphs.
-para = Para
+para :: LatexItem -> ParItem
+para = liftM Para
 
+bibliography :: LatexItem -> LatexItem
 bibliography = latexCmdArg "bibliography"
+bibliographystyle :: LatexItem -> LatexItem
 bibliographystyle = latexCmdArg "bibliographystyle"
+thispagestyle :: LatexItem -> LatexItem
 thispagestyle = latexCmdArg "thispagestyle"
 
 -- should be \setlength{a}{b}{c} ...
+setlength :: LatexItem -> LatexItem
 setlength = latexCmdArg "setlength"
 
-listLikeEnv name items =
-  ParEnvironmentPar name [] $ mconcat $ map mkItem items
-  where mkItem (Item Nothing contents)    = ParDecl "item" <> contents
-        mkItem (Item (Just lab) contents) = ParDeclOpt "item" lab <> contents
+item :: ParItem -> ListItem
+item = liftM $ ListItm Nothing
 
-item :: ParMode -> Item
-item = Item Nothing
+item' :: LatexItem -> ParItem -> ListItem
+item' a b = liftM2 ListItm (Just <$> a) b
 
-item' :: Latex -> ParMode -> Item
-item' = Item . Just
-
-itemize :: [Item] -> ParMode
+itemize :: [ListItem] -> ParItem
 itemize = listLikeEnv "itemize"
-enumerate :: [Item] -> ParMode
+enumerate :: [ListItem] -> ParItem
 enumerate = listLikeEnv "enumerate"
-description :: [Item] -> ParMode
+description :: [ListItem] -> ParItem
 description = listLikeEnv "description"
 
-document = Document
-titlepage = ParEnvironmentPar "titlepage"
-flushleft = ParEnvironmentPar "flushleft"
-figure = FigureLike "figure"
-figureStar = FigureLike "figure*"
-table = FigureLike "table"
-tableStar = FigureLike "table*"
-boxedminipage = ParEnvironmentPar "boxedminipage"
-quote :: Latex -> ParMode
-quote = ParEnvironmentLR "quote"
-quotation = ParEnvironmentPar "quotation"
-verse = ParEnvironmentPar "verse"
+figure, figureStar, table, tableStar :: [LocSpec] -> ParItem -> ParItem
+figure = figureLike "figure"
+figureStar = figureLike "figure*"
+table = figureLike "table"
+tableStar = figureLike "table*"
+
+-- check options
+titlepage, flushleft, boxedminipage, quotation, verse :: ParItem -> ParItem
+titlepage = parEnvironmentPar "titlepage" []
+flushleft = parEnvironmentPar "flushleft" []
+boxedminipage = parEnvironmentPar "boxedminipage" []
+quotation = parEnvironmentPar "quotation" []
+verse = parEnvironmentPar "verse" []
+
+quote :: LatexItem -> ParItem
+quote = liftM $ ParEnvironmentLR "quote"
 
 -- The array and tablular Environments
 
 -- use a monad to report errors
-tabular specs rows = Tabular specs $ checkRows specs rows
+tabular :: [RowSpec] -> [Row LatexItem] -> ParItem
+tabular specs rows = Tabular specs . checkRows specs <$> mapM sequenceA rows
 
-array specs rows = MathArray specs $ checkRows specs rows
+array :: [RowSpec] -> [Row MathItem] -> MathItem
+array specs rows = MathArray specs . checkRows specs <$> mapM sequenceA rows
 
+checkRows :: [RowSpec] -> [Row a] -> [Row a]
 checkRows specs = map checkRow
   where checkRow (Cells cs)
           | cols /= length cs    = err "wrong number of cells" cols "different from" (length cs)
@@ -535,12 +721,16 @@ checkRows specs = map checkRow
         isCol s = s `elem` [Rc,Rl,Rr]
         err msg x op y = error $ unwords ["tabular:", msg, "(" ++ show x, op, show y ++ ")"] 
 
+cells :: [a] -> Row a
 cells = Cells
+hline :: Row a
 hline = Hline
+cline :: Int -> Int -> Row a
 cline = Cline
 
 -- this is more the '|' than the \vline of LaTeX,
 -- one may want to support both using a HaveVline type class.
+vline :: RowSpec
 vline = Rvline
 
 class HaveC a where c :: a
@@ -553,17 +743,18 @@ instance HaveR RowSpec where r = Rr
 
 -- eqnarraystar = 
 
+a4paper :: LatexPaper
 a4paper = A4paper
 
-root = Root
-
+book, article, report, letter :: DocumentClass
 book = Book
 article = Article
 report = Report
 letter = Letter
 
-documentclass :: Maybe LatexSize -> Maybe LatexPaper -> DocumentClass -> Preamble
+documentclass :: Maybe LatexSize -> Maybe LatexPaper -> DocumentClass -> PreambleItem
 documentclass msize mpaper dc =
+  return $
   PreambleCmdArgWithOpts "documentclass" (maybeToList (fmap (($"") . ppSize) msize) ++
                                           maybeToList (fmap showPaper mpaper))
                                          (RawTex $ showDocumentClass dc)
@@ -660,14 +851,14 @@ $(
 
   mkTexDecl name =
     let lname = lowerName name in
-    [sigD lname [t| Latex |]
-    , valD (varP lname) (normalB [| TexDecl $(stringE name) [] |]) []
+    [sigD lname [t| LatexItem |]
+    , valD (varP lname) (normalB [| texDecl $(stringE name) [] |]) []
     ]
 
   mkMathDecl name =
     let lname = lowerName name in
     [sigD lname [t| MathItem |]
-     , valD (varP lname) (normalB [| MathDecl $(stringE name) [] |]) []
+     , valD (varP lname) (normalB [| mathDecl $(stringE name) [] |]) []
     ]
 
   mkList name ty names =
@@ -681,7 +872,7 @@ $(
       , map mkMathDecl mathDecls
       , [mkList (mkName "mathItems") [t| [MathItem] |] $ (map fst mathCmds ++ mathDecls)]
       , [mkList (mkName "mathCmdsArg") [t| [MathItem -> MathItem] |] mathCmdsArg]
-      , [mkList (mkName "texDecls") [t| [Latex] |] texDecls]
+      , [mkList (mkName "texDecls") [t| [LatexItem] |] texDecls]
       ]
   in do dd <- d
         runIO $ writeFile "/tmp/a.hs" $ pprint dd
@@ -691,14 +882,16 @@ $(
 
 {- This chunk was generated by the previous TH splice.
    The lists of all commands are manually maintained though. -}
-usepackage = PreambleCmdArg "usepackage"
-title = PreambleCmdArg "title"
-subtitle = PreambleCmdArg "subtitle"
-date = PreambleCmdArg "date"
-author = PreambleCmdArg "author"
-and = TexCmdNoArg "and"
-authors = author . mconcat . intersperse and
-institute = PreambleCmdArg "institute"
+author, usepackage, title, subtitle, date, institute :: LatexItem -> PreambleItem
+usepackage = preambleCmdArg "usepackage"
+title = preambleCmdArg "title"
+subtitle = preambleCmdArg "subtitle"
+date = preambleCmdArg "date"
+author = preambleCmdArg "author"
+institute = preambleCmdArg "institute"
+
+authors :: [LatexItem] -> PreambleItem
+authors = author . mconcat . intersperse (rawTex " & ")
 
 
 lbrace :: MathItem
@@ -1028,43 +1221,43 @@ imath = mathCmdArg "imath"
 jmath :: MathItem -> MathItem
 jmath = mathCmdArg "jmath"
 {-# DEPRECATED em "Use emph instead" #-}
-em :: Latex
-em = TexDecl "em"
+em :: LatexItem
+em = texDecl "em"
 {-# DEPRECATED bf "Use textbf instead" #-}
-bf :: Latex
-bf = TexDecl "bf"
+bf :: LatexItem
+bf = texDecl "bf"
 {-# DEPRECATED sf "Use textsf instead" #-}
-sf :: Latex
-sf = TexDecl "sf"
+sf :: LatexItem
+sf = texDecl "sf"
 {-# DEPRECATED sl "Use textsl instead" #-}
-sl :: Latex
-sl = TexDecl "sl"
+sl :: LatexItem
+sl = texDecl "sl"
 {-# DEPRECATED sc "Use textsc instead" #-}
-sc :: Latex
-sc = TexDecl "sc"
+sc :: LatexItem
+sc = texDecl "sc"
 {-# DEPRECATED it "Use textit instead" #-}
-it :: Latex
-it = TexDecl "it"
+it :: LatexItem
+it = texDecl "it"
 {-# DEPRECATED tt "Use texttt instead" #-}
-tt :: Latex
-tt = TexDecl "tt"
+tt :: LatexItem
+tt = texDecl "tt"
 displaystyle :: MathItem
-displaystyle = MathDecl "displaystyle"
+displaystyle = mathDecl "displaystyle"
 textstyle :: MathItem
-textstyle = MathDecl "textstyle"
+textstyle = mathDecl "textstyle"
 scriptstyle :: MathItem
-scriptstyle = MathDecl "scriptstyle"
+scriptstyle = mathDecl "scriptstyle"
 scriptscriptstyle :: MathItem
-scriptscriptstyle = MathDecl "scriptscriptstyle"
+scriptscriptstyle = mathDecl "scriptscriptstyle"
 mit :: MathItem
-mit = MathDecl "mit"
+mit = mathDecl "mit"
 cal :: MathItem
-cal = MathDecl "cal"
+cal = mathDecl "cal"
 eq :: MathItem
-eq = RawMath "{=}"
+eq = rawMath "{=}"
 
 bmod :: MathItem -> MathItem -> MathItem
-bmod = MathBinOp "bmod"
+bmod = mathBinOp "bmod"
 
 mathItems :: [MathItem]
 mathItems =
@@ -1090,18 +1283,22 @@ mathCmdsArg = [mathbf, mathbb, mathcal, mathtt, mathfrak, pmod, tilde, hat, chec
                 breve, acute, grave, bar, vec, dot, ddot, overbrace, underbrace, overline,
                 underline, widehat, widetilde, imath, jmath
                 -- maually added
-               ,negate, sqrt
+               -- TODO TODO TODO ,negate
+               , sqrt
                ]
 
-mathBinOp :: [MathItem -> MathItem -> MathItem]
-mathBinOp = [(+),(-),(*),bmod]
+mathBinOps :: [MathItem -> MathItem -> MathItem]
+mathBinOps = [{-TODO (+),(-),(*),-}bmod]
 
-texDecls :: [Latex]
+texDecls :: [LatexItem]
 texDecls = [em, bf, sf, sl, sc, it, tt]
 
 -- beamer
 -- alert
 -- AtBeginSubsection, AtBeginSection
+only :: LatexItem -> LatexItem
 only = latexCmdArg "only"
-usetheme = PreambleCmdArg "usetheme"
-usefontthem = PreambleCmdArg "usefontthem"
+
+usetheme, usefonttheme :: LatexItem -> PreambleItem
+usetheme = preambleCmdArg "usetheme"
+usefonttheme = preambleCmdArg "usefonttheme"
