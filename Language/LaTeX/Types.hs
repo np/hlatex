@@ -1,15 +1,22 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving, FlexibleInstances #-}
 module Language.LaTeX.Types where
 
-import Prelude hiding (and)
-import Data.Monoid ()
-import Data.List hiding (and)
+import Prelude hiding (and, foldr, foldl, foldr1, foldl1)
+import Data.Monoid (Monoid(..))
+import Data.List hiding (and, foldr, foldl, foldr1, foldl1)
 import Data.Char
 import Data.Ratio ((%))
-import Control.Monad.Writer
+import Data.Traversable
+import Data.Foldable
+import Control.Applicative
+-- import Control.Monad.Writer
+import Control.Monad.State
+import Control.Monad.Trans ()
+import Control.Monad.Error
 
-data Root = Root Preamble Document
+data Root = Root PreambleItm Document
 
-data Document = Document ParMode
+data Document = Document ParItm
 
 data DocumentClass = Article
                    | Book
@@ -17,35 +24,36 @@ data DocumentClass = Article
                    | Letter
                    | OtherDocumentClass String
 
-data Preamble = PreambleCmd String
-              | PreambleCmdArg String Latex
-              | PreambleCmdArgWithOpts String [String] Latex
-              | PreambleConcat [Preamble]
+data PreambleItm = PreambleCmd String
+              | PreambleCmdArg String LatexItm
+              | PreambleCmdArgWithOpts String [String] LatexItm
+              | PreambleConcat [PreambleItm]
 
-instance Monoid Preamble where
+instance Monoid PreambleItm where
   mempty  = PreambleConcat []
   PreambleConcat xs `mappend` PreambleConcat ys = PreambleConcat (xs ++ ys)
   PreambleConcat xs `mappend` y                 = PreambleConcat (xs ++ [y])
   x                 `mappend` PreambleConcat ys = PreambleConcat (x : ys)
   x                 `mappend` y                 = PreambleConcat [x, y]
 
-data Latex = LatexCmdArgs String [Arg Latex]
+data LatexItm
+           = LatexCmdArgs String [Arg LatexItm]
            | TexDecl String
-           | TexDeclOpt String Latex
+           | TexDeclOpt String LatexItm
            | TexCmdNoArg String
-           | TexCmdArg String Latex
-           | Environment String [Arg Latex] Latex
-           | MathInline MathItem
+           | TexCmdArg String LatexItm
+           | Environment String [Arg LatexItm] LatexItm
+           | MathInline MathItm
            | LatexSize LatexSize
            | LatexKeys [Key]
            | LatexSaveBin SaveBin
-           | LatexParMode ParMode
+           | LatexParMode ParItm
            | RawTex String
-           | TexGroup Latex
-           | LatexConcat [Latex]
+           | TexGroup LatexItm
+           | LatexConcat [LatexItm]
   deriving (Show, Eq)
 
-instance Monoid Latex where
+instance Monoid LatexItm where
   mempty  = LatexConcat []
   LatexConcat xs `mappend` LatexConcat ys = LatexConcat (xs ++ ys)
   LatexConcat xs `mappend` y              = LatexConcat (xs ++ [y])
@@ -58,69 +66,75 @@ data Arg a = Arg ArgKind a
 instance Functor Arg where
   f `fmap` Arg k x = Arg k (f x)
 
+instance Foldable Arg where
+  foldr f z (Arg _ x) = f x z
+
+instance Traversable Arg where
+  sequenceA (Arg k x) = Arg k <$> x
+
 data ArgKind = Optional | Mandatory | Coordinate
   deriving (Show, Eq)
 
-data ParMode = Para Latex -- Here Latex does not mean LR mode
+data ParItm  = Para LatexItm -- Here LatexItm does not mean LR mode
              | ParDecl String
-             | ParDeclOpt String Latex
-             | ParCmdArgs String [Arg Latex]
-             | ParEnvironmentLR String Latex
-             | ParEnvironmentPar String [Arg Latex] ParMode
-             | DisplayMath MathItem
-             | Equation [MathItem]
-             | Tabular [RowSpec] [Row Latex]
-             | FigureLike String [LocSpec] ParMode
+             | ParDeclOpt String LatexItm
+             | ParCmdArgs String [Arg LatexItm]
+             | ParEnvironmentLR String LatexItm
+             | ParEnvironmentPar String [Arg LatexItm] ParItm
+             | DisplayMath MathItm
+             | Equation [MathItm]
+             | Tabular [RowSpec] [Row LatexItm]
+             | FigureLike String [LocSpec] ParItm
              | RawParMode String
-             | ParGroup ParMode -- check validity of this
-             | ParConcat [ParMode]
+             | ParGroup ParItm -- check validity of this
+             | ParConcat [ParItm]
   deriving (Show, Eq)
 
-instance Monoid ParMode where
+instance Monoid ParItm where
   mempty  = ParConcat []
   ParConcat xs `mappend` ParConcat ys = ParConcat (xs ++ ys)
   ParConcat xs `mappend` y            = ParConcat (xs ++ [y])
   x            `mappend` ParConcat ys = ParConcat (x : ys)
   x            `mappend` y            = ParConcat [x, y]
 
-data MathItem  = MathDecl String
-               | MathCmdArgs String [Arg MathItem]
-               | MathToLR String Latex
-               | MathArray [RowSpec] [Row MathItem]
-               | MathNeedPackage String MathItem
+data MathItm   = MathDecl String
+               | MathCmdArgs String [Arg MathItm]
+               | MathToLR String LatexItm
+               | MathArray [RowSpec] [Row MathItm]
+               | MathNeedPackage String MathItm
                | RawMath String
                | MathRat Rational
-               | MathGroup MathItem
-               | MathConcat [MathItem]
-               | MathBinOp String MathItem MathItem
-               | MathUnOp String MathItem
+               | MathGroup MathItm
+               | MathConcat [MathItm]
+               | MathBinOp String MathItm MathItm
+               | MathUnOp String MathItm
   deriving (Show, Eq)
 
-instance Monoid MathItem where
+instance Monoid MathItm where
   mempty  = MathConcat []
   MathConcat xs `mappend` MathConcat ys = MathConcat (xs ++ ys)
   MathConcat xs `mappend` y              = MathConcat (xs ++ [y])
   x              `mappend` MathConcat ys = MathConcat (x : ys)
   x              `mappend` y              = MathConcat [x, y]
 
-instance Num MathItem where
+instance Num MathItm where
   (+) = MathBinOp "+"
   (*) = MathBinOp "*"
   (-) = MathBinOp "-"
   negate = MathUnOp "-"
   abs x = MathCmdArgs "abs" [Arg Mandatory x] -- TODO check
-  signum = error "MathItem.signum is undefined"
+  signum = error "MathItm.signum is undefined"
   fromInteger = MathRat . (%1)
 
-instance Fractional MathItem where
+instance Fractional MathItm where
   (/) = MathBinOp "/"
   fromRational = MathRat
 
 {-
-instance Real MathItem where
-  toRational = error "MathItem.toRational is undefined"
+instance Real MathItm where
+  toRational = error "MathItm.toRational is undefined"
 
-instance Integral MathItem where
+instance Integral MathItm where
   mod = MathBinOp "bmod"
   -- TODO quot, rem
 -}
@@ -185,7 +199,22 @@ data Row cell = Cells [cell]
               | Cline Int Int
   deriving (Show, Eq)
 
-data Item = Item { itemLabel :: Maybe Latex, itemContents :: ParMode }
+instance Functor Row where
+  f `fmap` Cells cs  = Cells (fmap f cs)
+  _ `fmap` Hline     = Hline
+  _ `fmap` Cline i j = Cline i j
+
+instance Foldable Row where
+  foldr f z (Cells cs)  = foldr f z cs
+  foldr _ z Hline       = z
+  foldr _ z (Cline _ _) = z
+
+instance Traversable Row where
+  sequenceA (Cells cs)  = Cells <$> sequenceA cs
+  sequenceA Hline       = pure Hline
+  sequenceA (Cline i j) = pure $ Cline i j
+
+data ListItm = ListItm { itemLabel :: Maybe LatexItm, itemContents :: ParItm }
 
 newtype Key = Key { getKey :: String }
   deriving (Eq, Show)
@@ -195,7 +224,60 @@ newtype SaveBin = UnsafeMakeSaveBin { unsafeGetSaveBin :: Int }
 
 data Star = Star | NoStar
 
-type LatexM = Writer Latex ()
+data LatexState = LS { freshSaveBin :: SaveBin }
+
+instance Monad m => Applicative (StateT LatexState m) where
+  pure = return
+  (<*>) = ap
+
+{-
+instance Num a => Num (StateT LatexState (Either String) a) where
+  fromInteger = pure . fromInteger
+
+instance Eq a => Eq (StateT LatexState (Either String) a) where
+  (==) = liftM2 (==)
+
+instance Show a => Show (StateT LatexState (Either String) a) where
+  showsPrec = liftM . showsPrec
+  -- show = liftM . show
+
+newtype LatexM a = LatexM { runLatexM :: StateT LatexState (Either String) a } 
+  deriving (Functor, Applicative, Monad, MonadPlus,
+            MonadState LatexState, MonadError String, Show, Eq, Num)
+-}
+
+instance Applicative (Either a) where
+  pure = Right
+  _ <*> Left x = Left x
+  Left x <*> _ = Left x
+  Right f <*> Right x = Right (f x)
+
+instance (Error a, Eq a, Show a, Num b) => Num (Either a b) where
+  fromInteger = pure . fromInteger
+  (+)         = liftM2 (+)
+  (-)         = liftM2 (-)
+  (*)         = liftM2 (*)
+  abs         = liftM abs
+  signum      = liftM signum
+
+instance (Error a, Eq a, Show a, Fractional b) => Fractional (Either a b) where
+  (/) = liftM2 (/)
+  fromRational = pure . fromRational
+
+newtype LatexM a = LatexM { runLatexM :: Either String a } 
+  deriving (Functor, Applicative, Monad, MonadPlus,
+            MonadError String, Show, Eq, Num, Fractional)
+
+instance Monoid a => Monoid (LatexM a) where
+  mempty = pure mempty
+  mappend = liftM2 mappend
+  mconcat = liftM mconcat . sequenceA
+
+type LatexItem = LatexM LatexItm
+type ParItem   = LatexM ParItm
+type MathItem  = LatexM MathItm
+type ListItem  = LatexM ListItm
+type PreambleItem = LatexM PreambleItm
 
 showPaper :: LatexPaper -> String
 showPaper A4paper = "a4paper"
