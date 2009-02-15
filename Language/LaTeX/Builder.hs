@@ -1283,12 +1283,12 @@ mathCmdsArg = [mathbf, mathbb, mathcal, mathtt, mathfrak, pmod, tilde, hat, chec
                 breve, acute, grave, bar, vec, dot, ddot, overbrace, underbrace, overline,
                 underline, widehat, widetilde, imath, jmath
                 -- maually added
-               -- TODO TODO TODO ,negate
+               ,negate
                , sqrt
                ]
 
 mathBinOps :: [MathItem -> MathItem -> MathItem]
-mathBinOps = [{-TODO (+),(-),(*),-}bmod]
+mathBinOps = [(+),(-),(*),bmod]
 
 texDecls :: [LatexItem]
 texDecls = [em, bf, sf, sl, sc, it, tt]
