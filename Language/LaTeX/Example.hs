@@ -1,4 +1,5 @@
 {-# OPTIONS -fno-warn-missing-signatures #-}
+import Language.LaTeX.Types (runLatexM)
 import qualified Language.LaTeX.Builder as B
 import Language.LaTeX.Printer (ppRoot)
 import System.Cmd (system)
@@ -13,7 +14,7 @@ infixr 5 <>
 (<>) = mappend
 
 exs = putStrLn s >> writeFile "tests/test.ltx" s >> system "(cd tests && pdflatex test.ltx && open test.pdf)"
-  where s = ppRoot ex ""
+  where s = ppRoot (either error id $ runLatexM ex) ""
 
 ex = B.root expreamb exdoc
 
@@ -27,7 +28,7 @@ exdoc = B.document $
   <> B.section (B.hstring "The context")
   <> B.subsection (B.hstring "The precise context")
   <> B.para (B.hstring "The " <> B.textbf (B.hstring "initial") <> B.hstring " formula was " <>
-             B.math (B.sum <> B.sub (B.mstring "i = 0") <> B.sup (B.infty) <>
+             B.math (B.sum <> B.sub (B.mstring "i = 0") <> B.sup B.infty <>
                       B.mstring "i" <> B.sup (B.mint 2) <> B.alpha) <>
              B.hstring " but it turns out to be not that accurate.")
   <> B.section (B.hstring "The action plan")
@@ -38,9 +39,9 @@ exdoc = B.document $
                ,B.item (B.pstring "Convince people around that this one is much better")]
   <> B.chapter (B.hstring "Related Works")
   <> B.tabular [B.c,B.l,B.r]
-       [ B.cells [B.math (B.alpha + 3 * B.beta), B.math B.eq, B.math (2 * 21)]
+       [ B.cells $ map B.math [B.alpha + 3 * B.beta, B.eq, 2 * 21]
        , B.hline, B.hline
-       , B.cells [mempty                        , B.math B.eq, B.math 42]
+       , B.cells [mempty, B.math B.eq, B.math 42]
        , B.cline 2 3
        ]
   <> B.displaymath
