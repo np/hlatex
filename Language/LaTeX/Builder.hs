@@ -8,6 +8,7 @@ import Data.Ratio
 import Data.Monoid
 import Data.Char
 import Data.Traversable (sequenceA, mapM)
+import Data.String (fromString)
 import Control.Applicative hiding (optional)
 import Control.Monad hiding (mapM)
 import Control.Monad.Error (throwError)
@@ -135,8 +136,6 @@ dash3 = rawTex "{---}"
 nbsp = rawTex "{~}"
 -- Do we want to treat '\160' as an nbsp too?
 
-mstring :: String -> MathItem
-mstring = rawMath . concatMap mchar'
 mint :: Int -> MathItem
 mint = pure . fromIntegral
 mrat :: Rational -> MathItem
@@ -174,6 +173,13 @@ parenChar x | x `elem` "([.])" = return [x]
             | x == '}'         = return "\\}"
             | otherwise        = throwError $ "invalid parenthesis-like: " ++ show x
 
+protect :: String -> LatexItem
+protect ""        = mempty
+protect ('\n':xs) = newline <> protect xs
+protect (' ':xs)  = uncurry (<>) $ (hspace_ . (+1) . length *** protect) $ break (/=' ') xs
+  where hspace_ n = hspace $ Em $ 1%2 * fromIntegral n
+protect (x:xs)    = uncurry (<>) $ (hstring . (x :) *** protect) $ break (`elem` " \n") xs
+
 href :: LatexItem -> LatexItem -> LatexItem
 href x y = latexCmdArgs "href" [mandatory x,mandatory y]
 person :: String -> String -> LatexItem
@@ -199,44 +205,10 @@ hint :: Int -> LatexItem
 hint = latexSize . SizeInt . toInteger
 
 hstring :: String -> LatexItem
-hstring = rawTex . concatMap hchar' . concat . intersperse "\n" . filter (not . null) . lines
+hstring = fromString
 
-pstring :: String -> ParItem
-pstring = para . hstring
-
-hchar :: Char -> LatexItem
-hchar = rawTex . hchar'
-
-hchar' :: Char -> String
-hchar' '\\' = "\\textbackslash{}"
-hchar' '~'  = "\\~{}"
-hchar' '<'  = "\\textless{}"
-hchar' '>'  = "\\textgreater{}"
-hchar' '^'  = "\\^{}"
-hchar' '|'  = "\\textbar{}"
-hchar' ':'  = "$:$" -- or maybe "{:}"
-hchar' x | x `elem` "#_&{}$%" = ['\\',x]
-         | x `elem` "-]["     = ['{', x, '}'] -- to avoid multiple dashes or mess up optional args
-         | otherwise          = [x]
-
-mchar :: Char -> MathItem
-mchar = rawMath . mchar'
-
-mchar' :: Char -> String
-mchar' '\\' = "\\textbackslash{}"
-mchar' '~'  = "\\text{\\~{}}"
-mchar' '^'  = "\\^{}"
-mchar' ':'  = ":"
-mchar' x | x `elem` "#_&{}$%" = ['\\',x]
-         | x `elem` "-]["     = ['{', x, '}'] -- to avoid multiple dashes or mess up optional args
-         | otherwise          = [x]
-
-protect :: String -> LatexItem
-protect ""        = mempty
-protect ('\n':xs) = newline <> protect xs
-protect (' ':xs)  = uncurry (<>) $ (hspace_ . (+1) . length *** protect) $ break (/=' ') xs
-  where hspace_ n = hspace $ Em $ 1%2 * fromIntegral n
-protect (x:xs)    = uncurry (<>) $ (hstring . (x :) *** protect) $ break (`elem` " \n") xs
+mstring :: String -> MathItem
+mstring = fromString
 
 includegraphics = parCmdArgs "includegraphics"
 

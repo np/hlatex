@@ -1,13 +1,14 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving, FlexibleInstances #-}
 module Language.LaTeX.Types where
 
-import Prelude hiding (and, foldr, foldl, foldr1, foldl1)
+import Prelude hiding (and, foldr, foldl, foldr1, foldl1, elem, concatMap, concat)
 import Data.Monoid (Monoid(..))
-import Data.List hiding (and, foldr, foldl, foldr1, foldl1)
+import Data.List (intersperse)
 import Data.Char
 import Data.Ratio ((%))
 import Data.Traversable
 import Data.Foldable
+import Data.String (IsString(..))
 import Control.Applicative
 -- import Control.Monad.Writer
 import Control.Monad.State
@@ -60,6 +61,9 @@ instance Monoid LatexItm where
   x              `mappend` LatexConcat ys = LatexConcat (x : ys)
   x              `mappend` y              = LatexConcat [x, y]
 
+instance IsString LatexItm where
+  fromString = RawTex . concatMap hchar . concat . intersperse "\n" . filter (not . null) . lines
+
 data Arg a = Arg ArgKind a
   deriving (Show, Eq)
 
@@ -97,6 +101,8 @@ instance Monoid ParItm where
   x            `mappend` ParConcat ys = ParConcat (x : ys)
   x            `mappend` y            = ParConcat [x, y]
 
+instance IsString ParItm where fromString = Para . fromString
+
 data MathItm   = MathDecl String
                | MathCmdArgs String [Arg MathItm]
                | MathToLR String LatexItm
@@ -116,6 +122,8 @@ instance Monoid MathItm where
   MathConcat xs `mappend` y              = MathConcat (xs ++ [y])
   x              `mappend` MathConcat ys = MathConcat (x : ys)
   x              `mappend` y              = MathConcat [x, y]
+
+instance IsString MathItm where fromString = RawMath . concatMap mchar
 
 instance Num MathItm where
   (+) = MathBinOp "+"
@@ -273,6 +281,8 @@ instance Monoid a => Monoid (LatexM a) where
   mappend = liftM2 mappend
   mconcat = liftM mconcat . sequenceA
 
+instance IsString a => IsString (LatexM a) where fromString = pure . fromString
+
 type LatexItem = LatexM LatexItm
 type ParItem   = LatexM ParItm
 type MathItem  = LatexM MathItm
@@ -288,3 +298,26 @@ showDocumentClass Book    = "book"
 showDocumentClass Report  = "report"
 showDocumentClass Letter  = "letter"
 showDocumentClass (OtherDocumentClass x) = x
+
+-- TODO: Maybe one should handle quotes in a less LaTeX
+-- way: provide a replacement for ``...'' and escape `'"
+hchar :: Char -> String
+hchar '\\' = "\\textbackslash{}"
+hchar '~'  = "\\~{}"
+hchar '<'  = "\\textless{}"
+hchar '>'  = "\\textgreater{}"
+hchar '^'  = "\\^{}"
+hchar '|'  = "\\textbar{}"
+hchar ':'  = "$:$" -- or maybe "{:}"
+hchar x | x `elem` "#_&{}$%" = ['\\',x]
+        | x `elem` "-]["     = ['{', x, '}'] -- to avoid multiple dashes or mess up optional args
+        | otherwise          = [x]
+
+mchar :: Char -> String
+mchar '\\' = "\\textbackslash{}"
+mchar '~'  = "\\text{\\~{}}"
+mchar '^'  = "\\^{}"
+mchar ':'  = ":"
+mchar x | x `elem` "#_&{}$%" = ['\\',x]
+        | x `elem` "-]["     = ['{', x, '}'] -- to avoid multiple dashes or mess up optional args
+        | otherwise          = [x]
