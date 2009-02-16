@@ -19,6 +19,18 @@ import Language.LaTeX.Types
 import Language.LaTeX.Internal
 import Language.LaTeX.Printer (ppSize)
 
+{- TODO:
+    - more embedding and support for dependencies on packages.
+    - robust/fragile/moving
+    - tracking savebin in the monad?
+    - generating a doc with examples:
+         [...("sum", [| let i = mchar 'i' in sum<>sub(i<>eq<>0)<>sup infty<>i<>sup 2 |])...]
+    - strings in math-mode could be misleading...
+    - @{...} p{...} in row specifications
+    - pictures
+    - includegraphics
+ -}
+
 {-
 import Prelude (writeFile, id, Monad(..), fst)
 import Language.Haskell.TH
