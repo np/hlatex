@@ -25,7 +25,6 @@ import Language.LaTeX.Printer (ppSize)
     - tracking savebin in the monad?
     - generating a doc with examples:
          [...("sum", [| let i = mchar 'i' in sum<>sub(i<>eq<>0)<>sup infty<>i<>sup 2 |])...]
-    - strings in math-mode could be misleading...
     - pictures
     - includegraphics
  -}
