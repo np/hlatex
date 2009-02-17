@@ -79,8 +79,8 @@ latexCmdArgs x ys = LatexCmdArgs x <$> mapM sequenceA ys
 latexCmdArg :: String -> LatexItem -> LatexItem
 latexCmdArg x y = latexCmdArgs x [mandatory y]
 
-latexSize :: LatexSize -> LatexItem
-latexSize = pure . LatexSize
+size :: LatexSize -> LatexItem
+size = pure . LatexSize
 
 latexSaveBin :: SaveBin -> LatexItem
 latexSaveBin = pure . LatexSaveBin
@@ -163,7 +163,7 @@ normSpaces :: String -> String
 normSpaces = unlines . map (unwords . words) . lines
 
 hint :: Int -> LatexItem
-hint = latexSize . SizeInt . toInteger
+hint = size . SizeInt . toInteger
 
 hstring :: String -> LatexItem
 hstring = fromString
@@ -266,19 +266,19 @@ normalmarginpar = texDecl "normalmarginpar"
 
 -- robust
 hspace :: LatexSize -> LatexItem
-hspace = latexCmdArg "hspace" . latexSize
+hspace = latexCmdArg "hspace" . size
 
 -- robust
 hspaceStar :: LatexSize -> LatexItem
-hspaceStar = latexCmdArg "hspace*" . latexSize
+hspaceStar = latexCmdArg "hspace*" . size
 
 -- fragile
 vspace :: LatexSize -> LatexItem
-vspace = latexCmdArg "vspace" . latexSize
+vspace = latexCmdArg "vspace" . size
 
 -- fragile
 vspaceStar :: LatexSize -> LatexItem
-vspaceStar = latexCmdArg "vspace*" . latexSize
+vspaceStar = latexCmdArg "vspace*" . size
 
 vfill :: LatexItem
 vfill = texCmdNoArg "vfill" -- = vspace fill
@@ -302,7 +302,7 @@ smallskip :: LatexItem
 smallskip = texCmdNoArg "smallskip" -- = vspace smallskipamount
 
 addvspace :: LatexSize -> LatexItem
-addvspace = latexCmdArg "addvspace" . latexSize
+addvspace = latexCmdArg "addvspace" . size
 
 
 -- Font sizes
@@ -350,7 +350,7 @@ nolinebreak = texDeclOpt "nolinebreak" . hint
 newline :: LatexItem
 newline = texCmdNoArg "newline"
 newline' :: LatexSize -> LatexItem
-newline' = texDeclOpt "newline" . latexSize
+newline' = texDeclOpt "newline" . size
 
 -- robust
 hyphen :: LatexItem
@@ -416,17 +416,17 @@ mbox = latexCmdArg "mbox"
 
 -- fragile
 makebox :: LatexSize -> LatexItem -> LatexItem
-makebox width txt = latexCmdArgs "makebox" [optional $ latexSize width,mandatory txt]
+makebox width txt = latexCmdArgs "makebox" [optional $ size width,mandatory txt]
 
 -- fragile
 makeboxLeft :: LatexSize -> LatexItem -> LatexItem
 makeboxLeft width txt =
-  latexCmdArgs "makebox" [optional $ latexSize width,optional $ rawTex "l",mandatory txt]
+  latexCmdArgs "makebox" [optional $ size width,optional $ rawTex "l",mandatory txt]
 
 -- fragile
 makeboxRight :: LatexSize -> LatexItem -> LatexItem
 makeboxRight width txt =
-  latexCmdArgs "makebox" [optional $ latexSize width,optional $ rawTex "r",mandatory txt]
+  latexCmdArgs "makebox" [optional $ size width,optional $ rawTex "r",mandatory txt]
 
 -- robust
 fbox :: LatexItem -> LatexItem
@@ -434,17 +434,17 @@ fbox = latexCmdArg "fbox"
 
 -- fragile
 framebox :: LatexSize -> LatexItem -> LatexItem
-framebox width txt = latexCmdArgs "framebox" [optional $ latexSize width,mandatory txt]
+framebox width txt = latexCmdArgs "framebox" [optional $ size width,mandatory txt]
 
 -- fragile
 frameboxLeft :: LatexSize -> LatexItem -> LatexItem
 frameboxLeft width txt =
-  latexCmdArgs "framebox" [optional $ latexSize width,optional $ rawTex "l",mandatory txt]
+  latexCmdArgs "framebox" [optional $ size width,optional $ rawTex "l",mandatory txt]
 
 -- fragile
 frameboxRight :: LatexSize -> LatexItem -> LatexItem
 frameboxRight width txt =
-  latexCmdArgs "framebox" [optional $ latexSize width,optional $ rawTex "r",mandatory txt]
+  latexCmdArgs "framebox" [optional $ size width,optional $ rawTex "r",mandatory txt]
 
 -- TODO: make a safe version using a monad
 -- fragile
@@ -460,19 +460,19 @@ sbox bin txt = latexCmdArgs "sbox" [mandatory $ latexSaveBin bin, mandatory txt]
 -- fragile
 savebox :: SaveBin -> LatexSize -> LatexItem -> LatexItem
 savebox bin width txt =
-  latexCmdArgs "savebox" [mandatory $ latexSaveBin bin, optional $ latexSize width,
+  latexCmdArgs "savebox" [mandatory $ latexSaveBin bin, optional $ size width,
                           mandatory  txt]
 
 -- fragile
 saveboxLeft :: SaveBin -> LatexSize -> LatexItem -> LatexItem
 saveboxLeft bin width txt =
-  latexCmdArgs "savebox" [mandatory $ latexSaveBin bin, optional $ latexSize width,
+  latexCmdArgs "savebox" [mandatory $ latexSaveBin bin, optional $ size width,
                           optional $ rawTex "l", mandatory  txt]
 
 -- fragile
 saveboxRight :: SaveBin -> LatexSize -> LatexItem -> LatexItem
 saveboxRight bin width txt =
-  latexCmdArgs "savebox" [mandatory $ latexSaveBin bin, optional $ latexSize width,
+  latexCmdArgs "savebox" [mandatory $ latexSaveBin bin, optional $ size width,
                           optional $ rawTex "r", mandatory  txt]
 
 -- robust
@@ -482,49 +482,49 @@ usebox bin = latexCmdArgs "usebox" [mandatory $ latexSaveBin bin]
 -- fragile
 parbox :: LatexSize -> LatexItem -> LatexItem
 parbox width txt =
-  latexCmdArgs "parbox" [mandatory $ latexSize width, mandatory  txt]
+  latexCmdArgs "parbox" [mandatory $ size width, mandatory  txt]
 
 -- fragile
 parboxTop :: LatexSize -> LatexItem -> LatexItem
 parboxTop width txt =
-  latexCmdArgs "parbox" [optional $ rawTex "t", mandatory $ latexSize width, mandatory  txt]
+  latexCmdArgs "parbox" [optional $ rawTex "t", mandatory $ size width, mandatory  txt]
 
 -- fragile
 parboxBot :: LatexSize -> LatexItem -> LatexItem
 parboxBot width txt =
-  latexCmdArgs "parbox" [optional $ rawTex "b", mandatory $ latexSize width, mandatory  txt]
+  latexCmdArgs "parbox" [optional $ rawTex "b", mandatory $ size width, mandatory  txt]
 
 minipage :: LatexSize -> ParItem -> LatexItem
 minipage width txt =
-  latexCmdArgs "minipage" [mandatory $ latexSize width, mandatory $ liftM LatexParMode txt]
+  latexCmdArgs "minipage" [mandatory $ size width, mandatory $ liftM LatexParMode txt]
 
 minipageTop :: LatexSize -> LatexItem -> LatexItem
 minipageTop width txt =
-  latexCmdArgs "minipage" [optional $ rawTex "t", mandatory $ latexSize width, mandatory  txt]
+  latexCmdArgs "minipage" [optional $ rawTex "t", mandatory $ size width, mandatory  txt]
 
 minipageBot :: LatexSize -> LatexItem -> LatexItem
 minipageBot width txt =
-  latexCmdArgs "minipage" [optional $ rawTex "b", mandatory $ latexSize width, mandatory  txt]
+  latexCmdArgs "minipage" [optional $ rawTex "b", mandatory $ size width, mandatory  txt]
 
 -- fragile
 rule :: LatexSize -> LatexSize -> LatexItem
-rule width height = latexCmdArgs "rule" [mandatory $ latexSize width,mandatory $ latexSize height]
+rule width height = latexCmdArgs "rule" [mandatory $ size width,mandatory $ size height]
 
 -- fragile
 rule' :: LatexSize -> LatexSize -> LatexSize -> LatexItem
-rule' raise_len width height = latexCmdArgs "rule" [optional $ latexSize raise_len
-                                                   ,mandatory $ latexSize width,mandatory $ latexSize height]
+rule' raise_len width height = latexCmdArgs "rule" [optional $ size raise_len
+                                                   ,mandatory $ size width,mandatory $ size height]
 
 -- fragile
 raisebox :: LatexSize -> LatexItem -> LatexItem
 raisebox raise_len txt =
-  latexCmdArgs "raisebox" [mandatory $ latexSize raise_len,mandatory txt]
+  latexCmdArgs "raisebox" [mandatory $ size raise_len,mandatory txt]
 
 -- fragile
 raisebox' :: LatexSize -> LatexSize -> LatexSize -> LatexItem -> LatexItem
 raisebox' raise_len height depth txt =
-  latexCmdArgs "raisebox" [mandatory $ latexSize raise_len
-                          ,optional $ latexSize height,optional $ latexSize depth,mandatory  txt]
+  latexCmdArgs "raisebox" [mandatory $ size raise_len
+                          ,optional $ size height,optional $ size depth,mandatory  txt]
 
 footnote :: LatexItem -> LatexItem
 footnote = latexCmdArg "footnote"
