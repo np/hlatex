@@ -165,6 +165,11 @@ ppSize s =
     Pt r -> showr r <> text "pt" 
     Pc r -> showr r <> text "pc" 
     In r -> showr r <> text "in"
+    Sp r -> showr r <> text "sp"
+    Bp r -> showr r <> text "bp"
+    Dd r -> showr r <> text "dd"
+    Cc r -> showr r <> text "cc"
+    Mu r -> showr r <> text "mu"
     SizeInt i          -> shows i
     SizeUnOp op s'     -> text op <> sp <> ppSize s'
     SizeBinOp op s1 s2 -> parens (ppSize s1 <> sp <> text op <> sp <> ppSize s2)

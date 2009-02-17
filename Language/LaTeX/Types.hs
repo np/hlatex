@@ -143,13 +143,18 @@ instance Integral MathItm where
   -- TODO quot, rem
 -}
 
-data LatexSize = Pt Rational -- ^ Point unit size
+data LatexSize = Sp Rational -- ^ Scalled point (1pt = 65536sp)
+               | Pt Rational -- ^ Point unit size (1pt = 0.351mm)
+               | Bp Rational -- ^ Big point (1in = 72bp), also PostScript point
+               | Dd Rational -- ^ Didôt point (1dd = 0.376mm)
                | Em Rational -- ^ One em is about the width of the letter M in the current font
                | Ex Rational -- ^ One ex is about the hoigh of the letter x in the current font
                | Cm Rational -- ^ Centimeter unit size
-               | Mm Rational -- ^ Milimeter unit size
+               | Mm Rational -- ^ Milimeter unit size (1mm = 2.845pt)
                | In Rational -- ^ Inch unit size (1in = 72.27pt)
                | Pc Rational -- ^ Picas (1pc = 12pt)
+               | Cc Rational -- ^ Cicero (1dd = 12dd = 4.531mm)
+               | Mu Rational -- ^ Math unit (18mu = 1em)
                | SizeCmd String
                | SizeCmdRatArg String Rational
                | SizeBinOp String LatexSize LatexSize

@@ -141,7 +141,7 @@ href x y = latexCmdArgs "href" [mandatory x,mandatory y]
 person :: String -> String -> LatexItem
 person name email = href (hstring ("mailto:"++email)) (hstring name)
 
-inch, pt, cm, mm, ex, pc :: Rational -> LatexSize
+inch, pt, cm, mm, ex, pc, sp, bp, dd, cc, mu :: Rational -> LatexSize
 pt = Pt
 -- em = Em
 cm = Cm
@@ -149,6 +149,11 @@ mm = Mm
 ex = Ex
 pc = Pc
 inch = In
+sp = Sp
+bp = Bp
+dd = Dd
+cc = Cc
+mu = Mu
 
 -- simulate the <hr> html tag
 hr :: LatexItem
