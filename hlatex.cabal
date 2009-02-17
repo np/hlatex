@@ -12,8 +12,7 @@ description:     ...
 stability:       Provisional
 build-type:      Simple
 build-depends:   base>=3.0, containers>=0.1, template-haskell, mtl>=1.1
-exposed-modules: Language.LaTeX.Data,
-                 Language.LaTeX.Types,
+exposed-modules: Language.LaTeX.Types,
                  Language.LaTeX.Builder,
                  Language.LaTeX.Printer
 ghc-options:     -Wall
