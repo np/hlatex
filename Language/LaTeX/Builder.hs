@@ -178,7 +178,6 @@ rat = size . SizeRat
 hstring :: String -> LatexItem
 hstring = fromString
 
-includegraphics = parCmdArgs "includegraphics"
 
 tableofcontents :: ParItem
 tableofcontents = parDecl "tableofcontents"
