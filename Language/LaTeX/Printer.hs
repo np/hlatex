@@ -93,7 +93,8 @@ pp (LatexParMode pm) = ppParMode pm
 
 pp (RawTex s) = text s
 
-pp (MathInline m) = text "\\( " <> ppMath m <> text " \\)"
+-- One produce $...$ since \(...\) is fragile
+pp (MathInline m) = text "$ " <> ppMath m <> text " $"
 
 pp (LatexSaveBin bin) = text $ "hlatexSaveBin" ++ show (unsafeGetSaveBin bin)
 
