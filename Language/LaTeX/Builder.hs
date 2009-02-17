@@ -82,6 +82,13 @@ latexCmdArg x y = latexCmdArgs x [mandatory y]
 size :: LatexSize -> LatexItem
 size = pure . LatexSize
 
+bool :: Bool -> LatexItem
+bool True  = rawTex "true"
+bool False = rawTex "false"
+
+coord :: Coord -> LatexItem
+coord = pure . LatexCoord
+
 latexSaveBin :: SaveBin -> LatexItem
 latexSaveBin = pure . LatexSaveBin
 
