@@ -123,8 +123,6 @@ instance Monoid MathItm where
   x              `mappend` MathConcat ys = MathConcat (x : ys)
   x              `mappend` y              = MathConcat [x, y]
 
-instance IsString MathItm where fromString = RawMath . concatMap mchar
-
 instance Num MathItm where
   (+) = MathBinOp "+"
   (*) = MathBinOp "*"

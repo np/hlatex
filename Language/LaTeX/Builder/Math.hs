@@ -1,4 +1,5 @@
 module Language.LaTeX.Builder.Math
+
   (_Delta, _Gamma, _Lambda, _Leftarrow, _Leftrightarrow, _Omega, _Phi, _Pi, _Pr,
    _Rightarrow, _Sigma, _Theta, _Xi, acute, aleph, alpha, approx, array, at,
    backslash, bar, beta, between, bigcap, bigcup, bigvee, bigwedge, bmod, bot,
@@ -11,15 +12,18 @@ module Language.LaTeX.Builder.Math
    log, mathBinOp, mathBinOps, mathCmd, mathCmdArg, mathCmdArgs, mathCmdsArg,
    mathDecl, mathGroup, mathItems, mathNeedPackage, mathToLR, mathbb, mathbf,
    mathcal, mathfrak, mathtt, max, min, mit, mleft, mmediumspace,
-   mnegthinspace, mod, models, mrat, mright, mstring, msup, mthickspace,
+   mnegthinspace, mod, models, mrat, mright, msup, mthickspace,
    mthinspace, mu, nabla, ne, neg, notin, nu, oint, omega, oplus, otimes,
    overbrace, overline, parenChar, parens, partial, phi, pi, pm, pmod, prec,
-   prod, propto, psi, quad, rangle, rawMath, rbrace, rceiling, rfloor, rho,
-   rightarrow, scriptscriptstyle, scriptstyle, sec, sigma, sin, sinh, space,
-   sqrt, sqrt', square, stackrel, sub, subset, subseteq, succ, sum, sup,
-   supset, supseteq, tan, tanh, tau, text, textstyle, theta, tilde, times, to,
-   top, underbrace, underline, uparrow, upsilon, varepsilon, varphi, vartheta,
-   vdash, vdots, vec, vee, wedge, widehat, widetilde, xi, zeta,
+   prod, propto, psi, quad, rangle, rawMath, rawMathChar, rbrace, rceiling,
+   rfloor, rho, rightarrow, scriptscriptstyle, scriptstyle, sec, sigma, sin, sinh,
+   space, sqrt, sqrt', square, stackrel, sub, subset, subseteq, succ, sum, sup,
+   supset, supseteq, tan, tanh, tau, text, textstyle, theta, tilde, times, to, top,
+   underbrace, underline, uparrow, upsilon, varepsilon, varphi, vartheta, vdash,
+   vdots, vec, vee, wedge, widehat, widetilde, xi, zeta,
+   a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,
+   _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P,
+   _Q, _R, _S, _T, _U, _V, _W, _X, _Y, _Z,
 
    -- reexports
    cells, cell, vline, hline, cline
@@ -31,7 +35,6 @@ import Data.List hiding (sum, and, group)
 import Data.Ratio
 import Data.Char
 import Data.Traversable (sequenceA, mapM)
-import Data.String (fromString)
 import Control.Applicative hiding (optional)
 import Control.Monad hiding (mapM)
 import Control.Monad.Error (throwError)
@@ -45,22 +48,25 @@ group :: MathItem -> MathItem
 group = liftM MathGroup
 
 mathCmdArgs :: String -> [Arg MathItem] -> MathItem
-mathCmdArgs x ys = MathCmdArgs x <$> mapM sequenceA ys
+mathCmdArgs m1 ys = MathCmdArgs m1 <$> mapM sequenceA ys
 
 mathCmdArg :: String -> MathItem -> MathItem
-mathCmdArg x y = mathCmdArgs x [mandatory y]
+mathCmdArg m1 m2 = mathCmdArgs m1 [mandatory m2]
 
 mathDecl :: String -> MathItem
 mathDecl = pure . MathDecl
 
 mathCmd :: String -> MathItem
-mathCmd x = pure $ MathCmdArgs x []
+mathCmd = pure . (`MathCmdArgs` [])
 
 mathBinOp :: String -> MathItem -> MathItem -> MathItem
 mathBinOp = liftM2 . MathBinOp
 
 rawMath :: String -> MathItem
 rawMath = pure . RawMath
+
+rawMathChar :: Char -> MathItem
+rawMathChar = rawMath . (:[])
 
 mathGroup :: MathItem -> MathItem
 mathGroup = liftM MathGroup
@@ -75,25 +81,25 @@ mrat :: Rational -> MathItem
 mrat = pure . fromRational
 
 sub, sup :: MathItem -> MathItem
-sub x = rawMath "_" <> mathGroup x
-sup x = rawMath "^" <> mathGroup x
+sub = (rawMath "_" <>) . mathGroup
+sup = (rawMath "^" <>) . mathGroup
 
 frac, stackrel :: MathItem -> MathItem -> MathItem
-frac x y = mathCmdArgs "frac" [mandatory x,mandatory y]
-stackrel x y = mathCmdArgs "stackrel" [mandatory x,mandatory y]
+frac m1 m2 = mathCmdArgs "frac" [mandatory m1,mandatory m2]
+stackrel m1 m2 = mathCmdArgs "stackrel" [mandatory m1,mandatory m2]
 
 sqrt :: MathItem -> MathItem
-sqrt x = mathCmdArgs "sqrt" [mandatory x]
+sqrt = mathCmdArgs "sqrt" . (:[]) . mandatory
 
 sqrt' :: MathItem -> MathItem -> MathItem
-sqrt' n x = mathCmdArgs "sqrt" [optional n, mandatory x]
+sqrt' n1 m1 = mathCmdArgs "sqrt" [optional n1, mandatory m1]
 
 mleft, mright :: Char -> MathItem
-mleft x  = rawMath "\\left"  <> (RawMath <$> parenChar x)
-mright x = rawMath "\\right" <> (RawMath <$> parenChar x)
+mleft m1  = rawMath "\\left"  <> (RawMath <$> parenChar m1)
+mright m1 = rawMath "\\right" <> (RawMath <$> parenChar m1)
 
 between :: Char -> Char -> MathItem -> MathItem
-between opening closing x = mleft opening <> x <> mright closing
+between opening closing m1 = mleft opening <> m1 <> mright closing
 
 parens, braces, brackets :: MathItem -> MathItem
 parens   = between '(' ')'
@@ -101,13 +107,10 @@ braces   = between '{' '}'
 brackets = between '[' ']'
 
 parenChar :: Char -> LatexM String
-parenChar x | x `elem` "([.])" = return [x]
-            | x == '{'         = return "\\{"
-            | x == '}'         = return "\\}"
-            | otherwise        = throwError $ "invalid parenthesis-like: " ++ show x
-
-mstring :: String -> MathItem
-mstring = fromString
+parenChar m1 | m1 `elem` "([.])" = return [m1]
+             | m1 == '{'         = return "\\{"
+             | m1 == '}'         = return "\\}"
+             | otherwise        = throwError $ "invalid parenthesis-like: " ++ show m1
 
 text :: LatexItem -> MathItem
 text = mathNeedPackage "amsmath" . mathToLR "text"
@@ -456,6 +459,110 @@ cal :: MathItem
 cal = mathDecl "cal"
 eq :: MathItem
 eq = rawMath "{=}"
+a :: MathItem
+a = rawMathChar 'a'
+b :: MathItem
+b = rawMathChar 'b'
+c :: MathItem
+c = rawMathChar 'c'
+d :: MathItem
+d = rawMathChar 'd'
+e :: MathItem
+e = rawMathChar 'e'
+f :: MathItem
+f = rawMathChar 'f'
+g :: MathItem
+g = rawMathChar 'g'
+h :: MathItem
+h = rawMathChar 'h'
+i :: MathItem
+i = rawMathChar 'i'
+j :: MathItem
+j = rawMathChar 'j'
+k :: MathItem
+k = rawMathChar 'k'
+l :: MathItem
+l = rawMathChar 'l'
+m :: MathItem
+m = rawMathChar 'm'
+n :: MathItem
+n = rawMathChar 'n'
+o :: MathItem
+o = rawMathChar 'o'
+p :: MathItem
+p = rawMathChar 'p'
+q :: MathItem
+q = rawMathChar 'q'
+r :: MathItem
+r = rawMathChar 'r'
+s :: MathItem
+s = rawMathChar 's'
+t :: MathItem
+t = rawMathChar 't'
+u :: MathItem
+u = rawMathChar 'u'
+v :: MathItem
+v = rawMathChar 'v'
+w :: MathItem
+w = rawMathChar 'w'
+x :: MathItem
+x = rawMathChar 'x'
+y :: MathItem
+y = rawMathChar 'y'
+z :: MathItem
+z = rawMathChar 'z'
+_A :: MathItem
+_A = rawMathChar 'A'
+_B :: MathItem
+_B = rawMathChar 'B'
+_C :: MathItem
+_C = rawMathChar 'C'
+_D :: MathItem
+_D = rawMathChar 'D'
+_E :: MathItem
+_E = rawMathChar 'E'
+_F :: MathItem
+_F = rawMathChar 'F'
+_G :: MathItem
+_G = rawMathChar 'G'
+_H :: MathItem
+_H = rawMathChar 'H'
+_I :: MathItem
+_I = rawMathChar 'I'
+_J :: MathItem
+_J = rawMathChar 'J'
+_K :: MathItem
+_K = rawMathChar 'K'
+_L :: MathItem
+_L = rawMathChar 'L'
+_M :: MathItem
+_M = rawMathChar 'M'
+_N :: MathItem
+_N = rawMathChar 'N'
+_O :: MathItem
+_O = rawMathChar 'O'
+_P :: MathItem
+_P = rawMathChar 'P'
+_Q :: MathItem
+_Q = rawMathChar 'Q'
+_R :: MathItem
+_R = rawMathChar 'R'
+_S :: MathItem
+_S = rawMathChar 'S'
+_T :: MathItem
+_T = rawMathChar 'T'
+_U :: MathItem
+_U = rawMathChar 'U'
+_V :: MathItem
+_V = rawMathChar 'V'
+_W :: MathItem
+_W = rawMathChar 'W'
+_X :: MathItem
+_X = rawMathChar 'X'
+_Y :: MathItem
+_Y = rawMathChar 'Y'
+_Z :: MathItem
+_Z = rawMathChar 'Z'
 
 bmod :: MathItem -> MathItem -> MathItem
 bmod = mathBinOp "bmod"
@@ -477,6 +584,9 @@ mathItems =
    displaystyle, textstyle, scriptstyle, scriptscriptstyle, mit, cal
   -- maually added
   ,eq
+  ,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z
+  ,_A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P
+  ,_Q, _R, _S, _T, _U, _V, _W, _X, _Y, _Z
   ]
 
 mathCmdsArg :: [MathItem -> MathItem]
