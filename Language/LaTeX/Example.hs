@@ -89,5 +89,11 @@ exdoc = B.document $
          B.para !< "Frist centered paragraph"
          B.para !< "Second centered paragraph"
      )
+  <> B.section "Exotic tabular features"
+  <> B.tabular [B.r, B.rtext "@", B.l, B.rtext (B.math M.alpha), B.c]
+               (map B.cells [["x","y","z"],["foo", "bar", "baz"],["a", "b", "c"]])
+  <> B.displaymath
+     (M.array [B.r, B.rtext M.vdots, B.l, B.rtext M.alpha, B.c]
+               (map B.cells [[M.x,M.y,M.z],[1,2,3],[M._R, M._C, M._N]]))
 
   where mat33 = M.array (replicate 3 B.c) (map B.cells [[1,M.cdots,3],[M.vdots,M.ddots,M.vdots],[4,M.cdots,6]])
