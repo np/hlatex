@@ -2,6 +2,7 @@
 {-# OPTIONS -fno-warn-missing-signatures #-}
 import Language.LaTeX.Types (runLatexM)
 import qualified Language.LaTeX.Builder as B
+import qualified Language.LaTeX.Builder.Math as M
 import Language.LaTeX.Builder ((!<), (<!), (!<!))
 import Language.LaTeX.Printer (ppRoot)
 import System.Cmd (system)
@@ -31,41 +32,41 @@ exdoc = B.document $
   <> B.section "The context"
   <> B.subsection "The precise context"
   <> B.para ("The " <> B.textbf "initial" <> " formula was " <>
-             B.math (B.sum <> B.sub "i = 0" <> B.sup B.infty <>
-                     "i" <> B.sup (B.mint 2) <> B.alpha) <>
+             B.math (M.sum <> M.sub (M.i<>M.eq<>0) <> M.sup M.infty <>
+                     M.i <> M.sup 2 <> M.alpha) <>
              " but it turns out to be not that accurate.")
   <> B.section ("The action plan")
-  <> B.itemize [B.item "Find a better formula"
-               ,B.item "Write some proofs about it"
-               ,B.item "[I'm not a label] of this item"
-               ,B.item' "label here" "item text"
-               ,B.item "Convince people around that this one is much better"]
+  <> B.itemize [B.item $ B.para "Find a better formula"
+               ,B.item $ B.para "Write some proofs about it"
+               ,B.item $ B.para "[I'm not a label] of this item"
+               ,B.item' "label here" $ B.para "item text"
+               ,B.item $ B.para "Convince people around that this one is much better"]
   <> B.chapter "Related Works"
   <> B.tabular [B.c,B.l,B.r]
-       [ B.cells $ map B.math [B.alpha + 3 * B.beta, B.eq, 2 * 21]
+       [ B.cells $ map B.math [M.alpha + 3 * M.beta, M.eq, 2 * 21]
        , B.hline, B.hline
-       , B.cells [mempty, B.math B.eq, B.math 42]
+       , B.cells [mempty, B.math M.eq, B.math 42]
        , B.cline 2 3
        ]
   <> B.displaymath
-       (B.array [B.vline,B.l,B.vline,B.vline,B.c,B.vline,B.r,B.vline]
+       (M.array [B.vline,B.l,B.vline,B.vline,B.c,B.vline,B.r,B.vline]
                 [B.hline
                 ,B.cells [1, 2, 3]
-                ,B.cells [ B.sin <> (B.pi / 2), B.frac (B.cos <> B.gamma) B.epsilon
-                         , B.sum <> B.sub "i" <> B.sup B.infty <> "i" <> B.sup "i"]
+                ,B.cells [ M.sin <> (M.pi / 2), M.frac (M.cos <> M.gamma) M.epsilon
+                         , M.sum <> M.sub M.i <> M.sup M.infty <> M.i <> M.sup M.i]
                 ,B.hline]
        )
-  <> B.displaymath (B.brackets mat33)
-  <> B.displaymath (B.parens mat33)
-  <> B.displaymath (B.braces mat33)
-  <> B.displaymath (B.between '(' '[' mat33)
-  <> B.displaymath (B.array [B.c,B.c,B.c]
-       [B.cells [B.text "f x = "
-                ,B.between '{' '.' (B.array [B.l] (map B.cell [1, 0]))
-                ,B.array [B.r] (map (B.cell . B.text) ["if x is positive", "otherwise"])
+  <> B.displaymath (M.brackets mat33)
+  <> B.displaymath (M.parens mat33)
+  <> B.displaymath (M.braces mat33)
+  <> B.displaymath (M.between '(' '[' mat33)
+  <> B.displaymath (M.array [B.c,B.c,B.c]
+       [B.cells [M.text "f x = "
+                ,M.between '{' '.' (M.array [B.l] (map B.cell [1, 0]))
+                ,M.array [B.r] (map (B.cell . M.text) ["if x is positive", "otherwise"])
                 ]
        ])
-  <> B.displaymath (B.sqrt' B.alpha B.beta)
+  <> B.displaymath (M.sqrt' M.alpha M.beta)
   <> B.newpage
   <> B.para (B.noindent <> (B.texttt $ mconcat $ intersperse B.newline $ map B.protect (splitEvery 10 $ filter isPrint $ map chr [0..255])))
   <> B.section "Let's try the Writer monad to write documents"
@@ -89,4 +90,4 @@ exdoc = B.document $
          B.para !< "Second centered paragraph"
      )
 
-  where mat33 = B.array (replicate 3 B.c) (map B.cells [[1,B.cdots,3],[B.vdots,B.ddots,B.vdots],[4,B.cdots,6]])
+  where mat33 = M.array (replicate 3 B.c) (map B.cells [[1,M.cdots,3],[M.vdots,M.ddots,M.vdots],[4,M.cdots,6]])
