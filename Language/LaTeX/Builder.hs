@@ -26,7 +26,6 @@ import Language.LaTeX.Printer (ppSize)
     - generating a doc with examples:
          [...("sum", [| let i = mchar 'i' in sum<>sub(i<>eq<>0)<>sup infty<>i<>sup 2 |])...]
     - pictures
-    - includegraphics
  -}
 
 {-
