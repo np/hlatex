@@ -7,7 +7,7 @@ where
 import Language.LaTeX.Types
 import Language.LaTeX.Builder (parCmdArgs, size, bool, coord,
                                rat, rawTex, optional, mandatory)
-import Language.LaTeX.Internal ((<>))
+import Language.LaTeX.Builder.MonoidUtils ((<>))
 import Control.Arrow ((***))
 import Data.Maybe
 import Data.String

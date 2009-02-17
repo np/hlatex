@@ -7,7 +7,7 @@ import Data.Ratio (numerator, denominator)
 import GHC.Float (formatRealFloat, FFFormat(FFFixed))
 
 import Language.LaTeX.Types
-import Language.LaTeX.Internal
+import Language.LaTeX.Builder.MonoidUtils
 
 text :: String -> ShowS
 text = showString

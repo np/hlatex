@@ -40,7 +40,7 @@ import Control.Monad hiding (mapM)
 import Control.Monad.Error (throwError)
 
 import Language.LaTeX.Types
-import Language.LaTeX.Internal
+import Language.LaTeX.Builder.MonoidUtils
 import Language.LaTeX.Builder (mandatory, optional, cell, cells, vline, hline, cline, tabularLike)
 import qualified Language.LaTeX.Builder as B
 

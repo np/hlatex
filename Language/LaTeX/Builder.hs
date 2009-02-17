@@ -16,7 +16,7 @@ import Control.Monad.Writer (Writer, execWriter, tell)
 import Control.Arrow
 
 import Language.LaTeX.Types
-import Language.LaTeX.Internal
+import Language.LaTeX.Builder.MonoidUtils
 import Language.LaTeX.Printer (ppSize)
 
 {- TODO:

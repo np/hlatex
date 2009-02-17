@@ -1,4 +1,4 @@
-module Language.LaTeX.Internal ((<>)) where
+module Language.LaTeX.Builder.MonoidUtils ((<>)) where
 
 import Data.Monoid
 
