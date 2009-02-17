@@ -172,7 +172,7 @@ ppSize s =
     Dd r -> showr r <> text "dd"
     Cc r -> showr r <> text "cc"
     Mu r -> showr r <> text "mu"
-    SizeInt i          -> shows i
+    SizeRat r          -> showr r
     SizeUnOp op s'     -> text op <> sp <> ppSize s'
     SizeBinOp op s1 s2 -> parens (ppSize s1 <> sp <> text op <> sp <> ppSize s2)
     SizeCmd cmd        -> ppCmdArgs cmd []

@@ -169,8 +169,11 @@ hr = group $ noindent <> rule linewidth (pt 1.5)
 normSpaces :: String -> String
 normSpaces = unlines . map (unwords . words) . lines
 
-hint :: Int -> LatexItem
-hint = size . SizeInt . toInteger
+num :: Real a => a -> LatexItem
+num = size . SizeRat . toRational
+
+rat :: Rational -> LatexItem
+rat = size . SizeRat
 
 hstring :: String -> LatexItem
 hstring = fromString
@@ -350,8 +353,8 @@ textnormal = latexCmdArg "textnormal"
 
 -- fragile
 linebreak, nolinebreak :: Int -> LatexItem
-linebreak = texDeclOpt "linebreak" . hint
-nolinebreak = texDeclOpt "nolinebreak" . hint
+linebreak = texDeclOpt "linebreak" . num
+nolinebreak = texDeclOpt "nolinebreak" . num
 
 -- fragile
 newline :: LatexItem
@@ -380,7 +383,7 @@ pagebreak, nopagebreak :: Int -> LatexItem
 (pagebreak, nopagebreak) =
   ((texDeclOpt "pagebreak" =<<) . check0to4 "pagebreak"
   ,(texDeclOpt "nopagebreak" =<<) . check0to4 "nopagebreak")
-  where check0to4 s i | i >= 0 && i <= 4 = return $ hint i
+  where check0to4 s i | i >= 0 && i <= 4 = return $ num i
                       | otherwise        = throwError $ s ++ ": option must be between 0 and 4 not " ++ show i
 
 -- fragile

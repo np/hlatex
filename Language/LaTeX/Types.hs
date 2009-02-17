@@ -163,7 +163,7 @@ data LatexSize = Sp Rational -- ^ Scalled point (1pt = 65536sp)
                | SizeCmdRatArg String Rational
                | SizeBinOp String LatexSize LatexSize
                | SizeUnOp String LatexSize
-               | SizeInt Integer
+               | SizeRat Rational
   deriving (Show, Eq)
 
 instance Num LatexSize where
@@ -173,7 +173,11 @@ instance Num LatexSize where
   negate = SizeUnOp "-"
   abs = error "LatexSize.abs is undefined"
   signum = error "LatexSize.signum is undefined"
-  fromInteger = SizeInt
+  fromInteger = SizeRat . (%1)
+
+instance Fractional LatexSize where
+  (/) = SizeBinOp "/"
+  fromRational = SizeRat
 
 -- p{wd}, and *{num}{cols} are explicitly
 -- not supported, it seems much more natural and
