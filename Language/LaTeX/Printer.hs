@@ -76,6 +76,8 @@ pp (LatexCmdArgs cmdName args) = ppCmdArgs cmdName $ map (fmap pp) args
 
 pp (LatexSize size) = ppSize size
 
+pp (LatexCoord (Coord x y)) = ppSize x <> text " " <> ppSize y
+
 pp (LatexKeys keys) = text $ concat $ intersperse "," $ map getKey keys
 
 pp (TexDecl cmdName) = ppDecl cmdName

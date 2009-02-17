@@ -45,6 +45,7 @@ data LatexItm
            | TexCmdArg String LatexItm
            | Environment String [Arg LatexItm] LatexItm
            | MathInline MathItm
+           | LatexCoord Coord
            | LatexSize LatexSize
            | LatexKeys [Key]
            | LatexSaveBin SaveBin
@@ -75,6 +76,9 @@ instance Foldable Arg where
 
 instance Traversable Arg where
   sequenceA (Arg k x) = Arg k <$> x
+
+data Coord = Coord LatexSize LatexSize
+  deriving (Show, Eq)
 
 data ArgKind = Optional | Mandatory | Coordinate
   deriving (Show, Eq)
