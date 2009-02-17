@@ -101,8 +101,6 @@ instance Monoid ParItm where
   x            `mappend` ParConcat ys = ParConcat (x : ys)
   x            `mappend` y            = ParConcat [x, y]
 
-instance IsString ParItm where fromString = Para . fromString
-
 data MathItm   = MathDecl String
                | MathCmdArgs String [Arg MathItm]
                | MathToLR String LatexItm
