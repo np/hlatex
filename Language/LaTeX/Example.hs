@@ -3,10 +3,12 @@
 import Language.LaTeX.Types (runLatexM)
 import qualified Language.LaTeX.Builder as B
 import qualified Language.LaTeX.Builder.Math as M
+import qualified Language.LaTeX.Builder.Graphics as G
 import Language.LaTeX.Builder ((!<), (<!), (!<!))
 import Language.LaTeX.Printer (ppRoot)
 import System.Cmd (system)
 
+import Data.Ratio ((%))
 import Data.Char
 import Data.Monoid
 import Data.List.Split
@@ -24,6 +26,7 @@ ex = B.root expreamb exdoc
 
 expreamb = B.documentclass (Just (B.pt 11)) (Just B.a4paper) B.book
         <> B.usepackage "amsmath"
+        <> B.usepackage "graphicx"
 
 exdoc = B.document $
      B.tableofcontents
@@ -95,5 +98,6 @@ exdoc = B.document $
   <> B.displaymath
      (M.array [B.r, B.rtext M.vdots, B.l, B.rtext M.alpha, B.c]
                (map B.cells [[M.x,M.y,M.z],[1,2,3],[M._R, M._C, M._N]]))
+  <> G.includegraphics (\r-> r{G.angle=45, G.scale=1%2}) "yi.pdf"
 
   where mat33 = M.array (replicate 3 B.c) (map B.cells [[1,M.cdots,3],[M.vdots,M.ddots,M.vdots],[4,M.cdots,6]])
