@@ -120,27 +120,27 @@ array = B.tabularLike MathArray
 
 {- This chunk was extracted from Language.LaTeX.Builder -}
 lbrace :: MathItem
-lbrace = mathCmd "lbrace"
+lbrace = mathCmd "{"
 rbrace :: MathItem
-rbrace = mathCmd "rbrace"
+rbrace = mathCmd "}"
 space :: MathItem
-space = mathCmd "space"
+space = mathCmd " "
 at :: MathItem
-at = mathCmd "at"
+at = mathCmd "@"
 in_ :: MathItem
-in_ = mathCmd "in_"
+in_ = mathCmd "in"
 forall_ :: MathItem
-forall_ = mathCmd "forall_"
+forall_ = mathCmd "forall"
 mthinspace :: MathItem
-mthinspace = mathCmd "mthinspace"
+mthinspace = mathCmd ","
 mnegthinspace :: MathItem
-mnegthinspace = mathCmd "mnegthinspace"
+mnegthinspace = mathCmd "!"
 mmediumspace :: MathItem
-mmediumspace = mathCmd "mmediumspace"
+mmediumspace = mathCmd ":"
 mthickspace :: MathItem
-mthickspace = mathCmd "mthickspace"
+mthickspace = mathCmd ";"
 msup :: MathItem
-msup = mathCmd "msup"
+msup = mathCmd "sup"
 alpha :: MathItem
 alpha = mathCmd "alpha"
 beta :: MathItem

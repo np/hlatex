@@ -785,11 +785,11 @@ $(
   lowerName name | isLower (head name) = mkName name
                 | otherwise           = mkName $ '_':name
 
-  mkMathCmd (name, _) =
+  mkMathCmd (name, cmd) =
     let lname = lowerName name
     in
     [sigD lname [t| MathItem |]
-    , valD (varP lname) (normalB [| mathCmd $(stringE name) |]) []
+    , valD (varP lname) (normalB [| mathCmd $(stringE cmd) |]) []
     ]
 
   mkMathCmdArg name =
