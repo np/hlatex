@@ -41,7 +41,7 @@ import Control.Monad.Error (throwError)
 
 import Language.LaTeX.Types
 import Language.LaTeX.Internal
-import Language.LaTeX.Builder (mandatory, optional, cell, cells, vline, hline, cline)
+import Language.LaTeX.Builder (mandatory, optional, cell, cells, vline, hline, cline, tabularLike)
 import qualified Language.LaTeX.Builder as B
 
 group :: MathItem -> MathItem
@@ -115,8 +115,8 @@ parenChar m1 | m1 `elem` "([.])" = return [m1]
 text :: LatexItem -> MathItem
 text = mathNeedPackage "amsmath" . mathToLR "text"
 
-array :: [RowSpec] -> [Row MathItem] -> MathItem
-array specs rows = MathArray specs <$> (B.checkRows specs =<< mapM sequenceA rows)
+array :: [RowSpec MathItem] -> [Row MathItem] -> MathItem
+array = B.tabularLike MathArray
 
 {- This chunk was extracted from Language.LaTeX.Builder -}
 lbrace :: MathItem

@@ -26,7 +26,6 @@ import Language.LaTeX.Printer (ppSize)
     - generating a doc with examples:
          [...("sum", [| let i = mchar 'i' in sum<>sub(i<>eq<>0)<>sup infty<>i<>sup 2 |])...]
     - strings in math-mode could be misleading...
-    - @{...} p{...} in row specifications
     - pictures
     - includegraphics
  -}
@@ -624,10 +623,15 @@ quote = liftM $ ParEnvironmentLR "quote"
 
 -- The array and tablular Environments
 
-tabular :: [RowSpec] -> [Row LatexItem] -> ParItem
-tabular specs rows = Tabular specs <$> (checkRows specs =<< mapM sequenceA rows)
+tabularLike :: ([RowSpec a] -> [Row a] -> b) -> [RowSpec (LatexM a)] -> [Row (LatexM a)] -> LatexM b
+tabularLike f specs rows = do
+  spcs <- mapM sequenceA specs
+  f spcs <$> (checkRows spcs =<< mapM sequenceA rows)
 
-checkRows :: [RowSpec] -> [Row a] -> LatexM [Row a]
+tabular :: [RowSpec LatexItem] -> [Row LatexItem] -> ParItem
+tabular = tabularLike Tabular
+
+checkRows :: [RowSpec a] -> [Row a] -> LatexM [Row a]
 checkRows specs = mapM checkRow
   where checkRow (Cells cs)
           | cols /= length cs    = err "wrong number of cells" cols "different from" (length cs)
@@ -640,7 +644,11 @@ checkRows specs = mapM checkRow
           | c2 < 0    = throwError "tabular: cline: negative end column"
           | otherwise = pure $ Cline c1 c2
         cols = length $ filter isCol specs
-        isCol s = s `elem` [Rc,Rl,Rr]
+        isCol Rc = True
+        isCol Rl = True
+        isCol Rr = True
+        isCol Rvline = False
+        isCol (Rtext _) = False
         err msg x op y = throwError $ unwords ["tabular:", msg, "(" ++ show x, op, show y ++ ")"] 
 
 cells :: [a] -> Row a
@@ -656,16 +664,19 @@ cline = Cline
 
 -- this is more the '|' than the \vline of LaTeX,
 -- one may want to support both using a HaveVline type class.
-vline :: RowSpec
+vline :: RowSpec a
 vline = Rvline
+
+rtext :: a -> RowSpec a
+rtext = Rtext
 
 class HaveC a where c :: a
 class HaveL a where l :: a
 class HaveR a where r :: a
 
-instance HaveC RowSpec where c = Rc
-instance HaveL RowSpec where l = Rl
-instance HaveR RowSpec where r = Rr
+instance HaveC (RowSpec a) where c = Rc
+instance HaveL (RowSpec a) where l = Rl
+instance HaveR (RowSpec a) where r = Rr
 
 -- eqnarraystar = 
 

@@ -87,7 +87,7 @@ data ParItm  = Para LatexItm -- Here LatexItm does not mean LR mode
              | ParEnvironmentPar String [Arg LatexItm] ParItm
              | DisplayMath MathItm
              | Equation [MathItm]
-             | Tabular [RowSpec] [Row LatexItm]
+             | Tabular [RowSpec LatexItm] [Row LatexItm]
              | FigureLike String [LocSpec] ParItm
              | RawParMode String
              | ParGroup ParItm -- check validity of this
@@ -104,7 +104,7 @@ instance Monoid ParItm where
 data MathItm   = MathDecl String
                | MathCmdArgs String [Arg MathItm]
                | MathToLR String LatexItm
-               | MathArray [RowSpec] [Row MathItm]
+               | MathArray [RowSpec MathItm] [Row MathItm]
                | MathNeedPackage String MathItm
                | RawMath String
                | MathRat Rational
@@ -166,21 +166,37 @@ instance Num LatexSize where
   signum = error "LatexSize.signum is undefined"
   fromInteger = SizeInt
 
--- @{text}, p{wd}, and *{num}{cols} are explicitly
+-- p{wd}, and *{num}{cols} are explicitly
 -- not supported, it seems much more natural and
 -- simple to obtain the same goals using standard
 -- programming uppon the rows and cells.
-data RowSpec = Rc --- ^ Centered
-             | Rl --- ^ Left
-             | Rr --- ^ Right
-             | Rvline --- ^ A vertical line
+data RowSpec a = Rc --- ^ Centered
+               | Rl --- ^ Left
+               | Rr --- ^ Right
+               | Rvline --- ^ A vertical line
+               | Rtext a --- ^ A fixed text column (@-expression in LaTeX parlance)
   deriving (Show, Eq)
 
-rowSpecChar :: RowSpec -> Char
-rowSpecChar Rc     = 'c'
-rowSpecChar Rl     = 'l'
-rowSpecChar Rr     = 'r'
-rowSpecChar Rvline = '|'
+instance Functor RowSpec where
+  _ `fmap` Rc         = Rc
+  _ `fmap` Rl         = Rl
+  _ `fmap` Rr         = Rr
+  _ `fmap` Rvline     = Rvline
+  f `fmap` (Rtext x)  = Rtext $ f x
+
+instance Foldable RowSpec where
+  foldr _ z Rc        = z
+  foldr _ z Rl        = z
+  foldr _ z Rr        = z
+  foldr _ z Rvline    = z
+  foldr f z (Rtext x) = f x z
+
+instance Traversable RowSpec where
+  sequenceA Rc        = pure Rc
+  sequenceA Rl        = pure Rl
+  sequenceA Rr        = pure Rr
+  sequenceA Rvline    = pure Rvline
+  sequenceA (Rtext x) = Rtext <$> x
 
 data LocSpec = Lh --- ^ Here
              | Lt --- ^ Top

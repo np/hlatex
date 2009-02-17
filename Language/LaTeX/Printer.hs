@@ -115,7 +115,7 @@ ppParMode (ParEnvironmentPar envName args contents)
 ppParMode (DisplayMath m) = text "\\[ " <> ppMath m <> text " \\]"
 ppParMode (Equation m) = ppEnv "equation" [] $ vcat $ map ppMath m
 ppParMode (Tabular specs rows) =
-  ppEnv "tabular" [Arg Mandatory $ text $ map rowSpecChar specs] (ppRows pp rows)
+  ppEnv "tabular" [Arg Mandatory $ mconcat $ map (ppRowSpec . fmap pp) specs] (ppRows pp rows)
 ppParMode (FigureLike name locs body) = ppEnv name [Arg Optional $ text $ map locSpecChar locs] $ ppParMode body
 
 ppParMode (ParConcat contents) = vcat $ map ppParMode contents
@@ -127,14 +127,22 @@ ppMath (RawMath s) = text s
 ppMath (MathRat r) | denominator r == 1 = shows (numerator r)
                      | otherwise          = shows (numerator r) <> text " / " <> shows (denominator r)
 ppMath (MathArray specs rows) = 
-  ppEnv "array" [Arg Mandatory $ text $ map rowSpecChar specs] (ppRows ppMath rows)
+  ppEnv "array" [Arg Mandatory $ mconcat $ map (ppRowSpec . fmap ppMath) specs] (ppRows ppMath rows)
 ppMath (MathGroup m) = braces $ ppMath m
 ppMath (MathConcat ms) = mconcat $ map ppMath ms
 ppMath (MathUnOp op m) = text op <> sp <> ppMath m
 ppMath (MathBinOp op l r) = parens (ppMath l <> sp <> text op <> sp <> ppMath r)
 ppMath (MathToLR cmd lr) = ppCmdArg cmd (pp lr)
 ppMath (MathNeedPackage pkg m) | pkg == "amsmath" = ppMath m
-                                  | otherwise        = error "ppMath: package system not supported yet"
+                               | otherwise        = error "ppMath: package system not supported yet"
+
+ppRowSpec :: RowSpec ShowS -> ShowS
+ppRowSpec Rc        = text "c"
+ppRowSpec Rl        = text "l"
+ppRowSpec Rr        = text "r"
+ppRowSpec Rvline    = text "|"
+ppRowSpec (Rtext x) = text "@" <> braces x
+
 
 ppRows :: (a -> ShowS) -> [Row a] -> ShowS
 ppRows _ []
