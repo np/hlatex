@@ -135,6 +135,11 @@ dash3 = rawTex "{---}"
 nbsp = rawTex "{~}"
 -- Do we want to treat '\160' as an nbsp too?
 
+-- | 'sep' is like '{}' in LaTeX, it allows to force letters to be treaten separately,
+-- for instance to separate the two 'f's in shelfful.
+sep :: LatexItem
+sep = group mempty
+
 protect :: String -> LatexItem
 protect ""        = mempty
 protect ('\n':xs) = newline <> protect xs
