@@ -17,7 +17,6 @@ import Control.Arrow
 
 import Language.LaTeX.Types
 import Language.LaTeX.Builder.MonoidUtils
-import Language.LaTeX.Printer (ppSize)
 
 {- TODO:
     - more embedding and support for dependencies on packages.
@@ -51,8 +50,12 @@ infixr 7 !<!
 (!<!) f m = tell $ f $ execWriter m
 
 mandatory, optional :: a -> Arg a
-mandatory x = Arg Mandatory x
-optional x = Arg Optional x
+mandatory = Mandatory
+optional = Optional
+coordinates :: a -> a -> Arg a
+coordinates = Coordinates
+optionals :: [a] -> Arg a
+optionals = Optionals
 
 math :: MathItem -> LatexItem
 math = liftM MathInline
@@ -77,6 +80,12 @@ latexCmdArgs x ys = LatexCmdArgs x <$> mapM sequenceA ys
 
 latexCmdArg :: String -> LatexItem -> LatexItem
 latexCmdArg x y = latexCmdArgs x [mandatory y]
+
+preambleCmdArgs :: String -> [Arg LatexItem] -> PreambleItem
+preambleCmdArgs x ys = PreambleCmdArgs x <$> mapM sequenceA ys
+
+preambleCmdArg :: String -> LatexItem -> PreambleItem
+preambleCmdArg x y = preambleCmdArgs x [mandatory y]
 
 size :: LatexSize -> LatexItem
 size = pure . LatexSize
@@ -111,9 +120,6 @@ rawTex = pure . RawTex
 
 texCmdNoArg :: String -> LatexItem
 texCmdNoArg = pure . TexCmdNoArg
-
-preambleCmdArg :: String -> LatexItem -> PreambleItem
-preambleCmdArg = liftM . PreambleCmdArg
 
 latexKey :: Key -> LatexItem
 latexKey = pure . LatexKeys . (:[])
@@ -708,10 +714,9 @@ letter = Letter
 
 documentclass :: Maybe LatexSize -> Maybe LatexPaper -> DocumentClass -> PreambleItem
 documentclass msize mpaper dc =
-  return $
-  PreambleCmdArgWithOpts "documentclass" (maybeToList (fmap (($"") . ppSize) msize) ++
-                                          maybeToList (fmap showPaper mpaper))
-                                         (RawTex $ showDocumentClass dc)
+  preambleCmdArgs "documentclass" [optionals (maybeToList (fmap size msize)
+                                             ++ maybeToList (fmap (rawTex . showPaper) mpaper))
+                                  ,mandatory $ rawTex $ showDocumentClass dc]
 
 {-
 $(

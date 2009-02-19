@@ -26,8 +26,7 @@ data DocumentClass = Article
                    | OtherDocumentClass String
 
 data PreambleItm = PreambleCmd String
-              | PreambleCmdArg String LatexItm
-              | PreambleCmdArgWithOpts String [String] LatexItm
+              | PreambleCmdArgs String [Arg LatexItm]
               | PreambleConcat [PreambleItm]
 
 instance Monoid PreambleItm where
@@ -65,22 +64,31 @@ instance Monoid LatexItm where
 instance IsString LatexItm where
   fromString = RawTex . concatMap hchar . concat . intersperse "\n" . filter (not . null) . lines
 
-data Arg a = Arg ArgKind a
+data Arg a = Optional a
+           | Optionals [a]
+           | Mandatory a
+           | Coordinates a a
   deriving (Show, Eq)
 
 instance Functor Arg where
-  f `fmap` Arg k x = Arg k (f x)
+  f `fmap` (Optional x) = Optional $ f x
+  f `fmap` (Optionals xs) = Optionals $ fmap f xs
+  f `fmap` (Mandatory x) = Mandatory $ f x
+  f `fmap` (Coordinates x y) = Coordinates (f x) (f y)
 
 instance Foldable Arg where
-  foldr f z (Arg _ x) = f x z
+  foldr f z (Optional x) = f x z
+  foldr f z (Optionals xs) = foldr f z xs
+  foldr f z (Mandatory x) = f x z
+  foldr f z (Coordinates x y) = f x (f y z)
 
 instance Traversable Arg where
-  sequenceA (Arg k x) = Arg k <$> x
+  sequenceA (Optional x) = Optional <$> x
+  sequenceA (Optionals xs) = Optionals <$> sequenceA xs
+  sequenceA (Mandatory x) = Mandatory <$> x
+  sequenceA (Coordinates x y) = Coordinates <$> x <*> y
 
 data Coord = Coord LatexSize LatexSize
-  deriving (Show, Eq)
-
-data ArgKind = Optional | Mandatory | Coordinate
   deriving (Show, Eq)
 
 data ParItm  = Para LatexItm -- Here LatexItm does not mean LR mode
@@ -130,7 +138,7 @@ instance Num MathItm where
   (*) = MathBinOp "*"
   (-) = MathBinOp "-"
   negate = MathUnOp "-"
-  abs x = MathCmdArgs "abs" [Arg Mandatory x] -- TODO check
+  abs x = MathCmdArgs "abs" [Mandatory x] -- TODO check
   signum = error "MathItm.signum is undefined"
   fromInteger = MathRat . (%1)
 

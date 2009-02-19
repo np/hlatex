@@ -2,7 +2,7 @@ module Language.LaTeX.Printer where
 
 import Data.Monoid
 import Data.Maybe
-import Data.List (intercalate, intersperse)
+import Data.List (intersperse)
 import Data.Ratio (numerator, denominator)
 import GHC.Float (formatRealFloat, FFFormat(FFFixed))
 
@@ -33,14 +33,11 @@ sp = text " "
 vcat :: [ShowS] -> ShowS
 vcat = mconcat . intersperse nl
 
-ppOpts :: [String] -> ShowS
-ppOpts []   = text ""
-ppOpts opts = brackets (text $ intercalate "," opts)
-
 ppArg :: Arg ShowS -> ShowS
-ppArg (Arg k x) = case k of Mandatory   -> braces   x
-                            Optional    -> brackets x
-                            Coordinate  -> parens   x
+ppArg (Mandatory x)     = braces x
+ppArg (Optional  x)     = brackets x
+ppArg (Optionals xs)    = brackets $ mconcat $ intersperse (text ",") xs
+ppArg (Coordinates x y) = parens (x <> text " " <> y)
 
 ppEnv :: String -> [Arg ShowS] -> ShowS -> ShowS
 ppEnv envName args contents =
@@ -117,8 +114,8 @@ ppParMode (ParEnvironmentPar envName args contents)
 ppParMode (DisplayMath m) = text "\\[ " <> ppMath m <> text " \\]"
 ppParMode (Equation m) = ppEnv "equation" [] $ vcat $ map ppMath m
 ppParMode (Tabular specs rows) =
-  ppEnv "tabular" [Arg Mandatory $ mconcat $ map (ppRowSpec . fmap pp) specs] (ppRows pp rows)
-ppParMode (FigureLike name locs body) = ppEnv name [Arg Optional $ text $ map locSpecChar locs] $ ppParMode body
+  ppEnv "tabular" [Mandatory $ mconcat $ map (ppRowSpec . fmap pp) specs] (ppRows pp rows)
+ppParMode (FigureLike name locs body) = ppEnv name [Optional $ text $ map locSpecChar locs] $ ppParMode body
 
 ppParMode (ParConcat contents) = vcat $ map ppParMode contents
 
@@ -129,7 +126,7 @@ ppMath (RawMath s) = text s
 ppMath (MathRat r) | denominator r == 1 = shows (numerator r)
                      | otherwise          = shows (numerator r) <> text " / " <> shows (denominator r)
 ppMath (MathArray specs rows) = 
-  ppEnv "array" [Arg Mandatory $ mconcat $ map (ppRowSpec . fmap ppMath) specs] (ppRows ppMath rows)
+  ppEnv "array" [Mandatory $ mconcat $ map (ppRowSpec . fmap ppMath) specs] (ppRows ppMath rows)
 ppMath (MathGroup m) = braces $ ppMath m
 ppMath (MathConcat ms) = mconcat $ map ppMath ms
 ppMath (MathUnOp op m) = text op <> sp <> ppMath m
@@ -182,12 +179,8 @@ ppSize s =
 
 ppPreamble :: PreambleItm -> ShowS
 ppPreamble (PreambleCmd s) = backslash <> text s
-ppPreamble (PreambleCmdArg cmdName arg)
-  = backslash <> text cmdName <> braces (pp arg)
-ppPreamble (PreambleCmdArgWithOpts cmdName opts arg)
-  = backslash <> text cmdName <> ppOpts opts <> braces (pp arg)
+ppPreamble (PreambleCmdArgs cmdName args) = ppCmdArgs cmdName $ map (fmap pp) args
 ppPreamble (PreambleConcat ps) = vcat $ map ppPreamble ps
 
 ppRoot :: Root -> ShowS
 ppRoot (Root preamb (Document doc)) = ppPreamble preamb $$ ppEnv "document" [] (ppParMode doc)
-
