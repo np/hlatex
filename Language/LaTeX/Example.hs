@@ -124,4 +124,6 @@ body = B.document <! do
 
   G.includegraphics (\r-> r{G.angle=45, G.scale=1%2}) !< "yi.pdf"
 
+  B.para !< (B.noindent<>B._Large<>"Not shelfful"<>B.newline<>"but shelf"<>B.sep<>"ful")
+
   where mat33 = M.array (replicate 3 B.c) (map B.cells [[1,M.cdots,3],[M.vdots,M.ddots,M.vdots],[4,M.cdots,6]])
