@@ -4,6 +4,10 @@ import Data.Monoid
 import Data.Maybe
 import Data.List (intersperse)
 import Data.Ratio (numerator, denominator)
+import Data.Generics.UniplateStr (universe)
+import Data.Generics.Biplate (universeBi)
+import Data.Set (Set)
+import qualified Data.Set as Set
 import GHC.Float (formatRealFloat, FFFormat(FFFixed))
 
 import Language.LaTeX.Types
@@ -101,6 +105,8 @@ pp (TexGroup t) = braces $ pp t
 
 pp (LatexConcat contents) = mconcat $ map pp contents
 
+pp (LatexNeedPackage _ x) = pp x
+
 ppParMode :: ParItm -> ShowS
 ppParMode (Para t) = nl <> pp t <> nl <> nl
 ppParMode (ParCmdArgs cmdName args) = ppCmdArgs cmdName $ map (fmap pp) args
@@ -118,6 +124,7 @@ ppParMode (Tabular specs rows) =
 ppParMode (FigureLike name locs body) = ppEnv name [Optional $ text $ map locSpecChar locs] $ ppParMode body
 
 ppParMode (ParConcat contents) = vcat $ map ppParMode contents
+ppParMode (ParNeedPackage _ x) = ppParMode x
 
 ppMath :: MathItm -> ShowS
 ppMath (MathDecl decl) = ppDecl decl
@@ -132,8 +139,7 @@ ppMath (MathConcat ms) = mconcat $ map ppMath ms
 ppMath (MathUnOp op m) = text op <> sp <> ppMath m
 ppMath (MathBinOp op l r) = parens (ppMath l <> sp <> text op <> sp <> ppMath r)
 ppMath (MathToLR cmd lr) = ppCmdArg cmd (pp lr)
-ppMath (MathNeedPackage pkg m) | pkg == "amsmath" = ppMath m
-                               | otherwise        = error "ppMath: package system not supported yet"
+ppMath (MathNeedPackage _ x) = ppMath x
 
 ppRowSpec :: RowSpec ShowS -> ShowS
 ppRowSpec Rc        = text "c"
@@ -181,6 +187,27 @@ ppPreamble :: PreambleItm -> ShowS
 ppPreamble (PreambleCmd s) = backslash <> text s
 ppPreamble (PreambleCmdArgs cmdName args) = ppCmdArgs cmdName $ map (fmap pp) args
 ppPreamble (PreambleConcat ps) = vcat $ map ppPreamble ps
+ppPreamble (Usepackage pkg args)
+  = ppCmdArgs "usepackage" (map (fmap pp) args ++ [Mandatory (text $ getPkgName pkg)])
+ppPreamble (RawPreamble raw) = text raw
 
 ppRoot :: Root -> ShowS
 ppRoot (Root preamb (Document doc)) = ppPreamble preamb $$ ppEnv "document" [] (ppParMode doc)
+
+usedPackages :: PreambleItm -> Set PackageName
+usedPackages x = Set.fromList [ pkg | Usepackage pkg _ <- universe x ]
+
+neededPackages :: Root -> Set PackageName
+neededPackages x = Set.fromList [ pkg | pkg@(PkgName _) <- universeBi x ]
+
+showsLaTeX :: LatexM Root -> Either String ShowS
+showsLaTeX mroot = do
+  root@(Root preamb (Document doc)) <- runLatexM mroot
+  let usedPkgs    = usedPackages preamb
+      neededPkgs  = neededPackages root
+      missingPkgs = Set.toList $ neededPkgs `Set.difference` usedPkgs
+      preamb'     = preamb <> mconcatMap (`Usepackage` []) missingPkgs
+  return $ ppRoot $ Root preamb' (Document doc)
+
+showLaTeX :: LatexM Root -> Either String String
+showLaTeX = fmap ($"") . showsLaTeX

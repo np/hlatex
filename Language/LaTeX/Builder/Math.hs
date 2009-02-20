@@ -71,7 +71,7 @@ rawMathChar = rawMath . (:[])
 mathGroup :: MathItem -> MathItem
 mathGroup = liftM MathGroup
 
-mathNeedPackage :: String -> MathItem -> MathItem
+mathNeedPackage :: PackageName -> MathItem -> MathItem
 mathNeedPackage = liftM . MathNeedPackage
 
 mathToLR :: String -> LatexItem -> MathItem
@@ -113,7 +113,7 @@ parenChar m1 | m1 `elem` "([.])" = return [m1]
              | otherwise        = throwError $ "invalid parenthesis-like: " ++ show m1
 
 text :: LatexItem -> MathItem
-text = mathNeedPackage "amsmath" . mathToLR "text"
+text = mathNeedPackage amsmath . mathToLR "text"
 
 array :: [RowSpec MathItem] -> [Row MathItem] -> MathItem
 array = B.tabularLike MathArray
@@ -600,4 +600,7 @@ mathCmdsArg = [mathbf, mathbb, mathcal, mathtt, mathfrak, pmod, tilde, hat, chec
 
 mathBinOps :: [MathItem -> MathItem -> MathItem]
 mathBinOps = [(+),(-),(*),bmod]
+
+amsmath :: PackageName
+amsmath = PkgName "amsmath"
 

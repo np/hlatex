@@ -5,7 +5,7 @@ module Language.LaTeX.Builder.Graphics
 where
 
 import Language.LaTeX.Types
-import Language.LaTeX.Builder (parCmdArgs, size, bool, coord,
+import Language.LaTeX.Builder (parCmdArgs, size, bool, coord, parNeedPackage,
                                rat, rawTex, optional, mandatory)
 import Language.LaTeX.Builder.MonoidUtils ((<>))
 import Control.Arrow ((***))
@@ -113,8 +113,8 @@ data IncludeGraphicsOpts = IncludeGraphicsOpts
     -- information from the %%HiResBoundingBox line in the graphics file. 
   }
 
-
--- needs graphicx package
+graphicx :: PackageName
+graphicx = PkgName "graphicx"
 
 -- | @includegraphics fopts fp@
 -- The @fopts@ function will receive the defaults options and should modify options
@@ -122,7 +122,7 @@ data IncludeGraphicsOpts = IncludeGraphicsOpts
 -- This function is generally used like this: @includegraphics (\o -> o{ <opt> = <exp> ... }) fp@
 includegraphics :: (IncludeGraphicsOpts -> IncludeGraphicsOpts) -> FilePath -> ParItem
 includegraphics f fp =
-   parCmdArgs "includegraphics" $ opt ++ [mandatory $ fromString fp]
+   parNeedPackage graphicx $ parCmdArgs "includegraphics" $ opt ++ [mandatory $ fromString fp]
   where h (name, item) = rawTex (name ++ "=") <> item
         opts = map h $ includeGraphicsOpts $ f defaultOpts
         opt | null opts = []

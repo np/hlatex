@@ -6,12 +6,12 @@ license-File:    LICENSE
 copyright:       (c) Nicolas Pouillard
 author:          Nicolas Pouillard
 maintainer:      Nicolas Pouillard <nicolas.pouillard@gmail.com>
-category:        Codec, Text
+category:        Text
 synopsis:        A library to build valid LaTeX files
 description:     ...
 stability:       Provisional
 build-type:      Simple
-build-depends:   base>=3.0, containers>=0.1, template-haskell, mtl>=1.1
+build-depends:   base>=3.0&&<4, containers>=0.1, template-haskell, mtl>=1.1, uniplate, derive
 exposed-modules: Language.LaTeX.Types,
                  Language.LaTeX.Builder,
                  Language.LaTeX.Builder.MonoidUtils,

@@ -1,33 +1,47 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving, FlexibleInstances #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, FlexibleInstances, FlexibleContexts,
+             UndecidableInstances, TemplateHaskell, MultiParamTypeClasses,
+             DeriveDataTypeable #-}
 module Language.LaTeX.Types where
 
 import Prelude hiding (and, foldr, foldl, foldr1, foldl1, elem, concatMap, concat)
 import Data.Monoid (Monoid(..))
 import Data.List (intersperse)
 import Data.Char
-import Data.Ratio ((%))
+import Data.Ratio (Ratio, (%), numerator, denominator)
 import Data.Traversable
 import Data.Foldable
 import Data.String (IsString(..))
+import Data.Generics.PlateTypeable
 import Control.Applicative
 import Control.Monad.Writer (Writer)
 import Control.Monad.State
 import Control.Monad.Trans ()
 import Control.Monad.Error
+import Data.DeriveTH
+import Data.Derive.Functor
+import Data.Derive.Foldable
+import Data.Derive.Traversable
+import Data.Derive.PlateTypeable
 
 data Root = Root PreambleItm Document
+  deriving (Show, Eq, Typeable)
 
 data Document = Document ParItm
+  deriving (Show, Eq, Typeable)
 
 data DocumentClass = Article
                    | Book
                    | Report
                    | Letter
                    | OtherDocumentClass String
+  deriving (Show, Eq, Typeable)
 
 data PreambleItm = PreambleCmd String
               | PreambleCmdArgs String [Arg LatexItm]
               | PreambleConcat [PreambleItm]
+              | Usepackage PackageName [Arg LatexItm]
+              | RawPreamble String
+  deriving (Show, Eq, Typeable)
 
 instance Monoid PreambleItm where
   mempty  = PreambleConcat []
@@ -49,10 +63,11 @@ data LatexItm
            | LatexKeys [Key]
            | LatexSaveBin SaveBin
            | LatexParMode ParItm
+           | LatexNeedPackage PackageName LatexItm
            | RawTex String
            | TexGroup LatexItm
            | LatexConcat [LatexItm]
-  deriving (Show, Eq)
+  deriving (Show, Eq, Typeable)
 
 instance Monoid LatexItm where
   mempty  = LatexConcat []
@@ -68,8 +83,9 @@ data Arg a = Optional a
            | Optionals [a]
            | Mandatory a
            | Coordinates a a
-  deriving (Show, Eq)
+  deriving (Show, Eq, Typeable)
 
+{-
 instance Functor Arg where
   f `fmap` (Optional x) = Optional $ f x
   f `fmap` (Optionals xs) = Optionals $ fmap f xs
@@ -87,9 +103,10 @@ instance Traversable Arg where
   sequenceA (Optionals xs) = Optionals <$> sequenceA xs
   sequenceA (Mandatory x) = Mandatory <$> x
   sequenceA (Coordinates x y) = Coordinates <$> x <*> y
+-}
 
 data Coord = Coord LatexSize LatexSize
-  deriving (Show, Eq)
+  deriving (Show, Eq, Typeable)
 
 data ParItm  = Para LatexItm -- Here LatexItm does not mean LR mode
              | ParDecl String
@@ -101,10 +118,11 @@ data ParItm  = Para LatexItm -- Here LatexItm does not mean LR mode
              | Equation [MathItm]
              | Tabular [RowSpec LatexItm] [Row LatexItm]
              | FigureLike String [LocSpec] ParItm
+             | ParNeedPackage PackageName ParItm
              | RawParMode String
              | ParGroup ParItm -- check validity of this
              | ParConcat [ParItm]
-  deriving (Show, Eq)
+  deriving (Show, Eq, Typeable)
 
 instance Monoid ParItm where
   mempty  = ParConcat []
@@ -117,14 +135,14 @@ data MathItm   = MathDecl String
                | MathCmdArgs String [Arg MathItm]
                | MathToLR String LatexItm
                | MathArray [RowSpec MathItm] [Row MathItm]
-               | MathNeedPackage String MathItm
+               | MathNeedPackage PackageName MathItm
                | RawMath String
                | MathRat Rational
                | MathGroup MathItm
                | MathConcat [MathItm]
                | MathBinOp String MathItm MathItm
                | MathUnOp String MathItm
-  deriving (Show, Eq)
+  deriving (Show, Eq, Typeable)
 
 instance Monoid MathItm where
   mempty  = MathConcat []
@@ -172,7 +190,7 @@ data LatexSize = Sp Rational -- ^ Scalled point (1pt = 65536sp)
                | SizeBinOp String LatexSize LatexSize
                | SizeUnOp String LatexSize
                | SizeRat Rational
-  deriving (Show, Eq)
+  deriving (Show, Eq, Typeable)
 
 instance Num LatexSize where
   (+) = SizeBinOp "+"
@@ -196,8 +214,9 @@ data RowSpec a = Rc --- ^ Centered
                | Rr --- ^ Right
                | Rvline --- ^ A vertical line
                | Rtext a --- ^ A fixed text column (@-expression in LaTeX parlance)
-  deriving (Show, Eq)
+  deriving (Show, Eq, Typeable)
 
+{-
 instance Functor RowSpec where
   _ `fmap` Rc         = Rc
   _ `fmap` Rl         = Rl
@@ -218,13 +237,14 @@ instance Traversable RowSpec where
   sequenceA Rr        = pure Rr
   sequenceA Rvline    = pure Rvline
   sequenceA (Rtext x) = Rtext <$> x
+-}
 
 data LocSpec = Lh --- ^ Here
              | Lt --- ^ Top
              | Lb --- ^ Bottom
              | Lp --- ^ Page of floats: on a sperate page containing no text,
                   ---   only figures and tables.
-  deriving (Show, Eq)
+  deriving (Show, Eq, Typeable)
 
 locSpecChar :: LocSpec -> Char
 locSpecChar Lh = 'h'
@@ -238,8 +258,9 @@ data LatexPaper = A4paper
 data Row cell = Cells [cell]
               | Hline
               | Cline Int Int
-  deriving (Show, Eq)
+  deriving (Show, Eq, Typeable)
 
+{-
 instance Functor Row where
   f `fmap` Cells cs  = Cells (fmap f cs)
   _ `fmap` Hline     = Hline
@@ -254,14 +275,18 @@ instance Traversable Row where
   sequenceA (Cells cs)  = Cells <$> sequenceA cs
   sequenceA Hline       = pure Hline
   sequenceA (Cline i j) = pure $ Cline i j
+-}
 
 data ListItm = ListItm { itemLabel :: Maybe LatexItm, itemContents :: ParItm }
 
+newtype PackageName = PkgName { getPkgName :: String }
+  deriving (Ord, Eq, Show, Typeable)
+
 newtype Key = Key { getKey :: String }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Typeable)
 
 newtype SaveBin = UnsafeMakeSaveBin { unsafeGetSaveBin :: Int }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Typeable)
 
 data Star = Star | NoStar
 
@@ -359,3 +384,34 @@ mchar ':'  = ":"
 mchar x | x `elem` "#_&{}$%" = ['\\',x]
         | x `elem` "-]["     = ['{', x, '}'] -- to avoid multiple dashes or mess up optional args
         | otherwise          = [x]
+
+instance (Integral a, Typeable a, Typeable b, PlateAll a b) => PlateAll (Ratio a) b where
+  plateAll r = plate (%) |+ numerator r |+ denominator r
+
+
+$(derive makeFunctor     ''Arg)
+$(derive makeFoldable    ''Arg)
+$(derive makeTraversable ''Arg)
+$(derive makeFunctor     ''RowSpec)
+$(derive makeFoldable    ''RowSpec)
+$(derive makeTraversable ''RowSpec)
+$(derive makeFunctor     ''Row)
+$(derive makeFoldable    ''Row)
+$(derive makeTraversable ''Row)
+
+$(derive makePlateTypeable ''Arg)
+$(derive makePlateTypeable ''LatexItm)
+$(derive makePlateTypeable ''MathItm)
+$(derive makePlateTypeable ''ParItm)
+$(derive makePlateTypeable ''PreambleItm)
+$(derive makePlateTypeable ''Key)
+$(derive makePlateTypeable ''Row)
+$(derive makePlateTypeable ''RowSpec)
+$(derive makePlateTypeable ''LocSpec)
+$(derive makePlateTypeable ''Coord)
+$(derive makePlateTypeable ''LatexSize)
+$(derive makePlateTypeable ''SaveBin)
+$(derive makePlateTypeable ''PackageName)
+$(derive makePlateTypeable ''Root)
+$(derive makePlateTypeable ''Document)
+$(derive makePlateTypeable ''DocumentClass)
