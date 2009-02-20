@@ -1,12 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS -fno-warn-missing-signatures #-}
-import Language.LaTeX.Types (runLatexM)
 import qualified Language.LaTeX.Builder as B
 import qualified Language.LaTeX.Builder.Math as M
 import qualified Language.LaTeX.Builder.Graphics as G
 import Language.LaTeX.Builder.MonoidUtils
 import Language.LaTeX.Builder ((!<), (<!), (!<!))
-import Language.LaTeX.Printer (ppRoot)
+import Language.LaTeX.Printer (showLaTeX)
 import System.Cmd (system)
 
 import Data.Ratio ((%))
@@ -16,16 +15,19 @@ import Data.List.Split
 import Data.List (intersperse)
 import Control.Monad.Writer (tell)
 
+main=exs
+
+paraNoindent = B.para . (B.noindent <>)
+
 exs = do putStrLn s
          writeFile "tests/test.ltx" s
-         system "(cd tests && pdflatex test.ltx && open test.pdf)"
-  where s = ppRoot (either error id $ runLatexM root) ""
+         system "(cd tests && texi2pdf test.ltx && open test.pdf)"
+  where s = either error id $ showLaTeX root
 
 root = B.root preamb body
 
 preamb = B.documentclass (Just (B.pt 11)) (Just B.a4paper) B.book
-        <> B.usepackage "amsmath"
-        <> B.usepackage "graphicx"
+     -- <> B.usepackage [B.optional "francais"] (B.pkgName "babel")
 
 body = B.document <! do
   tell B.tableofcontents
@@ -88,9 +90,9 @@ body = B.document <! do
 
   tell B.newpage
 
-  B.para !<! do
-    tell B.noindent
-    tell $ B.texttt $ mconcat $ intersperse B.newline $ map B.protect (splitEvery 10 $ filter isPrint $ map chr [0..255])
+  let letters = splitEvery 10 $ filter isPrint $ map chr [0..255]
+  paraNoindent !< (B.texttt $ mconcat $ intersperse B.newline $ map B.protect letters)
+  paraNoindent !< (mconcat $ intersperse B.newline $ map B.hstring letters)
 
   B.section !< "Let's try the Writer monad to write documents"
 
@@ -125,5 +127,24 @@ body = B.document <! do
   G.includegraphics (\r-> r{G.angle=45, G.scale=1%2}) !< "yi.pdf"
 
   B.para !< (B.noindent<>B._Large<>"Not shelfful"<>B.newline<>"but shelf"<>B.sep<>"ful")
+
+  B.para !< "This is some|text"
+  B.para !< "This is some-text"
+  B.para !< "This is some--text"
+  B.para !< B.rawTex "This is some|text"
+  B.para !< "This is some---text"
+  B.para !< ("This is some"<>B.dash1<>"text")
+  B.para !< ("This is some"<>B.dash2<>B.dash1<>"text")
+  B.para !< ("This is some"<>B.dash3<>"text")
+  B.para !< "This is some``text"
+  B.para !< "This is ''some``text"
+  B.para !< "This is ''''some``text"
+  B.para !< "This is ''''some````text"
+  B.para !< "This is ''``''''````''``"
+  B.para !< "This is some``text''"
+  B.para !< "This is so's'"
+  B.para !< "This is so's''"
+  B.para !< "This is so`s`"
+  B.para !< "This is so`s``"
 
   where mat33 = M.array (replicate 3 B.c) (map B.cells [[1,M.cdots,3],[M.vdots,M.ddots,M.vdots],[4,M.cdots,6]])
