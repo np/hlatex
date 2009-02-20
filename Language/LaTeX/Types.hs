@@ -373,7 +373,7 @@ hchar '^'  = "\\^{}"
 hchar '|'  = "\\textbar{}"
 hchar ':'  = "$:$" -- or maybe "{:}"
 hchar x | x `elem` "#_&{}$%" = ['\\',x]
-        | x `elem` "-]["     = ['{', x, '}'] -- to avoid multiple dashes or mess up optional args
+        | x `elem` "]["      = ['{', x, '}'] -- to avoid mess up optional args
         | otherwise          = [x]
 
 mchar :: Char -> String
@@ -382,7 +382,7 @@ mchar '~'  = "\\text{\\~{}}"
 mchar '^'  = "\\^{}"
 mchar ':'  = ":"
 mchar x | x `elem` "#_&{}$%" = ['\\',x]
-        | x `elem` "-]["     = ['{', x, '}'] -- to avoid multiple dashes or mess up optional args
+        | x `elem` "]["      = ['{', x, '}'] -- to avoid mess up optional args
         | otherwise          = [x]
 
 instance (Integral a, Typeable a, Typeable b, PlateAll a b) => PlateAll (Ratio a) b where
