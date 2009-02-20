@@ -22,7 +22,7 @@ import Language.LaTeX.Builder.MonoidUtils
     - robust/fragile/moving
     - tracking savebin in the monad?
     - generating a doc with examples:
-         [...("sum", [| let i = mchar 'i' in sum<>sub(i<>eq<>0)<>sup infty<>i<>sup 2 |])...]
+         [...("sum", [| sum<>sub(i<>eq<>0)<>sup infty<>i<>sup 2 |])...]
     - pictures
  -}
 
