@@ -643,6 +643,108 @@ figureStar = figureLike "figure*"
 table = figureLike "table"
 tableStar = figureLike "table*"
 
+-- | Add a cedila to a letter (\c{...} in LaTeX)
+cedil :: LatexItem -> LatexItem
+cedil = latexCmdArg "c"
+
+grave :: LatexItem -> LatexItem
+grave = latexCmdArg "`"
+
+acute :: LatexItem -> LatexItem
+acute = latexCmdArg "'"
+
+uml :: LatexItem -> LatexItem
+uml = latexCmdArg "\""
+
+circ :: LatexItem -> LatexItem
+circ = latexCmdArg "^"
+
+-- alias of 'circ'
+hat :: LatexItem -> LatexItem
+hat = latexCmdArg "^"
+
+check :: LatexItem -> LatexItem
+check = latexCmdArg "v"
+
+i :: LatexItem
+i = latexCmdArgs "i" []
+
+j :: LatexItem
+j = latexCmdArgs "j" []
+
+tilde :: LatexItem -> LatexItem
+tilde = latexCmdArg "~"
+
+dot :: LatexItem -> LatexItem
+dot = latexCmdArg "d"
+
+ring :: LatexItem -> LatexItem
+ring = latexCmdArg "r"
+
+-- TODO find a name
+_H :: LatexItem -> LatexItem
+_H = latexCmdArg "H"
+
+-- Produces a dot accent over the following (\.{x} in LaTeX)
+overdot :: LatexItem -> LatexItem
+overdot = latexCmdArg "."
+
+-- Produces a macron (overbar) accent over the following
+overbar :: LatexItem -> LatexItem
+overbar = latexCmdArg "="
+
+-- Produces a macron (overbar) accent over the following
+underbar :: LatexItem -> LatexItem
+underbar = latexCmdArg "b"
+
+-- Produces a tie-after accent, as in `oo[' (\t in LaTeX).
+tieafter :: LatexItem -> LatexItem
+tieafter = latexCmdArg "t"
+
+-- The 'å' letter (like @ring "a"@)
+aa :: LatexItem
+aa = latexCmdArgs "aa" []
+
+-- The 'Å' letter (like @ring "A"@)
+_AA :: LatexItem
+_AA = latexCmdArgs "AA" []
+
+-- The 'æ' letter
+ae :: LatexItem
+ae = latexCmdArgs "ae" []
+
+-- The 'Æ' letter
+_AE :: LatexItem
+_AE = latexCmdArgs "AE" []
+
+-- The 'œ' letter
+oe :: LatexItem
+oe = latexCmdArgs "oe" []
+
+-- The 'Œ' letter
+_OE :: LatexItem
+_OE = latexCmdArgs "OE" []
+
+-- The 'ß' letter
+ss :: LatexItem
+ss = latexCmdArgs "ss" []
+
+-- The '/l' letter
+_l :: LatexItem
+_l = latexCmdArgs "l" []
+
+-- The '/L' letter
+_L :: LatexItem
+_L = latexCmdArgs "L" []
+
+-- The 'ø' letter
+o :: LatexItem
+o = latexCmdArgs "o" []
+
+-- The 'Ø' letter
+_O :: LatexItem
+_O = latexCmdArgs "O" []
+
 -- check options
 titlepage, flushleft, center, boxedminipage, quotation, verse :: ParItem -> ParItem
 titlepage = parEnvironmentPar "titlepage" []
