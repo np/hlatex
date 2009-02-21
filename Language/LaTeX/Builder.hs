@@ -643,6 +643,8 @@ figureStar = figureLike "figure*"
 table = figureLike "table"
 tableStar = figureLike "table*"
 
+-- Accents
+
 -- | Add a cedila to a letter (\c{...} in LaTeX)
 cedil :: LatexItem -> LatexItem
 cedil = latexCmdArg "c"
@@ -700,6 +702,8 @@ underbar = latexCmdArg "b"
 -- Produces a tie-after accent, as in `oo[' (\t in LaTeX).
 tieafter :: LatexItem -> LatexItem
 tieafter = latexCmdArg "t"
+
+-- Some non-English characters
 
 -- The 'å' letter (like @ring "a"@)
 aa :: LatexItem
