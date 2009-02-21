@@ -46,6 +46,8 @@ body = B.document <! do
 
   B.section !< "The action plan"
 
+  B.paragraph !< "Here comes an itemize"
+
   B.itemize !<
      [ B.item $ B.para "Find a better formula"
      , B.item $ B.para "Write some proofs about it"
@@ -146,5 +148,30 @@ body = B.document <! do
   B.para !< "This is so's''"
   B.para !< "This is so`s`"
   B.para !< "This is so`s``"
+
+  B.para !<! do
+    B.circ !< "o"
+    B.tilde !< B.i
+    B.grave !< "e"
+    B.check !< B.j
+    B.grave !< "z"
+    B.acute !< "y"
+    B.uml !< "e"
+    B.cedil !< "a"
+    B.ring !< "u"
+    B.dot !< "o"
+    B.tieafter !< "uv"
+    B.overbar !< "f"
+    B.overdot !< "c"
+    B.underbar !< B.ae
+    tell $ B.math $ mconcat
+      [ M.acute M.alpha
+      , M.breve M.beta
+      , M.check M.delta
+      , M.dot M.gamma
+      , M.ddot M.zeta
+      , M.vec M.iota
+      ]
+
 
   where mat33 = M.array (replicate 3 B.c) (map B.cells [[1,M.cdots,3],[M.vdots,M.ddots,M.vdots],[4,M.cdots,6]])
