@@ -158,6 +158,9 @@ nbsp = rawTex "{~}"
 sep :: LatexItem
 sep = group mempty
 
+space :: LatexItem
+space = rawTex "{ }"
+
 protect :: String -> LatexItem
 protect ""        = mempty
 protect ('\n':xs) = newline <> protect xs
@@ -807,6 +810,9 @@ verse = parEnvironmentPar "verse" []
 
 quote :: LatexItem -> ParItem
 quote = liftM $ ParEnvironmentLR "quote"
+
+unwords :: [LatexItem] -> LatexItem
+unwords = mconcat . intersperse space
 
 -- The array and tablular Environments
 
