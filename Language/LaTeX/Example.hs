@@ -173,5 +173,18 @@ body = B.document <! do
       , M.vec M.iota
       ]
 
+  tell $ B.para $ B.unwords
+    [ B._LaTeX
+    , B._TeX
+    , B.copyright
+    , B.dag
+    , B.ddag
+    , B.ldots
+    , B.lq
+    , B.rq
+    , B._P
+    , B._S
+    , B.pounds
+    ]
 
   where mat33 = M.array (replicate 3 B.c) (map B.cells [[1,M.cdots,3],[M.vdots,M.ddots,M.vdots],[4,M.cdots,6]])
