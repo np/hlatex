@@ -749,6 +749,52 @@ o = latexCmdArgs "o" []
 _O :: LatexItem
 _O = latexCmdArgs "O" []
 
+-- Text symbols
+
+-- | The copyright symbol, ©.
+copyright :: LatexItem
+copyright = latexCmdArgs "copyright" []
+
+-- | The dagger symbol (in text).
+dag :: LatexItem
+dag = latexCmdArgs "dag" []
+
+-- | The double dagger symbol (in text).
+ddag :: LatexItem
+ddag = latexCmdArgs "ddag" []
+
+-- | The LaTeX logo.
+_LaTeX :: LatexItem
+_LaTeX = latexCmdArgs "LaTeX" []
+
+-- | The TeX logo.
+_TeX :: LatexItem
+_TeX = latexCmdArgs "TeX" []
+
+-- | An ellipsis (three dots at the baseline): `...'. This command also works in math mode.
+ldots :: LatexItem
+ldots = latexCmdArgs "ldots" []
+
+-- | Left (opening) quote: `.
+lq :: LatexItem
+lq = latexCmdArgs "lq" []
+
+-- | Right (closing) quote: '.
+rq :: LatexItem
+rq = latexCmdArgs "rq" []
+
+-- | Paragraph sign (pilcrow).
+_P :: LatexItem
+_P = latexCmdArgs "P" []
+
+-- | English pounds sterling.
+pounds :: LatexItem
+pounds = latexCmdArgs "pounds" []
+
+-- | Section symbol.
+_S :: LatexItem
+_S = latexCmdArgs "S" []
+
 -- check options
 titlepage, flushleft, center, boxedminipage, quotation, verse :: ParItem -> ParItem
 titlepage = parEnvironmentPar "titlepage" []
