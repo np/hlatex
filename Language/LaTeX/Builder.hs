@@ -403,7 +403,7 @@ pagebreak, nopagebreak :: Int -> LatexItem
 (pagebreak, nopagebreak) =
   ((texDeclOpt "pagebreak" =<<) . check0to4 "pagebreak"
   ,(texDeclOpt "nopagebreak" =<<) . check0to4 "nopagebreak")
-  where check0to4 s i | i >= 0 && i <= 4 = return $ num i
+  where check0to4 s n | n >= 0 && n <= 4 = return $ num n
                       | otherwise        = throwError $ s ++ ": option must be between 0 and 4 not " ++ show i
 
 -- fragile
@@ -479,8 +479,8 @@ frameboxRight width txt =
 -- TODO: make a safe version using a monad
 -- fragile
 unsafeNewsavebox :: Int -> LatexItem
-unsafeNewsavebox i =
-  let bin = UnsafeMakeSaveBin i
+unsafeNewsavebox n =
+  let bin = UnsafeMakeSaveBin n
   in latexCmdArg "newsavebox" $ latexSaveBin bin
 
 -- robust
