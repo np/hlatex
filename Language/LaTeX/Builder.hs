@@ -670,10 +670,10 @@ check :: LatexItem -> LatexItem
 check = latexCmdArg "v"
 
 i :: LatexItem
-i = latexCmdArgs "i" []
+i = texCmdNoArg "i"
 
 j :: LatexItem
-j = latexCmdArgs "j" []
+j = texCmdNoArg "j"
 
 tilde :: LatexItem -> LatexItem
 tilde = latexCmdArg "~"
@@ -708,93 +708,93 @@ tieafter = latexCmdArg "t"
 
 -- The 'å' letter (like @ring "a"@)
 aa :: LatexItem
-aa = latexCmdArgs "aa" []
+aa = texCmdNoArg "aa"
 
 -- The 'Å' letter (like @ring "A"@)
 _AA :: LatexItem
-_AA = latexCmdArgs "AA" []
+_AA = texCmdNoArg "AA"
 
 -- The 'æ' letter
 ae :: LatexItem
-ae = latexCmdArgs "ae" []
+ae = texCmdNoArg "ae"
 
 -- The 'Æ' letter
 _AE :: LatexItem
-_AE = latexCmdArgs "AE" []
+_AE = texCmdNoArg "AE"
 
 -- The 'œ' letter
 oe :: LatexItem
-oe = latexCmdArgs "oe" []
+oe = texCmdNoArg "oe"
 
 -- The 'Œ' letter
 _OE :: LatexItem
-_OE = latexCmdArgs "OE" []
+_OE = texCmdNoArg "OE"
 
 -- The 'ß' letter
 ss :: LatexItem
-ss = latexCmdArgs "ss" []
+ss = texCmdNoArg "ss"
 
 -- The '/l' letter
 _l :: LatexItem
-_l = latexCmdArgs "l" []
+_l = texCmdNoArg "l"
 
 -- The '/L' letter
 _L :: LatexItem
-_L = latexCmdArgs "L" []
+_L = texCmdNoArg "L"
 
 -- The 'ø' letter
 o :: LatexItem
-o = latexCmdArgs "o" []
+o = texCmdNoArg "o"
 
 -- The 'Ø' letter
 _O :: LatexItem
-_O = latexCmdArgs "O" []
+_O = texCmdNoArg "O"
 
 -- Text symbols
 
 -- | The copyright symbol, ©.
 copyright :: LatexItem
-copyright = latexCmdArgs "copyright" []
+copyright = texCmdNoArg "copyright"
 
 -- | The dagger symbol (in text).
 dag :: LatexItem
-dag = latexCmdArgs "dag" []
+dag = texCmdNoArg "dag"
 
 -- | The double dagger symbol (in text).
 ddag :: LatexItem
-ddag = latexCmdArgs "ddag" []
+ddag = texCmdNoArg "ddag"
 
 -- | The LaTeX logo.
 _LaTeX :: LatexItem
-_LaTeX = latexCmdArgs "LaTeX" []
+_LaTeX = texCmdNoArg "LaTeX"
 
 -- | The TeX logo.
 _TeX :: LatexItem
-_TeX = latexCmdArgs "TeX" []
+_TeX = texCmdNoArg "TeX"
 
 -- | An ellipsis (three dots at the baseline): `...'. This command also works in math mode.
 ldots :: LatexItem
-ldots = latexCmdArgs "ldots" []
+ldots = texCmdNoArg "ldots"
 
 -- | Left (opening) quote: `.
 lq :: LatexItem
-lq = latexCmdArgs "lq" []
+lq = texCmdNoArg "lq"
 
 -- | Right (closing) quote: '.
 rq :: LatexItem
-rq = latexCmdArgs "rq" []
+rq = texCmdNoArg "rq"
 
 -- | Paragraph sign (pilcrow).
 _P :: LatexItem
-_P = latexCmdArgs "P" []
+_P = texCmdNoArg "P"
 
 -- | English pounds sterling.
 pounds :: LatexItem
-pounds = latexCmdArgs "pounds" []
+pounds = texCmdNoArg "pounds"
 
 -- | Section symbol.
 _S :: LatexItem
-_S = latexCmdArgs "S" []
+_S = texCmdNoArg "S"
 
 -- check options
 titlepage, flushleft, center, boxedminipage, quotation, verse :: ParItem -> ParItem
