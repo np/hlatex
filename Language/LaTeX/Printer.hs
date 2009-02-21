@@ -67,10 +67,6 @@ ppDecl declName = backslash <> text declName <> text " " -- or {}
 ppDeclOpt :: String -> ShowS -> ShowS
 ppDeclOpt declName opt = backslash <> text declName <> brackets opt <> text " " -- or {}
 
-mayBraces :: ShowS -> ShowS
-mayBraces = braces
--- mayBraces = id
-
 pp :: LatexItm -> ShowS
 
 pp (LatexCmdArgs cmdName args) = ppCmdArgs cmdName $ map (fmap pp) args
