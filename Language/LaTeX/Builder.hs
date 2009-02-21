@@ -3,6 +3,7 @@ module Language.LaTeX.Builder where
 import Prelude hiding (sqrt, min, max, lcm, gcd, log, mod, tanh, cosh, tan, sinh,
                        sin, cos, succ, sum, pi, mapM)
 import Data.List hiding (sum, and, group)
+import qualified Data.List as L
 import Data.Maybe
 import Data.Ratio
 import Data.Monoid
@@ -188,7 +189,7 @@ hr :: LatexItem
 hr = group $ noindent <> rule linewidth (pt 1.5)
 
 normSpaces :: String -> String
-normSpaces = unlines . map (unwords . words) . lines
+normSpaces = unlines . map (L.unwords . words) . lines
 
 num :: Real a => a -> LatexItem
 num = size . SizeRat . toRational
@@ -388,7 +389,7 @@ hyphen = rawTex "{\\-}" -- check if {...} does not cause trouble here
 
 -- robust
 hyphenation :: [String] -> ParItem
-hyphenation = parCmdArg "hyphenation" . rawTex . unwords -- rawTex is a bit rough here
+hyphenation = parCmdArg "hyphenation" . rawTex . L.unwords -- rawTex is a bit rough here
 
 sloppy, fussy :: LatexItem
 sloppy = texDecl "sloppy"
@@ -835,7 +836,7 @@ checkRows specs = mapM checkRow
         isCol Rr = True
         isCol Rvline = False
         isCol (Rtext _) = False
-        err msg x op y = throwError $ unwords ["tabular:", msg, "(" ++ show x, op, show y ++ ")"] 
+        err msg x op y = throwError $ L.unwords ["tabular:", msg, "(" ++ show x, op, show y ++ ")"] 
 
 cells :: [a] -> Row a
 cells = Cells
