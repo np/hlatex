@@ -35,7 +35,7 @@ sp = text " "
 ($$) x y = x <> nl <> y
 
 vcat :: [ShowS] -> ShowS
-vcat = mconcat . intersperse nl
+vcat = mconcat . intersperse (nl <> nl)
 
 ppArg :: Arg ShowS -> ShowS
 ppArg (Mandatory x)     = braces x
@@ -45,8 +45,15 @@ ppArg (Coordinates x y) = parens (x <> text " " <> y)
 
 ppEnv :: String -> [Arg ShowS] -> ShowS -> ShowS
 ppEnv envName args contents =
-  text "\\begin" <> braces (text envName) <> mconcat (map ppArg args) <> nl <>
-  contents <> text "\n\\end" <> braces (text envName) <> nl
+  backslash<>begin<>braces envNameS<>mconcat (map ppArg args)
+ $$
+  contents
+ $$
+  backslash<>end<>braces envNameS
+
+  where envNameS = text envName
+        begin    = text "begin"
+        end      = text "end"
 
 ppCmdNoArg :: String -> ShowS
 ppCmdNoArg cmdName = braces (backslash <> text cmdName)
@@ -104,7 +111,7 @@ pp (LatexConcat contents) = mconcat $ map pp contents
 pp (LatexNeedPackage _ x) = pp x
 
 ppParMode :: ParItm -> ShowS
-ppParMode (Para t) = nl <> pp t <> nl <> nl
+ppParMode (Para t) = pp t
 ppParMode (ParCmdArgs cmdName args) = ppCmdArgs cmdName $ map (fmap pp) args
 ppParMode (ParDecl declName) = ppDecl declName
 ppParMode (ParDeclOpt declName opt) = ppDeclOpt declName $ pp opt
@@ -150,7 +157,7 @@ ppRows _ []
   = mempty
 ppRows ppCell (Cells cells : rows)
   = (mconcat . intersperse (text " & ") . map ppCell $ cells)
- <> (if null rows then mempty else backslash <> backslash <> nl <> ppRows ppCell rows)
+ <> (if null rows then mempty else backslash <> backslash $$ ppRows ppCell rows)
 ppRows ppCell (Hline : rows)
   = ppDecl "hline" <> ppRows ppCell rows
 ppRows ppCell (Cline c1 c2 : rows)
