@@ -258,6 +258,18 @@ locSpecChar Lt = 't'
 locSpecChar Lb = 'b'
 locSpecChar Lp = 'p'
 
+data Pos = Centered   -- ^ Centered (default).
+         | FlushLeft  -- ^ Flush left
+         | FlushRight -- ^ Flush right
+         | Stretch -- ^ Stretch (justify) across entire width; text must contain
+                   -- stretchable space for this to work.
+
+charPos :: Pos -> Char
+charPos Centered   = 'c'
+charPos FlushLeft  = 'l'
+charPos FlushRight = 'r'
+charPos Stretch    = 's'
+
 data LatexPaper = A4paper
 
 {- NOTE: their is no handling of the \multicolumn command at the moment -}

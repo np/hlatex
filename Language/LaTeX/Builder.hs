@@ -471,36 +471,21 @@ mbox :: LatexItem -> LatexItem
 mbox = latexCmdArg "mbox"
 
 -- fragile
-makebox :: LatexSize -> LatexItem -> LatexItem
-makebox width txt = latexCmdArgs "makebox" [optional $ size width,mandatory txt]
-
--- fragile
-makeboxLeft :: LatexSize -> LatexItem -> LatexItem
-makeboxLeft width txt =
-  latexCmdArgs "makebox" [optional $ size width,optional $ rawTex "l",mandatory txt]
-
--- fragile
-makeboxRight :: LatexSize -> LatexItem -> LatexItem
-makeboxRight width txt =
-  latexCmdArgs "makebox" [optional $ size width,optional $ rawTex "r",mandatory txt]
+makebox :: LatexSize -> Pos -> LatexItem -> LatexItem
+makebox width pos txt =
+  latexCmdArgs "makebox" [optional $ size width
+                         ,optional $ rawTex [charPos pos]
+                         ,mandatory txt]
 
 -- robust
 fbox :: LatexItem -> LatexItem
 fbox = latexCmdArg "fbox"
 
 -- fragile
-framebox :: LatexSize -> LatexItem -> LatexItem
-framebox width txt = latexCmdArgs "framebox" [optional $ size width,mandatory txt]
-
--- fragile
-frameboxLeft :: LatexSize -> LatexItem -> LatexItem
-frameboxLeft width txt =
-  latexCmdArgs "framebox" [optional $ size width,optional $ rawTex "l",mandatory txt]
-
--- fragile
-frameboxRight :: LatexSize -> LatexItem -> LatexItem
-frameboxRight width txt =
-  latexCmdArgs "framebox" [optional $ size width,optional $ rawTex "r",mandatory txt]
+framebox :: LatexSize -> Pos -> LatexItem -> LatexItem
+framebox width pos txt = latexCmdArgs "framebox" [optional $ size width
+                                                 ,optional $ rawTex [charPos pos]
+                                                 ,mandatory txt]
 
 -- TODO: make a safe version using a monad
 -- fragile
