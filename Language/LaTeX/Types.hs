@@ -1,6 +1,7 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving, FlexibleInstances, FlexibleContexts,
-             UndecidableInstances, TemplateHaskell, MultiParamTypeClasses,
-             DeriveDataTypeable #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, TemplateHaskell, DeriveDataTypeable #-}
+
+-- Those extensions are required by the Uniplate instances.
+{-# LANGUAGE FlexibleInstances, UndecidableInstances, MultiParamTypeClasses #-}
 module Language.LaTeX.Types where
 
 import Prelude hiding (and, foldr, foldl, foldr1, foldl1, elem, concatMap, concat)
@@ -14,7 +15,6 @@ import Data.String (IsString(..))
 import Data.Generics.PlateTypeable
 import Control.Applicative
 import Control.Monad.Writer (Writer)
-import Control.Monad.State
 import Control.Monad.Trans ()
 import Control.Monad.Error
 import Data.DeriveTH
@@ -310,11 +310,11 @@ data Star = Star | NoStar
 
 data LatexState = LS { freshSaveBin :: SaveBin }
 
+{-
 instance Monad m => Applicative (StateT LatexState m) where
   pure = return
   (<*>) = ap
 
-{-
 instance Num a => Num (StateT LatexState (Either String) a) where
   fromInteger = pure . fromInteger
 
