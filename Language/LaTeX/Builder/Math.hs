@@ -10,10 +10,11 @@ module Language.LaTeX.Builder.Math
    infty, int, iota, jmath, kappa, lambda, langle, lbrace, lceiling, lcm,
    ldots, le, leftarrow, leftrightarrow, leq, lfloor, lim, liminf, limsup, ln,
    log, mathBinOp, mathBinOps, mathCmd, mathCmdArg, mathCmdArgs, mathCmdsArg,
-   mathDecl, mathGroup, mathItems, mathNeedPackage, mathToLR, mathbb, mathbf,
-   mathcal, mathfrak, mathtt, max, min, mit, mleft, mmediumspace,
-   mnegthinspace, mod, models, mrat, mright, msup, mthickspace,
-   mthinspace, mu, nabla, ne, neg, notin, nu, oint, omega, oplus, otimes,
+   mathDecl, mathGroup, allMathItems, allMathDecls, rawDecls, decl, decls,
+   mathNeedPackage, mathToLR, mathbb, mathbf,
+   mathcal, mathfrak, mathtt, max, min, mit, mleft, mediumspace,
+   negthinspace, mod, models, mrat, mright, msup, thickspace,
+   thinspace, mu, nabla, ne, neg, notin, nu, oint, omega, oplus, otimes,
    overbrace, overline, parenChar, parens, partial, phi, pi, pm, pmod, prec,
    prod, propto, psi, quad, rangle, rawMath, rawMathChar, rbrace, rceiling,
    rfloor, rho, rightarrow, scriptscriptstyle, scriptstyle, sec, sigma, sin, sinh,
@@ -53,8 +54,17 @@ mathCmdArgs m1 ys = MathCmdArgs m1 <$> mapM sequenceA ys
 mathCmdArg :: String -> MathItem -> MathItem
 mathCmdArg m1 m2 = mathCmdArgs m1 [mandatory m2]
 
-mathDecl :: String -> MathItem
-mathDecl = pure . MathDecl
+mathDecl :: String -> MathDecl
+mathDecl = pure . MathDcl
+
+rawDecls :: [MathDecl] -> MathItem
+rawDecls = fmap MathDecls . sequenceA
+
+decls :: [MathDecl] -> MathItem -> MathItem
+decls ds itm = group (rawDecls ds <> itm)
+
+decl :: MathDecl -> MathItem -> MathItem
+decl dcl = decls [dcl]
 
 mathCmd :: String -> MathItem
 mathCmd = pure . (`MathCmdArgs` [])
@@ -131,14 +141,16 @@ in_ :: MathItem
 in_ = mathCmd "in"
 forall_ :: MathItem
 forall_ = mathCmd "forall"
-mthinspace :: MathItem
-mthinspace = mathCmd ","
-mnegthinspace :: MathItem
-mnegthinspace = mathCmd "!"
-mmediumspace :: MathItem
-mmediumspace = mathCmd ":"
-mthickspace :: MathItem
-mthickspace = mathCmd ";"
+thinspace :: MathItem
+thinspace = mathCmd ","
+negthinspace :: MathItem
+negthinspace = mathCmd "!"
+
+-- \: or \> in LaTeX
+mediumspace :: MathItem
+mediumspace = mathCmd ":"
+thickspace :: MathItem
+thickspace = mathCmd ";"
 msup :: MathItem
 msup = mathCmd "sup"
 alpha :: MathItem
@@ -445,17 +457,17 @@ imath :: MathItem -> MathItem
 imath = mathCmdArg "imath"
 jmath :: MathItem -> MathItem
 jmath = mathCmdArg "jmath"
-displaystyle :: MathItem
+displaystyle :: MathDecl
 displaystyle = mathDecl "displaystyle"
-textstyle :: MathItem
+textstyle :: MathDecl
 textstyle = mathDecl "textstyle"
-scriptstyle :: MathItem
+scriptstyle :: MathDecl
 scriptstyle = mathDecl "scriptstyle"
-scriptscriptstyle :: MathItem
+scriptscriptstyle :: MathDecl
 scriptscriptstyle = mathDecl "scriptscriptstyle"
-mit :: MathItem
+mit :: MathDecl
 mit = mathDecl "mit"
-cal :: MathItem
+cal :: MathDecl
 cal = mathDecl "cal"
 eq :: MathItem
 eq = rawMath "{=}"
@@ -567,10 +579,13 @@ _Z = rawMathChar 'Z'
 bmod :: MathItem -> MathItem -> MathItem
 bmod = mathBinOp "bmod"
 
-mathItems :: [MathItem]
-mathItems =
-  [lbrace, rbrace, space, at, in_, forall_, mthinspace, mnegthinspace, mmediumspace,
-   mthickspace, msup, alpha, beta, chi, delta, _Delta, epsilon, varepsilon, eta,
+allMathDecls :: [MathDecl]
+allMathDecls = [displaystyle, textstyle, scriptstyle, scriptscriptstyle, mit, cal]
+
+allMathItems :: [MathItem]
+allMathItems =
+  [lbrace, rbrace, space, at, in_, forall_, thinspace, negthinspace, mediumspace,
+   thickspace, msup, alpha, beta, chi, delta, _Delta, epsilon, varepsilon, eta,
    gamma, _Gamma, iota, kappa, lambda, _Lambda, mu, nu, omega, _Omega, phi, varphi,
    _Phi, pi, _Pi, psi, rho, sigma, _Sigma, tau, theta, vartheta, _Theta, upsilon,
    xi, _Xi, zeta, backslash, times, divide, circ, oplus, otimes, sum, prod, wedge,
@@ -580,8 +595,7 @@ mathItems =
    emptyset, infty, aleph, ldots, cdots, vdots, ddots, quad, diamond, square, lfloor,
    rfloor, lceiling, rceiling, sin, cos, tan, csc, sec, cot, sinh, cosh, tanh, log, ln,
    det, dim, lim, mod, gcd, lcm, liminf, inf, limsup, max, min, _Pr, uparrow, downarrow,
-   rightarrow, to, leftarrow, leftrightarrow, _Rightarrow, _Leftarrow, _Leftrightarrow,
-   displaystyle, textstyle, scriptstyle, scriptscriptstyle, mit, cal
+   rightarrow, to, leftarrow, leftrightarrow, _Rightarrow, _Leftarrow, _Leftrightarrow
   -- maually added
   ,eq
   ,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z

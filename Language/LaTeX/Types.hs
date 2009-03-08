@@ -50,10 +50,15 @@ instance Monoid PreambleItm where
   x                 `mappend` PreambleConcat ys = PreambleConcat (x : ys)
   x                 `mappend` y                 = PreambleConcat [x, y]
 
+data TexDcl = TexDcl { texDeclName :: String
+                     , texDeclPkg  :: Maybe PackageName
+                     , texDeclArgs :: [Arg LatexItm]
+                     }
+  deriving (Show, Eq, Typeable)
+
 data LatexItm
            = LatexCmdArgs String [Arg LatexItm]
-           | TexDecl String
-           | TexDeclOpt String LatexItm
+           | TexDecls [TexDcl]
            | TexCmdNoArg String
            | TexCmdArg String LatexItm
            | Environment String [Arg LatexItm] LatexItm
@@ -109,8 +114,6 @@ data Coord = Coord LatexSize LatexSize
   deriving (Show, Eq, Typeable)
 
 data ParItm  = Para LatexItm -- Here LatexItm does not mean LR mode
-             | ParDecl String
-             | ParDeclOpt String LatexItm
              | ParCmdArgs String [Arg LatexItm]
              | ParEnvironmentLR String LatexItm
              | ParEnvironmentPar String [Arg LatexItm] ParItm
@@ -131,7 +134,10 @@ instance Monoid ParItm where
   x            `mappend` ParConcat ys = ParConcat (x : ys)
   x            `mappend` y            = ParConcat [x, y]
 
-data MathItm   = MathDecl String
+newtype MathDcl = MathDcl String
+  deriving (Show, Eq, Typeable)
+
+data MathItm   = MathDecls [MathDcl]
                | MathCmdArgs String [Arg MathItm]
                | MathToLR String LatexItm
                | MathArray [RowSpec MathItm] [Row MathItm]
@@ -341,14 +347,18 @@ instance Monoid a => Monoid (LatexM a) where
 
 instance IsString a => IsString (LatexM a) where fromString = pure . fromString
 
+type TexDecl   = LatexM TexDcl
 type LatexItem = LatexM LatexItm
 type ParItem   = LatexM ParItm
+type MathDecl  = LatexM MathDcl
 type MathItem  = LatexM MathItm
 type ListItem  = LatexM ListItm
 type PreambleItem = LatexM PreambleItm
 
+type TexDeclW      = Writer TexDecl ()
 type LatexItemW    = Writer LatexItem ()
 type ParItemW      = Writer ParItem ()
+type MathDeclW     = Writer MathDecl ()
 type MathItemW     = Writer MathItem ()
 type PreambleItemW = Writer PreambleItem ()
 
@@ -400,6 +410,8 @@ $(derive makeFoldable    ''Row)
 $(derive makeTraversable ''Row)
 
 $(derive makePlateTypeable ''Arg)
+$(derive makePlateTypeable ''TexDcl)
+$(derive makePlateTypeable ''MathDcl)
 $(derive makePlateTypeable ''LatexItm)
 $(derive makePlateTypeable ''MathItm)
 $(derive makePlateTypeable ''ParItm)

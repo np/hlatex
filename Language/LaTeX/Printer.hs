@@ -68,11 +68,14 @@ ppCmdArgs :: String -> [Arg ShowS] -> ShowS
 ppCmdArgs cmdName args = backslash <> text cmdName <> mconcat (map ppArg args)
 
 
-ppDecl :: String -> ShowS
-ppDecl declName = backslash <> text declName <> text " " -- or {}
+ppDecl :: String -> ShowS -> ShowS
+ppDecl declName declArgs = backslash <> text declName <> declArgs <> text " " -- or {}
 
-ppDeclOpt :: String -> ShowS -> ShowS
-ppDeclOpt declName opt = backslash <> text declName <> brackets opt <> text " " -- or {}
+ppTexDecl :: TexDcl -> ShowS
+ppTexDecl (TexDcl declName _ declArgs) = ppDecl declName (mconcatMap (ppArg . fmap pp) declArgs)
+
+ppMathDecl :: MathDcl -> ShowS
+ppMathDecl (MathDcl declName) = ppDecl declName mempty
 
 pp :: LatexItm -> ShowS
 
@@ -84,9 +87,7 @@ pp (LatexCoord (Coord x y)) = ppSize x <> text " " <> ppSize y
 
 pp (LatexKeys keys) = text $ concat $ intersperse "," $ map getKey keys
 
-pp (TexDecl cmdName) = ppDecl cmdName
-
-pp (TexDeclOpt cmdName opt) = ppDeclOpt cmdName $ pp opt
+pp (TexDecls decls) = mconcatMap ppTexDecl decls
 
 pp (TexCmdNoArg cmdName) = ppCmdNoArg cmdName
 
@@ -113,8 +114,6 @@ pp (LatexNeedPackage _ x) = pp x
 ppParMode :: ParItm -> ShowS
 ppParMode (Para t) = pp t
 ppParMode (ParCmdArgs cmdName args) = ppCmdArgs cmdName $ map (fmap pp) args
-ppParMode (ParDecl declName) = ppDecl declName
-ppParMode (ParDeclOpt declName opt) = ppDeclOpt declName $ pp opt
 ppParMode (RawParMode x) = text x
 ppParMode (ParGroup p) = braces $ ppParMode p
 ppParMode (ParEnvironmentLR envName contents) = ppEnv envName [] $ pp contents
@@ -130,7 +129,7 @@ ppParMode (ParConcat contents) = vcat $ map ppParMode contents
 ppParMode (ParNeedPackage _ x) = ppParMode x
 
 ppMath :: MathItm -> ShowS
-ppMath (MathDecl decl) = ppDecl decl
+ppMath (MathDecls decls) = mconcatMap ppMathDecl decls
 ppMath (MathCmdArgs cmdName args) = ppCmdArgs cmdName $ map (fmap ppMath) args
 ppMath (RawMath s) = text s
 ppMath (MathRat r) | denominator r == 1 = shows (numerator r)
@@ -159,7 +158,7 @@ ppRows ppCell (Cells cells : rows)
   = (mconcat . intersperse (text " & ") . map ppCell $ cells)
  <> (if null rows then mempty else backslash <> backslash $$ ppRows ppCell rows)
 ppRows ppCell (Hline : rows)
-  = ppDecl "hline" <> ppRows ppCell rows
+  = backslash <> text "hline " <> ppRows ppCell rows
 ppRows ppCell (Cline c1 c2 : rows)
   = ppCmdArgNB "cline" (text $ show c1 ++ "-" ++ show c2) <> ppRows ppCell rows
 

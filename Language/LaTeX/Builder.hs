@@ -63,11 +63,23 @@ math = liftM MathInline
 displaymath :: MathItem -> ParItem
 displaymath = liftM DisplayMath
 
-texDecl :: String -> LatexItem
-texDecl = pure . TexDecl
+rawDecls :: [TexDecl] -> LatexItem
+rawDecls = fmap TexDecls . sequenceA
 
-texDeclOpt :: String -> LatexItem -> LatexItem
-texDeclOpt = liftM . TexDeclOpt
+decls :: [TexDecl] -> LatexItem -> LatexItem
+decls ds x = group (rawDecls ds <> x)
+
+decl :: TexDecl -> LatexItem -> LatexItem
+decl d = decls [d]
+
+texDecl :: String -> TexDecl
+texDecl s = pure $ TexDcl s Nothing []
+
+texDecl' :: String -> Maybe PackageName -> [Arg LatexItem] -> TexDecl
+texDecl' s pkg opt = TexDcl s pkg <$> mapM sequenceA opt
+
+texDeclOpt :: String -> LatexItem -> TexDecl
+texDeclOpt s opt = TexDcl s Nothing <$> ((:[]) . optional <$> opt)
 
 parCmdArgs :: String -> [Arg LatexItem] -> ParItem
 parCmdArgs x ys = ParCmdArgs x <$> mapM sequenceA ys
@@ -115,17 +127,14 @@ latexSaveBin = pure . LatexSaveBin
 parEnvironmentPar :: String -> [Arg LatexItem] -> ParItem -> ParItem
 parEnvironmentPar x ys = liftM2 (ParEnvironmentPar x) $ mapM sequenceA ys
 
-parDecl :: String -> ParItem
-parDecl = pure . ParDecl
-
 figureLike :: String -> [LocSpec] -> ParItem -> ParItem
 figureLike x y = liftM $ FigureLike x y
 
 listLikeEnv :: String -> [ListItem] -> ParItem
 listLikeEnv name items =
   parEnvironmentPar name [] (mconcat <$> mapM (fmap mkItem) items)
-  where mkItem (ListItm Nothing contents)    = ParDecl "item" <> contents
-        mkItem (ListItm (Just lab) contents) = ParDeclOpt "item" lab <> contents
+  where mkItem (ListItm Nothing contents)    = ParCmdArgs "item" [] <> contents
+        mkItem (ListItm (Just lab) contents) = ParCmdArgs "item" [optional lab] <> contents
 
 rawTex :: String -> LatexItem
 rawTex = pure . RawTex
@@ -205,7 +214,7 @@ hstring = fromString
 
 
 tableofcontents :: ParItem
-tableofcontents = parDecl "tableofcontents"
+tableofcontents = parCmdArgs "tableofcontents" []
 
 maketitle :: ParItem
 maketitle = parCmdArgs "maketitle" []
@@ -287,9 +296,9 @@ fboxsep = SizeCmd "fboxsep"
 
 -- Marginal Notes
 
-reversemarginpar :: LatexItem
+reversemarginpar :: TexDecl
 reversemarginpar = texDecl "reversemarginpar"
-normalmarginpar :: LatexItem
+normalmarginpar :: TexDecl
 normalmarginpar = texDecl "normalmarginpar"
 
 -- The tabbing Environment
@@ -343,7 +352,7 @@ addvspace = latexCmdArg "addvspace" . size
 
 -- those could be seen as taking an argument
 tiny, scriptsize, footnotesize, small, normalsize, large,
-  _LARGE, _Large, huge, _Huge, mdseries, ssfamily :: LatexItem
+  _LARGE, _Large, huge, _Huge, mdseries, ssfamily :: TexDecl
 tiny         = texDecl "tiny"
 scriptsize   = texDecl "scriptsize"
 footnotesize = texDecl "footnotesize"
@@ -376,14 +385,14 @@ textnormal = latexCmdArg "textnormal"
 -- Line and page breaking
 
 -- fragile
-linebreak, nolinebreak :: Int -> LatexItem
+linebreak, nolinebreak :: Int -> TexDecl
 linebreak = texDeclOpt "linebreak" . num
 nolinebreak = texDeclOpt "nolinebreak" . num
 
 -- fragile
 newline :: LatexItem
 newline = texCmdNoArg "newline"
-newline' :: LatexSize -> LatexItem
+newline' :: LatexSize -> TexDecl
 newline' = texDeclOpt "newline" . size
 
 -- robust
@@ -394,7 +403,7 @@ hyphen = rawTex "{\\-}" -- check if {...} does not cause trouble here
 hyphenation :: [String] -> ParItem
 hyphenation = parCmdArg "hyphenation" . rawTex . L.unwords -- rawTex is a bit rough here
 
-sloppy, fussy :: LatexItem
+sloppy, fussy :: TexDecl
 sloppy = texDecl "sloppy"
 fussy = texDecl "fussy"
 
@@ -403,7 +412,7 @@ sloppypar :: ParItem -> ParItem
 sloppypar = parEnvironmentPar "sloppypar" []
 
 -- fragile
-pagebreak, nopagebreak :: Int -> LatexItem
+pagebreak, nopagebreak :: Int -> TexDecl
 (pagebreak, nopagebreak) =
   ((texDeclOpt "pagebreak" =<<) . check0to4 "pagebreak"
   ,(texDeclOpt "nopagebreak" =<<) . check0to4 "nopagebreak")
@@ -411,18 +420,18 @@ pagebreak, nopagebreak :: Int -> LatexItem
                       | otherwise        = throwError $ s ++ ": option must be between 0 and 4 not " ++ show i
 
 -- fragile
-samepage :: LatexItem
+samepage :: TexDecl
 samepage = texDecl "samepage"
 
 -- robust
 newpage :: ParItem
-newpage = parDecl "newpage"
+newpage = parCmdArgs "newpage" []
 -- robust
 clearpage :: ParItem
-clearpage = parDecl "clearpage"
+clearpage = parCmdArgs "clearpage" []
 -- fragile
 cleardoublepage :: ParItem
-cleardoublepage = parDecl "cleardoublepage"
+cleardoublepage = parCmdArgs "cleardoublepage" []
 
 --- Boxes
 
@@ -891,7 +900,7 @@ documentclass msize mpaper dc =
 {-
 $(
  let
-  mathCmdsArg, texDecls, mathDecls :: [String]
+  mathCmdsArg, allTexDecls, mathDecls :: [String]
   mathCmds :: [(String, String)]
 
   mathCmds =
@@ -901,10 +910,10 @@ $(
     ,("at", "@")
     ,("in_", "in")
     ,("forall_", "forall")
-    ,("mthinspace", ",")
-    ,("mnegthinspace", "!")
-    ,("mmediumspace", ":")
-    ,("mthickspace", ";")
+    ,("thinspace", ",")
+    ,("negthinspace", "!")
+    ,("mediumspace", ":")
+    ,("thickspace", ";")
     ,("msup", "sup")
     ] ++ map (id &&& id)
     [-- Greek letters
@@ -955,7 +964,7 @@ $(
   typeStyles :: [String]
   typeStyles = ["em","bf","sf","sl","sc","it","tt"]
 
-  texDecls = typeStyles
+  allTexDecls = typeStyles
 
   mathDecls = ["displaystyle", "textstyle", "scriptstyle", "scriptscriptstyle"
               ,"mit","cal"
@@ -997,11 +1006,11 @@ $(
   d = sequence $ concat $ concat
       [ map mkMathCmd mathCmds
       , map mkMathCmdArg mathCmdsArg
-      , map mkTexDecl texDecls
+      , map mkTexDecl allTexDecls
       , map mkMathDecl mathDecls
       , [mkList (mkName "mathItems") [t| [MathItem] |] $ (map fst mathCmds ++ mathDecls)]
       , [mkList (mkName "mathCmdsArg") [t| [MathItem -> MathItem] |] mathCmdsArg]
-      , [mkList (mkName "texDecls") [t| [LatexItem] |] texDecls]
+      , [mkList (mkName "allTexDecls") [t| [LatexItem] |] allTexDecls]
       ]
   in do dd <- d
         runIO $ writeFile "/tmp/a.hs" $ pprint dd
@@ -1026,29 +1035,29 @@ authors = author . mconcat . intersperse (rawTex " & ")
 
 
 {-# DEPRECATED em "Use emph instead" #-}
-em :: LatexItem
+em :: TexDecl
 em = texDecl "em"
 {-# DEPRECATED bf "Use textbf instead" #-}
-bf :: LatexItem
+bf :: TexDecl
 bf = texDecl "bf"
 {-# DEPRECATED sf "Use textsf instead" #-}
-sf :: LatexItem
+sf :: TexDecl
 sf = texDecl "sf"
 {-# DEPRECATED sl "Use textsl instead" #-}
-sl :: LatexItem
+sl :: TexDecl
 sl = texDecl "sl"
 {-# DEPRECATED sc "Use textsc instead" #-}
-sc :: LatexItem
+sc :: TexDecl
 sc = texDecl "sc"
 {-# DEPRECATED it "Use textit instead" #-}
-it :: LatexItem
+it :: TexDecl
 it = texDecl "it"
 {-# DEPRECATED tt "Use texttt instead" #-}
-tt :: LatexItem
+tt :: TexDecl
 tt = texDecl "tt"
 
-texDecls :: [LatexItem]
-texDecls = [em, bf, sf, sl, sc, it, tt]
+allTexDecls :: [TexDecl]
+allTexDecls = [em, bf, sf, sl, sc, it, tt]
 
 -- beamer
 -- alert
