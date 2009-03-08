@@ -124,6 +124,9 @@ coord = pure . LatexCoord
 latexSaveBin :: SaveBin -> LatexItem
 latexSaveBin = pure . LatexSaveBin
 
+latexEnvironment :: String -> [Arg LatexItem] -> LatexItem -> LatexItem
+latexEnvironment x ys = liftM2 (Environment x) $ mapM sequenceA ys
+
 parEnvironmentPar :: String -> [Arg LatexItem] -> ParItem -> ParItem
 parEnvironmentPar x ys = liftM2 (ParEnvironmentPar x) $ mapM sequenceA ys
 
@@ -331,6 +334,16 @@ dotfill :: LatexItem
 dotfill = texCmdNoArg "dotfill"
 hrulefill :: LatexItem
 hrulefill = texCmdNoArg "hrulefill"
+
+thinspace :: LatexItem
+thinspace = texCmdNoArg "thinspace"
+
+negthinspace :: LatexItem
+negthinspace = texCmdNoArg "!"
+
+-- The italic correction space (\/ in LaTeX)
+corrspace :: LatexItem
+corrspace = texCmdNoArg "/"
 
 -- fragile
 bigskip :: LatexItem
@@ -626,12 +639,15 @@ part', chapter', section', subsection', subsubsection', paragraph',
 para :: LatexItem -> ParItem
 para = liftM Para
 
-bibliography :: LatexItem -> LatexItem
-bibliography = latexCmdArg "bibliography"
-bibliographystyle :: LatexItem -> LatexItem
-bibliographystyle = latexCmdArg "bibliographystyle"
-thispagestyle :: LatexItem -> LatexItem
-thispagestyle = latexCmdArg "thispagestyle"
+bibliography :: LatexItem -> ParItem
+bibliography = parCmdArg "bibliography"
+bibliographystyle :: LatexItem -> ParItem
+bibliographystyle = parCmdArg "bibliographystyle"
+thispagestyle :: LatexItem -> ParItem
+thispagestyle = parCmdArg "thispagestyle"
+
+appendix :: ParItem
+appendix = parCmdArgs "appendix" []
 
 -- should be \setlength{a}{b}{c} ...
 setlength :: LatexItem -> LatexItem
@@ -807,6 +823,9 @@ pounds = texCmdNoArg "pounds"
 -- | Section symbol.
 _S :: LatexItem
 _S = texCmdNoArg "S"
+
+textdegree :: LatexItem
+textdegree = latexNeedPackage (pkgName "textcomp") $ texCmdNoArg "textdegree"
 
 -- check options
 titlepage, flushleft, center, boxedminipage, quotation, verse :: ParItem -> ParItem
