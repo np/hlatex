@@ -1,14 +1,21 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Language.LaTeX.Builder.Color
-  (pagecolor
+  (
+  -- * The type of colors
+   Color
+  -- * Coloring commands
+  ,pagecolor
   ,color
   ,textcolor
   ,colorbox
   ,fcolorbox
   ,preamblecolor
   ,normalcolor
+  -- * Making colors
   ,named, rgb, cymk, gray
+  -- * Predefined colors
   ,red, green, blue, black, white, cyan, magenta, yellow, orange
+  -- * Package name
   ,pkg)
 where
 
@@ -73,8 +80,8 @@ textcolor c x = B.latexCmdArgs "textcolor" (colorArgs c ++ [B.mandatory x])
 colorbox :: Color -> LatexItem -> LatexItem
 colorbox c x = B.latexCmdArgs "colorbox" (colorArgs c ++ [B.mandatory x])
 
--- | @fcolorbox c1 c2 text@ is like @colorbox@, with a frame of 'c1' around a box
---   of background colour 'c2'.
+-- | @fcolorbox c1 c2 text@ is like 'colorbox', with a frame of @c1@ around a box
+--   of background colour @c2@.
 --   For example, @fcolorbox red green "Text"@ sets `Text' in the current text colour
 --   on a green background with a red frame.
 --
@@ -97,7 +104,7 @@ preamblecolor :: Color -> PreambleItem
 preamblecolor = B.preambleCmdArgs "color" . colorArgs
 
 -- | 'normalcolor' switches to the colour that was active at the end of the preamble.
---   Thus placing a @color@ declaration in the preamble can change the standard colour
+--   Thus placing a 'color' declaration in the preamble can change the standard colour
 --   for the whole document. This is the equivalent to 'normalfont' for font selection.
 normalcolor :: TexDecl
 normalcolor = B.texDecl' "normalcolor" [B.packageDependency pkg]
