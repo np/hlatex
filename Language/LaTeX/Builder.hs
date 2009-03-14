@@ -169,8 +169,14 @@ sep = group mempty
 space :: LatexItem
 space = rawTex "{ }"
 
+{- GHC bug with OverloadedStrings
+f "" = 1
+f ('a':_) = 2
+f _ = 3
+-}
+
 protect :: String -> LatexItem
-protect ""        = mempty
+protect []        = mempty
 protect ('\n':xs) = newline <> protect xs
 protect (' ':xs)  = uncurry (<>) $ (hspace_ . (+1) . length *** protect) $ break (/=' ') xs
   where hspace_ n = hspace $ Em $ 1%2 * fromIntegral n
