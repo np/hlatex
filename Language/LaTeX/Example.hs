@@ -3,6 +3,8 @@
 import qualified Language.LaTeX.Builder as B
 import qualified Language.LaTeX.Builder.Math as M
 import qualified Language.LaTeX.Builder.Graphics as G
+import qualified Language.LaTeX.Builder.Rotating as R
+import qualified Language.LaTeX.Builder.Color as C
 import Language.LaTeX.Builder.MonoidUtils
 import Language.LaTeX.Builder ((!<), (<!), (!<!))
 import Language.LaTeX.Printer (showLaTeX)
@@ -128,7 +130,7 @@ body = B.document <! do
 
   G.includegraphics (\r-> r{G.angle=45, G.scale=1%2}) !< "yi.pdf"
 
-  B.para !< (B.noindent<>B._Large<>"Not shelfful"<>B.newline<>"but shelf"<>B.sep<>"ful")
+  B.para !< (B.noindent<>B.decl B._Large ("Not shelfful"<>B.newline<>"but shelf"<>B.sep<>"ful"))
 
   B.para !< "This is some|text"
   B.para !< "This is some-text"
@@ -185,6 +187,14 @@ body = B.document <! do
     , B._P
     , B._S
     , B.pounds
+    ]
+
+  B.tabular [B.vline, B.c, B.vline, B.c, B.vline] !<
+    [B.hline
+    ,B.cells (map (R.turn 90) ["foo", "bar"])
+    ,B.hline
+    ,B.cells [C.textcolor C.red "foo", C.colorbox C.blue "bar"]
+    ,B.hline
     ]
 
   where mat33 = M.array (replicate 3 B.c) (map B.cells [[1,M.cdots,3],[M.vdots,M.ddots,M.vdots],[4,M.cdots,6]])
