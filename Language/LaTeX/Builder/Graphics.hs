@@ -1,11 +1,18 @@
 module Language.LaTeX.Builder.Graphics
-  (includegraphics, IncludeGraphicsOpts(..)
+  (
+  -- * The main command
+  includegraphics
+  -- * The options
+  ,IncludeGraphicsOpts(..)
+  -- * The locations
   ,Loc, c, center, t, top, l, left, r, right, b, bottom, ba, baseline, tr, topRight
-  ,tl, topLeft, bl, bottomLeft, br, bottomRight, baselineLeft, baselineRight)
+  ,tl, topLeft, bl, bottomLeft, br, bottomRight, baselineLeft, baselineRight
+  -- * The package name
+  , pkg)
 where
 
 import Language.LaTeX.Types
-import Language.LaTeX.Builder (parCmdArgs, size, bool, coord, parNeedPackage,
+import Language.LaTeX.Builder (parCmdArgs, size, bool, coord, packageDependency,
                                rat, rawTex, optional, mandatory)
 import Language.LaTeX.Builder.MonoidUtils ((<>))
 import Control.Arrow ((***))
@@ -113,16 +120,20 @@ data IncludeGraphicsOpts = IncludeGraphicsOpts
     -- information from the %%HiResBoundingBox line in the graphics file. 
   }
 
-graphicx :: PackageName
-graphicx = PkgName "graphicx"
+pkg :: PackageName
+pkg = PkgName "graphicx"
 
 -- | @includegraphics fopts fp@
 -- The @fopts@ function will receive the defaults options and should modify options
 -- to suit your needs.
--- This function is generally used like this: @includegraphics (\o -> o{ <opt> = <exp> ... }) fp@
+--
+-- This function is generally used like this:
+-- @
+-- includegraphics (\\o -> o{ \<opt\> = \<exp\> ... }) fp
+-- @
 includegraphics :: (IncludeGraphicsOpts -> IncludeGraphicsOpts) -> FilePath -> ParItem
 includegraphics f fp =
-   parNeedPackage graphicx $ parCmdArgs "includegraphics" $ opt ++ [mandatory $ fromString fp]
+   parCmdArgs "includegraphics" $ opt ++ [packageDependency pkg, mandatory $ fromString fp]
   where h (name, item) = rawTex (name ++ "=") <> item
         opts = map h $ includeGraphicsOpts $ f defaultOpts
         opt | null opts = []
