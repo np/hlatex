@@ -17,6 +17,8 @@ exposed-modules: Language.LaTeX.Types,
                  Language.LaTeX.Builder.MonoidUtils,
                  Language.LaTeX.Builder.Math,
                  Language.LaTeX.Builder.Graphics,
+                 Language.LaTeX.Builder.Color,
+                 Language.LaTeX.Builder.Rotating,
                  Language.LaTeX.Printer
 ghc-options:     -Wall
 
