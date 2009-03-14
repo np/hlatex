@@ -11,7 +11,7 @@ module Language.LaTeX.Builder.Math
    ldots, le, leftarrow, leftrightarrow, leq, lfloor, lim, liminf, limsup, ln,
    log, mathBinOp, mathBinOps, mathCmd, mathCmdArg, mathCmdArgs, mathCmdsArg,
    mathDecl, mathGroup, allMathItems, allMathDecls, rawDecls, decl, decls,
-   mathNeedPackage, mathToLR, mathbb, mathbf,
+   mathToLR, mathbb, mathbf,
    mathcal, mathfrak, mathtt, max, min, mit, mleft, mediumspace,
    negthinspace, mod, models, mrat, mright, msup, thickspace,
    thinspace, mu, nabla, ne, neg, notin, nu, oint, omega, oplus, otimes,
@@ -54,6 +54,9 @@ mathCmdArgs m1 ys = MathCmdArgs m1 <$> mapM sequenceA ys
 mathCmdArg :: String -> MathItem -> MathItem
 mathCmdArg m1 m2 = mathCmdArgs m1 [mandatory m2]
 
+mathToLR :: String -> [Arg LatexItem] -> MathItem
+mathToLR cmdName args = MathToLR cmdName <$> mapM sequenceA args
+
 mathDecl :: String -> MathDecl
 mathDecl = pure . MathDcl
 
@@ -80,12 +83,6 @@ rawMathChar = rawMath . (:[])
 
 mathGroup :: MathItem -> MathItem
 mathGroup = liftM MathGroup
-
-mathNeedPackage :: PackageName -> MathItem -> MathItem
-mathNeedPackage = liftM . MathNeedPackage
-
-mathToLR :: String -> LatexItem -> MathItem
-mathToLR = liftM . MathToLR
 
 mrat :: Rational -> MathItem
 mrat = pure . fromRational
@@ -123,7 +120,7 @@ parenChar m1 | m1 `elem` "([.])" = return [m1]
              | otherwise        = throwError $ "invalid parenthesis-like: " ++ show m1
 
 text :: LatexItem -> MathItem
-text = mathNeedPackage amsmath . mathToLR "text"
+text arg = mathToLR "text" [B.packageDependency amsmath, B.mandatory arg]
 
 array :: [RowSpec MathItem] -> [Row MathItem] -> MathItem
 array = B.tabularLike MathArray

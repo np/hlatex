@@ -51,7 +51,6 @@ instance Monoid PreambleItm where
   x                 `mappend` y                 = PreambleConcat [x, y]
 
 data TexDcl = TexDcl { texDeclName :: String
-                     , texDeclPkg  :: Maybe PackageName
                      , texDeclArgs :: [Arg LatexItm]
                      }
   deriving (Show, Eq, Typeable)
@@ -68,7 +67,6 @@ data LatexItm
            | LatexKeys [Key]
            | LatexSaveBin SaveBin
            | LatexParMode ParItm
-           | LatexNeedPackage PackageName LatexItm
            | RawTex String
            | TexGroup LatexItm
            | LatexConcat [LatexItm]
@@ -88,6 +86,7 @@ data Arg a = Optional a
            | Optionals [a]
            | Mandatory a
            | Coordinates a a
+           | PackageDependency PackageName
   deriving (Show, Eq, Typeable)
 
 {-
@@ -121,7 +120,6 @@ data ParItm  = Para LatexItm -- Here LatexItm does not mean LR mode
              | Equation [MathItm]
              | Tabular [RowSpec LatexItm] [Row LatexItm]
              | FigureLike String [LocSpec] ParItm
-             | ParNeedPackage PackageName ParItm
              | RawParMode String
              | ParGroup ParItm -- check validity of this
              | ParConcat [ParItm]
@@ -139,9 +137,8 @@ newtype MathDcl = MathDcl String
 
 data MathItm   = MathDecls [MathDcl]
                | MathCmdArgs String [Arg MathItm]
-               | MathToLR String LatexItm
+               | MathToLR String [Arg LatexItm]
                | MathArray [RowSpec MathItm] [Row MathItm]
-               | MathNeedPackage PackageName MathItm
                | RawMath String
                | MathRat Rational
                | MathGroup MathItm

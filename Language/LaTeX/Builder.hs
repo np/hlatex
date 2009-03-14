@@ -56,6 +56,8 @@ coordinates :: a -> a -> Arg a
 coordinates = Coordinates
 optionals :: [a] -> Arg a
 optionals = Optionals
+packageDependency :: PackageName -> Arg a
+packageDependency = PackageDependency
 
 math :: MathItem -> LatexItem
 math = liftM MathInline
@@ -73,13 +75,13 @@ decl :: TexDecl -> LatexItem -> LatexItem
 decl d = decls [d]
 
 texDecl :: String -> TexDecl
-texDecl s = pure $ TexDcl s Nothing []
+texDecl s = pure $ TexDcl s []
 
-texDecl' :: String -> Maybe PackageName -> [Arg LatexItem] -> TexDecl
-texDecl' s pkg opt = TexDcl s pkg <$> mapM sequenceA opt
+texDecl' :: String -> [Arg LatexItem] -> TexDecl
+texDecl' s opt = TexDcl s <$> mapM sequenceA opt
 
 texDeclOpt :: String -> LatexItem -> TexDecl
-texDeclOpt s opt = TexDcl s Nothing <$> ((:[]) . optional <$> opt)
+texDeclOpt s opt = TexDcl s <$> ((:[]) . optional <$> opt)
 
 parCmdArgs :: String -> [Arg LatexItem] -> ParItem
 parCmdArgs x ys = ParCmdArgs x <$> mapM sequenceA ys
@@ -104,12 +106,6 @@ rawPreamble = pure . RawPreamble
 
 size :: LatexSize -> LatexItem
 size = pure . LatexSize
-
-latexNeedPackage :: PackageName -> LatexItem -> LatexItem
-latexNeedPackage = liftM . LatexNeedPackage
-
-parNeedPackage :: PackageName -> ParItem -> ParItem
-parNeedPackage = liftM . ParNeedPackage
 
 pkgName :: String -> PackageName
 pkgName = PkgName
@@ -810,7 +806,7 @@ _S :: LatexItem
 _S = texCmdNoArg "S"
 
 textdegree :: LatexItem
-textdegree = latexNeedPackage (pkgName "textcomp") $ texCmdNoArg "textdegree"
+textdegree = latexCmdArgs "textdegree" [packageDependency (pkgName "textcomp"), mandatory mempty]
 
 -- check options
 titlepage, flushleft, center, boxedminipage, quotation, verse :: ParItem -> ParItem

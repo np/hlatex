@@ -42,6 +42,7 @@ ppArg (Mandatory x)     = braces x
 ppArg (Optional  x)     = brackets x
 ppArg (Optionals xs)    = brackets $ mconcat $ intersperse (text ",") xs
 ppArg (Coordinates x y) = parens (x <> text " " <> y)
+ppArg (PackageDependency _) = id
 
 ppEnv :: String -> [Arg ShowS] -> ShowS -> ShowS
 ppEnv envName args contents =
@@ -72,7 +73,7 @@ ppDecl :: String -> ShowS -> ShowS
 ppDecl declName declArgs = backslash <> text declName <> declArgs <> text " " -- or {}
 
 ppTexDecl :: TexDcl -> ShowS
-ppTexDecl (TexDcl declName _ declArgs) = ppDecl declName (mconcatMap (ppArg . fmap pp) declArgs)
+ppTexDecl (TexDcl declName declArgs) = ppDecl declName (mconcatMap (ppArg . fmap pp) declArgs)
 
 ppMathDecl :: MathDcl -> ShowS
 ppMathDecl (MathDcl declName) = ppDecl declName mempty
@@ -109,8 +110,6 @@ pp (TexGroup t) = braces $ pp t
 
 pp (LatexConcat contents) = mconcat $ map pp contents
 
-pp (LatexNeedPackage _ x) = pp x
-
 ppParMode :: ParItm -> ShowS
 ppParMode (Para t) = pp t
 ppParMode (ParCmdArgs cmdName args) = ppCmdArgs cmdName $ map (fmap pp) args
@@ -126,7 +125,6 @@ ppParMode (Tabular specs rows) =
 ppParMode (FigureLike name locs body) = ppEnv name [Optional $ text $ map locSpecChar locs] $ ppParMode body
 
 ppParMode (ParConcat contents) = vcat $ map ppParMode contents
-ppParMode (ParNeedPackage _ x) = ppParMode x
 
 ppMath :: MathItm -> ShowS
 ppMath (MathDecls decls) = mconcatMap ppMathDecl decls
@@ -140,8 +138,7 @@ ppMath (MathGroup m) = braces $ ppMath m
 ppMath (MathConcat ms) = mconcat $ map ppMath ms
 ppMath (MathUnOp op m) = text op <> sp <> ppMath m
 ppMath (MathBinOp op l r) = parens (ppMath l <> sp <> text op <> sp <> ppMath r)
-ppMath (MathToLR cmd lr) = ppCmdArg cmd (pp lr)
-ppMath (MathNeedPackage _ x) = ppMath x
+ppMath (MathToLR cmdName args) = ppCmdArgs cmdName $ map (fmap pp) args
 
 ppRowSpec :: RowSpec ShowS -> ShowS
 ppRowSpec Rc        = text "c"
