@@ -1,25 +1,16 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS -fno-warn-missing-signatures #-}
-import Language.LaTeX.Types
+import Language.LaTeX
 import qualified Language.LaTeX.Builder as B
 import qualified Language.LaTeX.Builder.Rotating as R
 import qualified Language.LaTeX.Builder.Color as C
 import qualified Language.LaTeX.Builder.Math as M
-import Language.LaTeX.Builder.MonoidUtils
-import Language.LaTeX.Printer (showLaTeX)
-import System.Cmd (system)
 import Data.Char
 import Data.List (intersperse, intercalate)
 import Control.Arrow
 import Data.String
 
-main= do putStrLn s
-         writeFile ("tests/" ++ ltx) s
-         system $ unwords ["(cd tests && texi2pdf", ltx, "&& open", pdf, ")"]
-  where s = either error id $ showLaTeX root
-        base = "knowledges-tabular"
-        pdf = base ++ ".pdf"
-        ltx = base ++ ".ltx"
+main = quickView testViewOpts "knowledges-tabular" root
 
 root = B.root preamb $ B.document (B.section "Youhou" <> B.para B.noindent <> table)
 
