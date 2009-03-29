@@ -11,8 +11,10 @@ synopsis:        A library to build valid LaTeX files
 description:     ...
 stability:       Provisional
 build-type:      Simple
-build-depends:   base>=3.0&&<4, containers>=0.1, template-haskell, mtl>=1.1, uniplate, derive
-exposed-modules: Language.LaTeX.Types,
+build-depends:   base>=3.0&&<4, containers>=0.1, process, filepath,
+                 template-haskell, transformers, monads-fd, uniplate, derive
+exposed-modules: Language.LaTeX,
+                 Language.LaTeX.Types,
                  Language.LaTeX.Builder,
                  Language.LaTeX.Builder.MonoidUtils,
                  Language.LaTeX.Builder.Math,
