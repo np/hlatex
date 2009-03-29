@@ -6,14 +6,11 @@ import qualified Language.LaTeX.Builder.Math as M
 import qualified Language.LaTeX.Builder.Graphics as G
 import qualified Language.LaTeX.Builder.Rotating as R
 import qualified Language.LaTeX.Builder.Color as C
-import Language.LaTeX.Builder ((!<), (<!), (!<!))
 
 import Data.Ratio ((%))
 import Data.Char
-import Data.Monoid
 import Data.List.Split
 import Data.List (intersperse)
-import Control.Monad.Writer (tell)
 
 main = quickView testViewOpts "test" root
 
