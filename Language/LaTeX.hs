@@ -1,6 +1,7 @@
 module Language.LaTeX
   (module Language.LaTeX.Types
   ,module Language.LaTeX.Builder.MonoidUtils
+  ,(!<), (<!), (!<!), tell, Writer
   ,Monoid(..)
   ,ViewOpts(..)
   ,quickView
@@ -12,6 +13,8 @@ import Data.Monoid (Monoid(..))
 import Language.LaTeX.Types
 import Language.LaTeX.Printer (showLaTeX)
 import Language.LaTeX.Builder.MonoidUtils
+import Language.LaTeX.Builder ((!<), (<!), (!<!))
+import Control.Monad.Writer (Writer, tell)
 import System.Cmd (system)
 import System.FilePath
 import System.Exit
