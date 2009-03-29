@@ -1,14 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# OPTIONS -fno-warn-missing-signatures #-}
+{-# OPTIONS -Wall -fno-warn-missing-signatures #-}
+import Language.LaTeX
 import qualified Language.LaTeX.Builder as B
 import qualified Language.LaTeX.Builder.Math as M
 import qualified Language.LaTeX.Builder.Graphics as G
 import qualified Language.LaTeX.Builder.Rotating as R
 import qualified Language.LaTeX.Builder.Color as C
-import Language.LaTeX.Builder.MonoidUtils
 import Language.LaTeX.Builder ((!<), (<!), (!<!))
-import Language.LaTeX.Printer (showLaTeX)
-import System.Cmd (system)
 
 import Data.Ratio ((%))
 import Data.Char
@@ -17,14 +15,9 @@ import Data.List.Split
 import Data.List (intersperse)
 import Control.Monad.Writer (tell)
 
-main=exs
+main = quickView testViewOpts "test" root
 
 paraNoindent = B.para . (B.noindent <>)
-
-exs = do putStrLn s
-         writeFile "tests/test.ltx" s
-         system "(cd tests && texi2pdf test.ltx && open test.pdf)"
-  where s = either error id $ showLaTeX root
 
 root = B.root preamb body
 
