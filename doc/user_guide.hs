@@ -82,3 +82,44 @@ doc = do
      have be chosen like {hcode "M.negthinspace"} or {hcode "B.acute"}. These names are
      chosen according there semantics and not according their symbol, so we use `acute'
      instead of `single quote' and `thinspace' instead of `comma'.»
+
+  subsection «Commands with optional arguments»
+
+  p «Since {haskell} does not support optional arguments, and that we do not want to add extra
+     burden on the document writer we have choosen to expose two variants of some commands.
+     Therefore {ltxcode "\\newline"} is exposed as {hcode "B.newline"} and to give the optional
+     size argument one use the {hcode "B.newline'"} function as in {hcode "B.newline' (B.pt 42)"}.
+     Another example is sectionning. Each sectionning command (like {ltxcode "\\chapter"} or
+     {ltxcode "\\section"}) have an unnumbered version (like {ltxcode "\\chapter*"} or
+     {ltxcode "\\section*"}), and can also take an optional argument that is the title that
+     will appear in table of contents.  So the {hcode "B.chapter"} function only take the chapter
+     title whereas the {hcode "B.chapter'"} function takes three arguments the first select the
+     normal or the starred version, the second is the table of contents version as a
+     {hcode "Maybe"} type and the third is the actual title.»
+
+  section «Monoidal structure»
+
+  subsection «FIXME» -- rappel
+
+  p «A monoid is a very simple algebraic structure. To be a monoid one needs a set---that
+     will be represented with a {haskell} type---; an associative composition operator---called
+     {hcode "mappend"} in {haskell} and abbreviated by the {hcode "<>"} infix operator here;
+     and a neutral element---called {hcode "mempty"}--- that is a left and right identity for
+     the composition operator.»
+
+  p «In computer systems a lot of structures are monoid instances. Like lists with the empty list
+     and concatenation, integers with zero and addition, functions with identity and composition
+     and a lot more.»
+
+  p «The point of using this kind of abstraction instead of their concrete representations is to
+     share generic functions over them. For instance composing a list of values can be done with
+     the {hcode "mconcat"} function, another variant is included in this library called
+     {hcode "mconcatMap"}.»
+
+  p «»
+  p «»
+  p «»
+  p «»
+  p «»
+
+-- end
