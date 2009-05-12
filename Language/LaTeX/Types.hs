@@ -307,32 +307,6 @@ data Star = Star | NoStar
 
 data LatexState = LS { freshSaveBin :: SaveBin }
 
-{-
-instance Monad m => Applicative (StateT LatexState m) where
-  pure = return
-  (<*>) = ap
-
-instance Num a => Num (StateT LatexState (Either String) a) where
-  fromInteger = pure . fromInteger
-
-instance Eq a => Eq (StateT LatexState (Either String) a) where
-  (==) = liftM2 (==)
-
-instance Show a => Show (StateT LatexState (Either String) a) where
-  showsPrec = liftM . showsPrec
-  -- show = liftM . show
-
-newtype LatexM a = LatexM { runLatexM :: StateT LatexState (Either String) a } 
-  deriving (Functor, Applicative, Monad, MonadPlus,
-            MonadState LatexState, MonadError String, Show, Eq, Num)
--}
-
-instance Applicative (Either a) where
-  pure = Right
-  _ <*> Left x = Left x
-  Left x <*> _ = Left x
-  Right f <*> Right x = Right (f x)
-
 instance (Error a, Eq a, Show a, Num b) => Num (Either a b) where
   fromInteger = pure . fromInteger
   (+)         = liftM2 (+)
