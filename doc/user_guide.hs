@@ -1,19 +1,40 @@
+{-# LANGUAGE QuasiQuotes, OverloadedStrings, NoMonomorphismRestriction #-}
+{-# OPTIONS_GHC -F -pgmF frquotes #-}
+import Language.LaTeX
 import qualified Language.LaTeX.Builder as B
-import Language.LaTeX.Builder (section, subsection, paragraph)
+import Language.LaTeX.Builder.QQ
+import Control.Monad.Writer
 
 latex = B._LaTeX
+tex = B._TeX
 hlatex = B.textsc "HLaTeX" -- TODO make a proper symol and provide it in L.L.Builder
 haskell = B.textsc "Haskell"
 ast = B.textsc "AST"
+ghc = B.textsc "GHC"
 math = «mathematics»
 mathmode = «math-mode»
 ltxcode = B.texttt . B.protect
+hcode = B.texttt . B.protect
 ltxenv = B.texttt . B.protect
 
 p = tell . B.para
+section = tell . B.section
+subsection = tell . B.subsection
+paragraph = tell . B.paragraph
 em = B.emph
 
-doc = do
+main = quickView testViewOpts "user_guide" root
+
+root = B.root preamb body
+
+preamb = B.documentclass (Just (B.pt 11)) (Just B.a4paper) B.book
+     -- <> B.usepackage [B.optional "francais"] (B.pkgName "babel")
+
+body = B.document <! do
+  tell B.tableofcontents
+  tell doc
+
+doc = execWriter $ do
   section «Introduction»
 
   p «{hlatex} is a library to generate {latex} documents using the {haskell} programming language.
@@ -116,10 +137,21 @@ doc = do
      the {hcode "mconcat"} function, another variant is included in this library called
      {hcode "mconcatMap"}.»
 
+{-
   p «»
   p «»
   p «»
   p «»
   p «»
+-}
+
+  section «French Quotes»
+
+  let pragmaOpts = "{-# OPTIONS_GHC -F -pgmF ./frquotes #-}"
+      pragmaLang = "{-# LANGUAGE QuasiQuotes #-}"
+  subsection «Activating the extension»
+
+  p «Using the following {ghc} pragma {hcode pragmaOpts}, and since this extension relies on
+     quasi-quoting one also needs this pragma {hcode pragmaLang}.»
 
 -- end
