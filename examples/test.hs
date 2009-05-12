@@ -25,7 +25,7 @@ body = B.document <! do
   tell B.tableofcontents
   B.part !< "The prologue"
 
-  B.chapter !< "Introduction"
+  B.chapter' NoStar (Just "Introduction (toc)") !< "Introduction (not toc)"
 
   B.section !< "The context"
 
