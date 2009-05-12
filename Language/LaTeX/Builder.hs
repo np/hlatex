@@ -9,7 +9,7 @@ import Data.Ratio
 import Data.Monoid
 import Data.Char
 import Data.Traversable (sequenceA, mapM)
-import Data.String (fromString)
+import Data.String (IsString(..))
 import Control.Applicative hiding (optional)
 import Control.Monad hiding (mapM)
 import Control.Monad.Error (throwError)
@@ -18,6 +18,7 @@ import Control.Arrow
 
 import Language.LaTeX.Types
 import Language.LaTeX.Builder.MonoidUtils
+
 
 {- TODO:
     - robust/fragile/moving
