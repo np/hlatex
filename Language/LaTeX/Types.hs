@@ -112,6 +112,8 @@ instance Traversable Arg where
 data Coord = Coord LatexSize LatexSize
   deriving (Show, Eq, Typeable)
 
+newtype Percentage = Percentage { percentage :: Int } deriving (Eq,Show,Ord,Num)
+
 data ParItm  = Para LatexItm -- Here LatexItm does not mean LR mode
              | ParCmdArgs String [Arg LatexItm]
              | ParEnvironmentLR String LatexItm
