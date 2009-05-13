@@ -22,6 +22,7 @@ exposed-modules: Language.LaTeX,
                  Language.LaTeX.Builder.Color,
                  Language.LaTeX.Builder.Rotating,
                  Language.LaTeX.Builder.QQ,
+                 Language.LaTeX.Builder.Beamer,
                  Language.LaTeX.Printer
 ghc-options:     -Wall
 
