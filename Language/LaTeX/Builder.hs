@@ -1066,12 +1066,3 @@ tt = texDecl "tt"
 allTexDecls :: [TexDecl]
 allTexDecls = [em, bf, sf, sl, sc, it, tt]
 
--- beamer
--- alert
--- AtBeginSubsection, AtBeginSection
-only :: LatexItem -> LatexItem
-only = latexCmdArg "only"
-
-usetheme, usefonttheme :: LatexItem -> PreambleItem
-usetheme = preambleCmdArg "usetheme"
-usefonttheme = preambleCmdArg "usefonttheme"
