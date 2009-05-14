@@ -1,6 +1,7 @@
 module Language.LaTeX.Builder.Math
 
-  (_Delta, _Gamma, _Lambda, _Leftarrow, _Leftrightarrow, _Omega, _Phi, _Pi, _Pr,
+  (charToMath, stringToMath,
+   _Delta, _Gamma, _Lambda, _Leftarrow, _Leftrightarrow, _Omega, _Phi, _Pi, _Pr,
    _Rightarrow, _Sigma, _Theta, _Xi, acute, aleph, alpha, approx, array, at,
    backslash, bar, beta, between, bigcap, bigcup, bigvee, bigwedge, bmod, bot,
    braces, brackets, breve, cal, cap, cdots, check, chi, circ, cong, cos, cosh,
@@ -36,6 +37,9 @@ import Data.List hiding (sum, and, group)
 import Data.Ratio
 import Data.Char
 import Data.Traversable (sequenceA, mapM)
+import Data.Monoid
+import qualified Data.IntMap as IntMap
+import Control.Arrow
 import Control.Applicative hiding (optional)
 import Control.Monad hiding (mapM)
 import Control.Monad.Error (throwError)
@@ -156,6 +160,7 @@ beta :: MathItem
 beta = mathCmd "beta"
 chi :: MathItem
 chi = mathCmd "chi"
+-- Chi? (don't forget the charToMath table)
 delta :: MathItem
 delta = mathCmd "delta"
 _Delta :: MathItem
@@ -186,6 +191,10 @@ omega :: MathItem
 omega = mathCmd "omega"
 _Omega :: MathItem
 _Omega = mathCmd "Omega"
+{-
+omicron :: MathItem
+omicron = mathCmd "omicron"
+-}
 phi :: MathItem
 phi = mathCmd "phi"
 varphi :: MathItem
@@ -615,3 +624,120 @@ mathBinOps = [(+),(-),(*),bmod]
 amsmath :: PackageName
 amsmath = PkgName "amsmath"
 
+stringToMath :: String -> Maybe MathItem
+stringToMath = fmap mconcat . mapM charToMath
+
+charToMath :: Char -> Maybe MathItem
+charToMath c
+   | isAscii c && (isAlphaNum c || c == ' ') = Just $ rawMathChar c
+   | otherwise = IntMap.lookup (fromEnum c) mapping
+  where
+    mapping = IntMap.fromList $ map (first fromEnum)
+      [ ('α', alpha)
+      , ('β', beta)
+      , ('χ', chi)
+      , ('δ', delta)
+      , ('Δ', _Delta)
+      , ('ε', epsilon)
+      --, ('', varepsilon)
+      , ('η', eta)
+      , ('γ', gamma)
+      , ('Γ', _Gamma)
+      , ('ι', iota)
+      , ('κ', kappa)
+      , ('λ', lambda)
+      , ('Λ', _Lambda)
+      , ('μ', mu)
+      , ('ν', nu)
+      , ('ω', omega)
+      , ('Ω', _Omega)
+      --, ('ο', omicron)
+      , ('φ', phi)
+      --, ('', varphi)
+      , ('Φ', _Phi)
+      , ('π', pi)
+      , ('Π', _Pi)
+      , ('ψ', psi)
+      , ('ρ', rho)
+      , ('σ', sigma)
+      , ('Σ', _Sigma)
+      , ('τ', tau)
+      , ('θ', theta)
+      --, ('', vartheta)
+      , ('Θ', _Theta)
+      --, ('', upsilon)
+      , ('ξ', xi)
+      --, ('', _Xi)
+      , ('ζ', zeta)
+      , ('×', times)
+      --, ('', divide)
+      --, ('', circ)
+      --, ('', oplus)
+      --, ('', otimes)
+      , ('∧', wedge)
+      --, ('', bigwedge)
+      , ('∨', vee)
+      --, ('', bigvee)
+      , ('∪', cup)
+      --, ('', bigcup)
+      --, ('', cap)
+      --, ('', bigcap)
+      , ('≠', ne)
+      --, ('', le)
+      , ('≤', leq)
+      --, ('', ge)
+      , ('≥', geq)
+      , ('∈', in_)
+      , ('∉', notin)
+      , ('⊂', subset)
+      --, ('', supset)
+      , ('⊆', subseteq)
+      --, ('', supseteq)
+      , ('≡', equiv)
+      --, ('', cong)
+      --, ('', approx)
+      --, ('', propto)
+      , ('¬', neg)
+      , ('⇒', implies)
+      --, ('', iff)
+      , ('∀', forall_)
+      , ('∃', exists)
+      , ('⊥', bot)
+      --, ('', top)
+      , ('⊢', vdash)
+      , ('⊩', models)
+      {-
+      , ('', langle)
+      , ('', rangle)
+      , ('', int)
+      , ('', oint)
+      , ('', partial)
+      , ('', nabla)
+      , ('', pm)
+      , ('', emptyset)
+      , ('', infty)
+      , ('', aleph)
+      , ('', ldots)
+      , ('', cdots)
+      , ('', vdots)
+      , ('', ddots)
+      , ('', quad)
+      , ('', diamond)
+      , ('', square)
+      , ('', lfloor)
+      , ('', rfloor)
+      , ('', lceiling)
+      , ('', rceiling)
+      , ('', uparrow)
+      , ('', downarrow)
+prec
+succ
+      -}
+      , ('→', rightarrow)
+      --, ('', to)
+      , ('←', leftarrow)
+      , ('↔', leftrightarrow)
+      , ('⟶', _Rightarrow)
+      , ('⟵', _Leftarrow)
+      --, ('', _Leftrightarrow)
+      ]
