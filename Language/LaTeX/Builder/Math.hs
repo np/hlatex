@@ -1,6 +1,6 @@
 module Language.LaTeX.Builder.Math
 
-  (charToMath, stringToMath,
+  (charToMath, stringToMath, protect,
    _Delta, _Gamma, _Lambda, _Leftarrow, _Leftrightarrow, _Omega, _Phi, _Pi, _Pr,
    _Rightarrow, _Sigma, _Theta, _Xi, acute, aleph, alpha, approx, array, at,
    backslash, bar, beta, between, bigcap, bigcup, bigvee, bigwedge, bmod, bot,
@@ -37,6 +37,7 @@ import Data.List hiding (sum, and, group)
 import Data.Ratio
 import Data.Char
 import Data.Traversable (sequenceA, mapM)
+import Data.Maybe
 import Data.Monoid
 import qualified Data.IntMap as IntMap
 import Control.Arrow
@@ -623,6 +624,9 @@ mathBinOps = [(+),(-),(*),bmod]
 
 amsmath :: PackageName
 amsmath = PkgName "amsmath"
+
+protect :: String -> LatexItem
+protect = B.protector (\s -> B.math . fromMaybe (fail $ "protect: " ++ show s) . stringToMath $ s)
 
 stringToMath :: String -> Maybe MathItem
 stringToMath = fmap mconcat . mapM charToMath
