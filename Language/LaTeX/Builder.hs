@@ -176,12 +176,15 @@ f ('a':_) = 2
 f _ = 3
 -}
 
-protect :: String -> LatexItem
-protect []        = mempty
-protect ('\n':xs) = newline <> protect xs
-protect (' ':xs)  = uncurry (<>) $ (hspace_ . (+1) . length *** protect) $ break (/=' ') xs
+protector :: (String -> LatexItem) -> String -> LatexItem
+protector f []        = mempty
+protector f ('\n':xs) = newline <> protector f xs
+protector f (' ':xs)  = uncurry (<>) $ (hspace_ . (+1) . length *** protector f) $ break (/=' ') xs
   where hspace_ n = hspace $ Em $ 1%2 * fromIntegral n
-protect (x:xs)    = uncurry (<>) $ (hstring . (x :) *** protect) $ break (`elem` " \n") xs
+protector f (x:xs)    = uncurry (<>) $ (f . (x :) *** protector f) $ break (`elem` " \n") xs
+
+protect :: String -> LatexItem
+protect = protector hstring
 
 href :: LatexItem -> LatexItem -> LatexItem
 href x y = latexCmdArgs "href" [mandatory x,mandatory y]
