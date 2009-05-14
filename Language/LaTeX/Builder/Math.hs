@@ -699,6 +699,7 @@ charToMath c
       , ('⊆', subseteq)
       --, ('', supseteq)
       , ('≡', equiv)
+      , ('=', eq)
       --, ('', cong)
       --, ('', approx)
       --, ('', propto)
