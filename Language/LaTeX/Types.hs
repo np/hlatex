@@ -367,7 +367,8 @@ hchar '>'  = "\\textgreater{}"
 hchar '^'  = "\\^{}"
 hchar '|'  = "\\textbar{}"
 hchar ':'  = "$:$" -- or maybe "{:}"
-hchar x | x `elem` "#_&{}$%" = ['\\',x]
+hchar '_'  = "\\hspace{0.07em}\\_\\hspace{0.07em}"
+hchar x | x `elem` "#&{}$%"  = ['\\',x]
         | x `elem` "]["      = ['{', x, '}'] -- to avoid mess up optional args
         | otherwise          = [x]
 
@@ -376,7 +377,8 @@ mchar '\\' = "\\textbackslash{}"
 mchar '~'  = "\\text{\\~{}}"
 mchar '^'  = "\\^{}"
 mchar ':'  = ":"
-mchar x | x `elem` "#_&{}$%" = ['\\',x]
+mchar '_'  = "\\hspace{0.07em}\\_\\hspace{0.07em}"
+mchar x | x `elem` "#&{}$%"  = ['\\',x]
         | x `elem` "]["      = ['{', x, '}'] -- to avoid mess up optional args
         | otherwise          = [x]
 
