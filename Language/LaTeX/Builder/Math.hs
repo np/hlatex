@@ -633,9 +633,9 @@ stringToMath :: String -> Maybe MathItem
 stringToMath = fmap mconcat . mapM charToMath
 
 charToMath :: Char -> Maybe MathItem
-charToMath c
-   | isAscii c && (isAlphaNum c || c == ' ') = Just $ rawMathChar c
-   | otherwise = IntMap.lookup (fromEnum c) mapping
+charToMath ch
+   | isAscii ch && isAlphaNum ch = Just $ rawMathChar ch
+   | otherwise = IntMap.lookup (fromEnum ch) mapping
   where
     mapping = IntMap.fromList $ map (first fromEnum)
       [ ('α', alpha)
