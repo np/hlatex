@@ -177,7 +177,7 @@ f _ = 3
 -}
 
 protector :: (String -> LatexItem) -> String -> LatexItem
-protector f []        = mempty
+protector _ []        = mempty
 protector f ('\n':xs) = newline <> protector f xs
 protector f (' ':xs)  = uncurry (<>) $ (hspace_ . (+1) . length *** protector f) $ break (/=' ') xs
   where hspace_ n = hspace $ Em $ 1%2 * fromIntegral n
