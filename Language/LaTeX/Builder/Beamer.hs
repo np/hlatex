@@ -48,6 +48,15 @@ frameO overlays = B.parEnvironmentPar "frame" ({-B.packageDependency pkg : -}ppO
 frame :: ParItem -> ParItem 
 frame = B.parEnvironmentPar "frame" [{-B.packageDependency pkg-}]
 
+example :: ParItem -> ParItem
+example = B.parEnvironmentPar "example" []
+
+box :: ParItem -> ParItem
+box = B.parEnvironmentPar "box" []
+
+box' :: LatexItem -> ParItem -> ParItem
+box' title = B.parEnvironmentPar "box" [B.mandatory title]
+
 slide :: LatexItem -> ParItem -> ParItem
 slide tit body = frame (frametitle tit <> body)
 
