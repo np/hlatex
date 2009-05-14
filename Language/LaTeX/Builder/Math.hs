@@ -626,8 +626,10 @@ amsmath :: PackageName
 amsmath = PkgName "amsmath"
 
 protect :: String -> LatexItem
--- protect = B.protector (\s -> B.math . fromMaybe (fail $ "protect: " ++ show s) . stringToMath $ s)
-protect = B.protector (\s -> maybe (B.hstring s) B.math . stringToMath $ s)
+protect = B.protector (mconcatMap protectMathChar)
+  where protectMathChar ch = maybe (B.rawTex $ hchar ch) B.math $ charToMath' ch
+        charToMath' ch | isAscii ch && isAlphaNum ch = Nothing
+                       | otherwise = charToMath ch
 
 stringToMath :: String -> Maybe MathItem
 stringToMath = fmap mconcat . mapM charToMath
