@@ -182,7 +182,7 @@ protector :: (String -> LatexItem) -> String -> LatexItem
 protector _ []        = mempty
 protector f ('\n':xs) = newline <> protector f xs
 protector f (' ':xs)  = uncurry (<>) $ (hspace_ . (+1) . length *** protector f) $ break (/=' ') xs
-  where hspace_ n = hspace $ Em $ 1%2 * fromIntegral n
+  where hspace_ n = mbox . hspace . Em $ 1%2 * fromIntegral n
 protector f (x:xs)    = uncurry (<>) $ (f . (x :) *** protector f) $ break (`elem` " \n") xs
 
 protect :: String -> LatexItem
