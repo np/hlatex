@@ -327,15 +327,17 @@ hspaceStar :: LatexSize -> LatexItem
 hspaceStar = latexCmdArg "hspace*" . size
 
 -- fragile
-vspace :: LatexSize -> LatexItem
-vspace = latexCmdArg "vspace" . size
+-- the says that's a command however putting braces around disable
+-- its effect. We expose it as a ParItem since this is its main usage.
+vspace :: LatexSize -> ParItem
+vspace = parCmdArg "vspace" . size
 
 -- fragile
-vspaceStar :: LatexSize -> LatexItem
-vspaceStar = latexCmdArg "vspace*" . size
+vspaceStar :: LatexSize -> ParItem
+vspaceStar = parCmdArg "vspace*" . size
 
-vfill :: LatexItem
-vfill = texCmdNoArg "vfill" -- = vspace fill
+vfill :: ParItem
+vfill = parCmdArgs "vfill" [] -- = vspace fill
 hfill :: LatexItem
 hfill = texCmdNoArg "hfill" -- = hspace fill
 dotfill :: LatexItem
@@ -354,19 +356,19 @@ corrspace :: LatexItem
 corrspace = texCmdNoArg "/"
 
 -- fragile
-bigskip :: LatexItem
-bigskip = texCmdNoArg "bigskip" -- = vspace bigskipamount
+bigskip :: ParItem
+bigskip = parCmdArgs "bigskip" [] -- = vspace bigskipamount
 
 -- fragile
-medskip :: LatexItem
-medskip = texCmdNoArg "medskip" -- = vspace medskipamount
+medskip :: ParItem
+medskip = parCmdArgs "medskip" [] -- = vspace medskipamount
 
 -- fragile
-smallskip :: LatexItem
-smallskip = texCmdNoArg "smallskip" -- = vspace smallskipamount
+smallskip :: ParItem
+smallskip = parCmdArgs "smallskip" [] -- = vspace smallskipamount
 
-addvspace :: LatexSize -> LatexItem
-addvspace = latexCmdArg "addvspace" . size
+addvspace :: LatexSize -> ParItem
+addvspace = parCmdArg "addvspace" . size
 
 
 -- Font sizes
