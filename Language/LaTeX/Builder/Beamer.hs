@@ -51,11 +51,8 @@ frame = B.parEnvironmentPar "frame" [{-B.packageDependency pkg-}]
 example :: ParItem -> ParItem
 example = B.parEnvironmentPar "example" []
 
-block :: ParItem -> ParItem
-block = B.parEnvironmentPar "block" []
-
-block' :: LatexItem -> ParItem -> ParItem
-block' title = B.parEnvironmentPar "block" [B.mandatory title]
+block :: LatexItem -> ParItem -> ParItem
+block title = B.parEnvironmentPar "block" [B.mandatory title]
 
 slide :: LatexItem -> ParItem -> ParItem
 slide tit body = frame (frametitle tit <> body)

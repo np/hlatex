@@ -18,6 +18,7 @@ import Control.Monad.Writer (Writer, tell)
 import System.Cmd (system)
 import System.FilePath
 import System.Exit
+import Codec.Binary.UTF8.String (encodeString)
 
 data ViewOpts = ViewOpts { basedir   :: FilePath
                          , pdflatex  :: String
@@ -35,7 +36,7 @@ quickView vo basename root =
      do putStrLn s
         writeFile (basedir vo </> ltx) s
         exitWith =<< system cmd
-  where s = either error id $ showLaTeX root
+  where s = encodeString . either error id $ showLaTeX root
         pdf = basename <.> "pdf"
         ltx = basename <.> "ltx"
         cmd = unwords ["cd", basedir vo, "&&", pdflatex vo, ltx, "&&", pdfviewer vo, pdf]

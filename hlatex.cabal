@@ -12,7 +12,8 @@ description:     ...
 stability:       Provisional
 build-type:      Simple
 build-depends:   base>=3.0&&<4, containers>=0.1, process, filepath,
-                 template-haskell, transformers>=0.1.3, monads-fd, uniplate, derive
+                 template-haskell, transformers>=0.1.3, monads-fd, uniplate,
+                 derive, utf8-string
 exposed-modules: Language.LaTeX,
                  Language.LaTeX.Types,
                  Language.LaTeX.Builder,
