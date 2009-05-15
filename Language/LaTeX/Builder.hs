@@ -499,32 +499,24 @@ framebox width pos txt = latexCmdArgs "framebox" [optional $ size width
 
 -- TODO: make a safe version using a monad
 -- fragile
-unsafeNewsavebox :: Int -> LatexItem
+unsafeNewsavebox :: Int -> (SaveBin, LatexItem)
 unsafeNewsavebox n =
   let bin = UnsafeMakeSaveBin n
-  in latexCmdArg "newsavebox" $ latexSaveBin bin
+  in (bin, latexCmdArg "newsavebox" $ latexSaveBin bin)
 
 -- robust
 sbox :: SaveBin -> LatexItem -> LatexItem
 sbox bin txt = latexCmdArgs "sbox" [mandatory $ latexSaveBin bin, mandatory txt]
 
 -- fragile
-savebox :: SaveBin -> LatexSize -> LatexItem -> LatexItem
-savebox bin width txt =
-  latexCmdArgs "savebox" [mandatory $ latexSaveBin bin, optional $ size width,
-                          mandatory  txt]
-
--- fragile
-saveboxLeft :: SaveBin -> LatexSize -> LatexItem -> LatexItem
-saveboxLeft bin width txt =
-  latexCmdArgs "savebox" [mandatory $ latexSaveBin bin, optional $ size width,
-                          optional $ rawTex "l", mandatory  txt]
-
--- fragile
-saveboxRight :: SaveBin -> LatexSize -> LatexItem -> LatexItem
-saveboxRight bin width txt =
-  latexCmdArgs "savebox" [mandatory $ latexSaveBin bin, optional $ size width,
-                          optional $ rawTex "r", mandatory  txt]
+savebox :: SaveBin -> Maybe LatexSize -> Maybe (Either () ()) -> LatexItem -> LatexItem
+savebox bin width dir txt =
+  latexCmdArgs "savebox" [mandatory $ latexSaveBin bin
+                         ,maybe noArg (optional . size) width
+                         ,maybe noArg (optional . either ll rr) dir
+                         ,mandatory txt]
+  where ll _ = rawTex "l"
+        rr _ = rawTex "r"
 
 -- robust
 usebox :: SaveBin -> LatexItem

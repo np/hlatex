@@ -7,6 +7,7 @@ import Data.Ratio (numerator, denominator)
 import Data.Generics.UniplateStr (universe)
 import Data.Generics.Biplate (universeBi)
 import Data.Set (Set)
+import Data.Char
 import qualified Data.Set as Set
 import GHC.Float (formatRealFloat, FFFormat(FFFixed))
 
@@ -105,7 +106,8 @@ pp (RawTex s) = text s
 -- One produce $...$ since \(...\) is fragile
 pp (MathInline m) = text "$ " <> ppMath m <> text " $"
 
-pp (LatexSaveBin bin) = text $ "hlatexSaveBin" ++ show (unsafeGetSaveBin bin)
+pp (LatexSaveBin bin) = text $ "\\hlatexSaveBin" ++ (map enc . show $ unsafeGetSaveBin bin)
+  where enc i = chr (ord 'a' + digitToInt i) -- hackish but numbers are prohibited
 
 pp (TexGroup t) = braces $ pp t
 
