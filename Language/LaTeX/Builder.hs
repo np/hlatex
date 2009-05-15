@@ -50,6 +50,8 @@ infixr 0 !$?
 (!$?) :: Monoid b => (a -> b) -> Writer a () -> Writer b ()
 (!$?) f m = tell $ f $ execWriter m
 
+noArg :: Arg a
+noArg = NoArg
 mandatory, optional :: a -> Arg a
 mandatory = Mandatory
 optional = Optional

@@ -82,7 +82,8 @@ instance Monoid LatexItm where
 instance IsString LatexItm where
   fromString = RawTex . concatMap hchar . concat . intersperse "\n" . filter (not . null) . lines
 
-data Arg a = Optional a
+data Arg a = NoArg
+           | Optional a
            | Optionals [a]
            | Mandatory a
            | Coordinates a a
