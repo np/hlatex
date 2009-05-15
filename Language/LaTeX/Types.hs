@@ -360,6 +360,8 @@ showDocumentClass (OtherDocumentClass x) = x
 
 -- TODO: Maybe one should handle quotes in a less LaTeX
 -- way: provide a replacement for ``...'' and escape `'"
+--
+-- Don't confuse this function with ttchar
 hchar :: Char -> String
 hchar '\\' = "\\textbackslash{}"
 hchar '~'  = "\\~{}"
@@ -370,16 +372,6 @@ hchar '|'  = "\\textbar{}"
 hchar ':'  = "$:$" -- or maybe "{:}"
 hchar '_'  = "\\_"
 hchar x | x `elem` "#&{}$%"  = ['\\',x]
-        | x `elem` "]["      = ['{', x, '}'] -- to avoid mess up optional args
-        | otherwise          = [x]
-
-mchar :: Char -> String
-mchar '\\' = "\\textbackslash{}"
-mchar '~'  = "\\text{\\~{}}"
-mchar '^'  = "\\^{}"
-mchar ':'  = ":"
-mchar '_'  = "\\hspace{0.07em}\\_\\hspace{0.07em}"
-mchar x | x `elem` "#&{}$%"  = ['\\',x]
         | x `elem` "]["      = ['{', x, '}'] -- to avoid mess up optional args
         | otherwise          = [x]
 

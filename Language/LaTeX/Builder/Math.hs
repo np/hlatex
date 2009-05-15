@@ -1,6 +1,6 @@
 module Language.LaTeX.Builder.Math
 
-  (charToMath, stringToMath, protect,
+  (charToMath, stringToMath, protect, verb,
    _Delta, _Gamma, _Lambda, _Leftarrow, _Leftrightarrow, _Omega, _Phi, _Pi, _Pr,
    _Rightarrow, _Sigma, _Theta, _Xi, acute, aleph, alpha, approx, array, at,
    backslash, bar, beta, between, bigcap, bigcup, bigvee, bigwedge, bmod, bot,
@@ -631,10 +631,27 @@ amsmath :: PackageName
 amsmath = PkgName "amsmath"
 
 protect :: String -> LatexItem
-protect = B.protector (mconcatMap protectMathChar)
-  where protectMathChar ch = maybe (B.rawTex $ hchar ch) B.math $ charToMath' ch
-        charToMath' ch | isAscii ch && isAlphaNum ch = Nothing
-                       | otherwise = charToMath ch
+protect = B.protector (mconcatMap $ mchar (B.rawTex . hchar))
+
+verb :: String -> LatexItem
+verb = B.texttt . B.protector (mconcatMap $ mchar (B.rawTex . B.ttchar))
+
+{- NOT USED
+mchar :: Char -> String
+mchar '\\' = "\\textbackslash{}"
+mchar '~'  = "\\text{\\~{}}"
+mchar '^'  = "\\^{}"
+mchar ':'  = ":"
+mchar '_'  = "\\_"
+mchar x | x `elem` "#&{}$%"  = ['\\',x]
+        | x `elem` "]["      = ['{', x, '}'] -- to avoid mess up optional args
+        | otherwise          = [x]
+-}
+
+mchar :: (Char -> LatexItem) -> (Char -> LatexItem)
+mchar xchar ch = maybe (xchar ch) B.math $ charToMath' ch
+  where charToMath' ch | isAscii ch && isAlphaNum ch = Nothing
+                       | otherwise                   = charToMath ch
 
 stringToMath :: String -> Maybe MathItem
 stringToMath = fmap mconcat . mapM charToMath

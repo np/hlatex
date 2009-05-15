@@ -188,6 +188,13 @@ protector f (x:xs)    = uncurry (<>) $ (f . (x :) *** protector f) $ break (`ele
 protect :: String -> LatexItem
 protect = protector hstring
 
+ttchar :: Char -> String
+ttchar ch | isAscii ch = if isAlphaNum ch then [ch] else "{\\char `\\" ++ [ch,'}']
+          | otherwise = [ch]
+
+verb :: String -> LatexItem
+verb = texttt . protector (rawTex . (ttchar =<<))
+
 href :: LatexItem -> LatexItem -> LatexItem
 href x y = latexCmdArgs "href" [mandatory x,mandatory y]
 person :: String -> String -> LatexItem
