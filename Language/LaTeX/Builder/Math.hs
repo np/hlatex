@@ -26,6 +26,7 @@ module Language.LaTeX.Builder.Math
    a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,
    _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P,
    _Q, _R, _S, _T, _U, _V, _W, _X, _Y, _Z,
+   vartriangleright,
 
    -- reexports
    cells, cell, vline, hline, cline
@@ -583,6 +584,9 @@ _Y = rawMathChar 'Y'
 _Z :: MathItem
 _Z = rawMathChar 'Z'
 
+vartriangleright :: MathItem
+vartriangleright = mathCmd "vartriangleright"
+
 bmod :: MathItem -> MathItem -> MathItem
 bmod = mathBinOp "bmod"
 
@@ -603,6 +607,7 @@ allMathItems =
    rfloor, lceiling, rceiling, sin, cos, tan, csc, sec, cot, sinh, cosh, tanh, log, ln,
    det, dim, lim, mod, gcd, lcm, liminf, inf, limsup, max, min, _Pr, uparrow, downarrow,
    rightarrow, to, leftarrow, leftrightarrow, _Rightarrow, _Leftarrow, _Leftrightarrow
+  ,vartriangleright
   -- maually added
   ,eq
   ,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z
@@ -748,4 +753,5 @@ succ
       , ('⟶', _Rightarrow)
       , ('⟵', _Leftarrow)
       --, ('', _Leftrightarrow)
+      , ('▹', vartriangleright)
       ]
