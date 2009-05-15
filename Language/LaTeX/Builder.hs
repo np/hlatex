@@ -36,19 +36,19 @@ import Language.Haskell.TH
 group :: LatexItem -> LatexItem
 group = liftM TexGroup
 
-infixr 7 !<
-infixr 7 <!
-infixr 7 !<!
+infixr 0 !$
+infixr 0 $?
+infixr 0 !$?
 
-(!<) :: Monoid b => (a -> b) -> a -> Writer b ()
-(!<) f x = tell $ f x
+(!$) :: Monoid b => (a -> b) -> a -> Writer b ()
+(!$) f x = tell $ f x
 
-(<!) :: (a -> b) -> Writer a () -> b
-(<!) f m = f $ execWriter m
+($?) :: (a -> b) -> Writer a () -> b
+($?) f m = f $ execWriter m
 
 -- NOTE: This combinator seems pretty promising...
-(!<!) :: Monoid b => (a -> b) -> Writer a () -> Writer b ()
-(!<!) f m = tell $ f $ execWriter m
+(!$?) :: Monoid b => (a -> b) -> Writer a () -> Writer b ()
+(!$?) f m = tell $ f $ execWriter m
 
 mandatory, optional :: a -> Arg a
 mandatory = Mandatory
