@@ -85,7 +85,7 @@ rawMath :: String -> MathItem
 rawMath = pure . RawMath
 
 rawMathChar :: Char -> MathItem
-rawMathChar = rawMath . (:[])
+rawMathChar = rawMath . ('{':) . (:"}")
 
 mathGroup :: MathItem -> MathItem
 mathGroup = liftM MathGroup
@@ -478,7 +478,7 @@ mit = mathDecl "mit"
 cal :: MathDecl
 cal = mathDecl "cal"
 eq :: MathItem
-eq = rawMath "{=}"
+eq = rawMathChar '='
 neq :: MathItem
 neq = mathCmd "neq"
 a :: MathItem
