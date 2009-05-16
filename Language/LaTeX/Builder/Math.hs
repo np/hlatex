@@ -4,12 +4,12 @@ module Language.LaTeX.Builder.Math
    _Delta, _Gamma, _Lambda, _Leftarrow, _Leftrightarrow, _Omega, _Phi, _Pi, _Pr,
    _Rightarrow, _Sigma, _Theta, _Xi, acute, aleph, alpha, approx, array, at,
    backslash, bar, beta, between, bigcap, bigcup, bigvee, bigwedge, bmod, bot,
-   braces, brackets, breve, cal, cap, cdots, check, chi, circ, cong, cos, cosh,
+   braces, brackets, breve, cal, cap, cdots, cdotp, check, chi, circ, cong, cos, cosh,
    cot, csc, cup, ddot, ddots, delta, det, diamond, dim, displaystyle, divide,
    dot, downarrow, emptyset, epsilon, eq, neq, equiv, eta, exists, forall_, frac,
    gamma, gcd, ge, geq, grave, group, hat, iff, imath, implies, in_, inf,
    infty, int, iota, jmath, kappa, lambda, langle, lbrace, lceiling, lcm,
-   ldots, le, leftarrow, leftrightarrow, leq, lfloor, lim, liminf, limsup, ln,
+   ldots, ldotp, le, leftarrow, leftrightarrow, leq, lfloor, lim, liminf, limsup, ln,
    log, mathBinOp, mathBinOps, mathCmd, mathCmdArg, mathCmdArgs, mathCmdsArg,
    mathDecl, mathGroup, allMathItems, allMathDecls, rawDecls, decl, decls,
    mathToLR, mathbb, mathbf,
@@ -339,6 +339,10 @@ vdots :: MathItem
 vdots = mathCmd "vdots"
 ddots :: MathItem
 ddots = mathCmd "ddots"
+cdotp :: MathItem
+cdotp = mathCmd "cdotp"
+ldotp :: MathItem
+ldotp = mathCmd "ldotp"
 quad :: MathItem
 quad = mathCmd "quad"
 diamond :: MathItem
@@ -609,7 +613,7 @@ allMathItems =
    rfloor, lceiling, rceiling, sin, cos, tan, csc, sec, cot, sinh, cosh, tanh, log, ln,
    det, dim, lim, mod, gcd, lcm, liminf, inf, limsup, max, min, _Pr, uparrow, downarrow,
    rightarrow, to, leftarrow, leftrightarrow, _Rightarrow, _Leftarrow, _Leftrightarrow
-  ,vartriangleright
+  ,vartriangleright, cdotp, ldotp
   -- maually added
   ,eq,neq
   ,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z
@@ -702,6 +706,7 @@ charToMath ch
       , ('ζ', zeta)
       , ('×', times)
       --, ('', divide)
+      , ('·', cdotp)
       , ('∘', circ)
       --, ('', oplus)
       --, ('', otimes)
