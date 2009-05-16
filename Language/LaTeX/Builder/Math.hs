@@ -702,7 +702,7 @@ charToMath ch
       , ('ζ', zeta)
       , ('×', times)
       --, ('', divide)
-      --, ('', circ)
+      , ('∘', circ)
       --, ('', oplus)
       --, ('', otimes)
       , ('∧', wedge)
