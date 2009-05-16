@@ -6,7 +6,7 @@ module Language.LaTeX.Builder.Math
    backslash, bar, beta, between, bigcap, bigcup, bigvee, bigwedge, bmod, bot,
    braces, brackets, breve, cal, cap, cdots, check, chi, circ, cong, cos, cosh,
    cot, csc, cup, ddot, ddots, delta, det, diamond, dim, displaystyle, divide,
-   dot, downarrow, emptyset, epsilon, eq, equiv, eta, exists, forall_, frac,
+   dot, downarrow, emptyset, epsilon, eq, neq, equiv, eta, exists, forall_, frac,
    gamma, gcd, ge, geq, grave, group, hat, iff, imath, implies, in_, inf,
    infty, int, iota, jmath, kappa, lambda, langle, lbrace, lceiling, lcm,
    ldots, le, leftarrow, leftrightarrow, leq, lfloor, lim, liminf, limsup, ln,
@@ -479,6 +479,8 @@ cal :: MathDecl
 cal = mathDecl "cal"
 eq :: MathItem
 eq = rawMath "{=}"
+neq :: MathItem
+neq = mathCmd "neq"
 a :: MathItem
 a = rawMathChar 'a'
 b :: MathItem
@@ -609,7 +611,7 @@ allMathItems =
    rightarrow, to, leftarrow, leftrightarrow, _Rightarrow, _Leftarrow, _Leftrightarrow
   ,vartriangleright
   -- maually added
-  ,eq
+  ,eq,neq
   ,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z
   ,_A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P
   ,_Q, _R, _S, _T, _U, _V, _W, _X, _Y, _Z
@@ -724,6 +726,7 @@ charToMath ch
       --, ('', supseteq)
       , ('≡', equiv)
       , ('=', eq)
+      , ('≠', neq)
       --, ('', cong)
       --, ('', approx)
       --, ('', propto)
