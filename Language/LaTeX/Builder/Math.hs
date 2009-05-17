@@ -27,7 +27,7 @@ module Language.LaTeX.Builder.Math
    _A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P,
    _Q, _R, _S, _T, _U, _V, _W, _X, _Y, _Z,
    _Downarrow, _Uparrow,
-   vartriangleright,
+   vartriangleright,phantom,
 
    -- reexports
    cells, cell, vline, hline, cline
@@ -107,6 +107,9 @@ sqrt = mathCmdArgs "sqrt" . (:[]) . mandatory
 
 sqrt' :: MathItem -> MathItem -> MathItem
 sqrt' n1 m1 = mathCmdArgs "sqrt" [optional n1, mandatory m1]
+
+phantom :: MathItem -> MathItem
+phantom = mathCmdArgs "phantom" . (:[]) . mandatory
 
 mleft, mright :: Char -> MathItem
 mleft m1  = rawMath "\\left"  <> (RawMath <$> parenChar m1)
@@ -632,7 +635,7 @@ mathCmdsArg = [mathbf, mathbb, mathcal, mathtt, mathfrak, pmod, tilde, hat, chec
                 underline, widehat, widetilde, imath, jmath
                 -- maually added
                ,negate
-               , sqrt
+               , sqrt, phantom
                ]
 
 mathBinOps :: [MathItem -> MathItem -> MathItem]

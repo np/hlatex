@@ -519,6 +519,9 @@ framebox width pos txt = latexCmdArgs "framebox" [optional $ size width
                                                  ,optional $ rawTex [charPos pos]
                                                  ,mandatory txt]
 
+phantom :: LatexItem -> LatexItem
+phantom = latexCmdArg "phantom"
+
 -- TODO: make a safe version using a monad
 -- fragile
 unsafeNewsavebox :: Int -> (SaveBin, LatexItem)
