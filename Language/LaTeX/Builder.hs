@@ -378,11 +378,16 @@ addvspace :: LatexSize -> ParItem
 addvspace = parCmdArg "addvspace" . size
 
 
+-- Fonts
+-- some ref used: http://www.cl.cam.ac.uk/~rf10/pstex/latexcommands.htm
+
 -- Font sizes
 
 -- those could be seen as taking an argument
 tiny, scriptsize, footnotesize, small, normalsize, large,
-  _LARGE, _Large, huge, _Huge, mdseries, sffamily :: TexDecl
+  _LARGE, _Large, huge, _Huge, mdseries, bfseries,
+  itshape, slshape, scshape, upshape,
+  rmfamily, sffamily, ttfamily :: TexDecl
 tiny         = texDecl "tiny"
 scriptsize   = texDecl "scriptsize"
 footnotesize = texDecl "footnotesize"
@@ -394,8 +399,16 @@ _Large       = texDecl "Large"
 huge         = texDecl "huge"
 _Huge        = texDecl "Huge"
 
+bfseries = texDecl "bfseries"
 mdseries = texDecl "mdseries"
+rmfamily = texDecl "rmfamily"
 sffamily = texDecl "sffamily"
+ttfamily = texDecl "ttfamily"
+upshape = texDecl "upshape"
+itshape = texDecl "itshape"
+slshape = texDecl "slshape"
+scshape = texDecl "scshape"
+normalfont = texDecl "normalfont"
 
 emph, textrm, textsf, texttt, textmd, textbf,
   textup, textit, textsl, textsc, textnormal :: LatexItem -> LatexItem
@@ -1050,25 +1063,35 @@ authors = author . mconcat . intersperse (rawTex " & ")
 {-# DEPRECATED em "Use emph instead" #-}
 em :: TexDecl
 em = texDecl "em"
-{-# DEPRECATED bf "Use textbf instead" #-}
+{-# DEPRECATED rm "Use textrm or rmfamily instead" #-}
+rm :: TexDecl
+rm = texDecl "rm"
+{-# DEPRECATED bf "Use textbf or bfseries instead" #-}
 bf :: TexDecl
 bf = texDecl "bf"
-{-# DEPRECATED sf "Use textsf instead" #-}
+{-# DEPRECATED sf "Use textsf or sffamily instead" #-}
 sf :: TexDecl
 sf = texDecl "sf"
-{-# DEPRECATED sl "Use textsl instead" #-}
+{-# DEPRECATED sl "Use textsl or slshape instead" #-}
 sl :: TexDecl
 sl = texDecl "sl"
-{-# DEPRECATED sc "Use textsc instead" #-}
+{-# DEPRECATED sc "Use textsc or scshape instead" #-}
 sc :: TexDecl
 sc = texDecl "sc"
-{-# DEPRECATED it "Use textit instead" #-}
+{-# DEPRECATED it "Use textit or itshape instead" #-}
 it :: TexDecl
 it = texDecl "it"
-{-# DEPRECATED tt "Use texttt instead" #-}
+{-# DEPRECATED tt "Use texttt or ttfamily instead" #-}
 tt :: TexDecl
 tt = texDecl "tt"
+-- \up ?
 
 allTexDecls :: [TexDecl]
-allTexDecls = [em, bf, sf, sl, sc, it, tt]
+allTexDecls = [rm, em, bf, sf, sl, sc, it, tt
+              ,rmfamily, bfseries, sffamily, slshape
+              ,scshape, itshape, ttfamily, upshape, normalfont
+              ,reversemarginpar,normalmarginpar
+              ,sloppy, fussy,samepage
+              ,tiny, scriptsize, footnotesize, small, normalsize, large
+              ,_LARGE, _Large, huge, _Huge]
 
