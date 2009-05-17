@@ -34,7 +34,7 @@ ppFrameOpt (Overlays overlays) = ppOverlays overlays
 ppFrameOpt Fragile             = [B.optional (B.rawTex "fragile")]
 
 ppOverlays :: Overlays -> [Arg LatexItem]
-ppOverlays (RawOverlays s) = [B.optional . B.rawTex . ('<':) . (++">") $ s]
+ppOverlays (RawOverlays s) = [B.rawArg . ('<':) . (++">") $ s]
 ppOverlays NoOverlays      = []
 
 rawOverlays :: String -> Overlays
