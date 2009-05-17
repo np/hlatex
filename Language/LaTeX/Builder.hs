@@ -132,11 +132,10 @@ parEnvironmentPar x ys = liftM2 (ParEnvironmentPar x) $ mapM sequenceA ys
 figureLike :: String -> [LocSpec] -> ParItem -> ParItem
 figureLike x y = liftM $ FigureLike x y
 
-listLikeEnv :: String -> [ListItem] -> ParItem
-listLikeEnv name items =
-  parEnvironmentPar name [] (mconcat <$> mapM (fmap mkItem) items)
-  where mkItem (ListItm Nothing contents)    = ParCmdArgs "item" [] <> contents
-        mkItem (ListItm (Just lab) contents) = ParCmdArgs "item" [optional lab] <> contents
+listLikeEnv :: String -> [Arg LatexItem] -> [ListItem] -> ParItem
+listLikeEnv name opts items =
+  parEnvironmentPar name opts (mconcat <$> mapM (fmap mkItem) items)
+  where mkItem (ListItm opts contents) = ParCmdArgs "item" opts <> contents
 
 rawTex :: String -> LatexItem
 rawTex = pure . RawTex
@@ -662,17 +661,17 @@ setlength :: LatexItem -> LatexItem
 setlength = latexCmdArg "setlength"
 
 item :: ParItem -> ListItem
-item = liftM $ ListItm Nothing
+item = liftM $ ListItm []
 
 item' :: LatexItem -> ParItem -> ListItem
-item' a b = liftM2 ListItm (Just <$> a) b
+item' a b = liftM2 ListItm (pure . optional <$> a) b
 
 itemize :: [ListItem] -> ParItem
-itemize = listLikeEnv "itemize"
+itemize = listLikeEnv "itemize" []
 enumerate :: [ListItem] -> ParItem
-enumerate = listLikeEnv "enumerate"
+enumerate = listLikeEnv "enumerate" []
 description :: [ListItem] -> ParItem
-description = listLikeEnv "description"
+description = listLikeEnv "description" []
 
 figure, figureStar, table, tableStar :: [LocSpec] -> ParItem -> ParItem
 figure = figureLike "figure"
