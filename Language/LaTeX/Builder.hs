@@ -382,7 +382,7 @@ addvspace = parCmdArg "addvspace" . size
 
 -- those could be seen as taking an argument
 tiny, scriptsize, footnotesize, small, normalsize, large,
-  _LARGE, _Large, huge, _Huge, mdseries, ssfamily :: TexDecl
+  _LARGE, _Large, huge, _Huge, mdseries, sffamily :: TexDecl
 tiny         = texDecl "tiny"
 scriptsize   = texDecl "scriptsize"
 footnotesize = texDecl "footnotesize"
@@ -395,7 +395,7 @@ huge         = texDecl "huge"
 _Huge        = texDecl "Huge"
 
 mdseries = texDecl "mdseries"
-ssfamily = texDecl "ssfamily"
+sffamily = texDecl "sffamily"
 
 emph, textrm, textsf, texttt, textmd, textbf,
   textup, textit, textsl, textsc, textnormal :: LatexItem -> LatexItem
