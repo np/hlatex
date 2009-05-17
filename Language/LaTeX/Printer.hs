@@ -44,6 +44,7 @@ ppArg (Mandatory x)     = braces x
 ppArg (Optional  x)     = brackets x
 ppArg (Optionals xs)    = brackets $ mconcat $ intersperse (text ",") xs
 ppArg (Coordinates x y) = parens (x <> text " " <> y)
+ppArg (RawArg x)        = text x
 ppArg (PackageDependency _) = id
 
 ppEnv :: String -> [Arg ShowS] -> ShowS -> ShowS

@@ -87,6 +87,7 @@ data Arg a = NoArg
            | Optionals [a]
            | Mandatory a
            | Coordinates a a
+           | RawArg String
            | PackageDependency PackageName
   deriving (Show, Eq, Typeable)
 

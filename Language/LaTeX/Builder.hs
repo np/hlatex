@@ -59,6 +59,8 @@ coordinates :: a -> a -> Arg a
 coordinates = Coordinates
 optionals :: [a] -> Arg a
 optionals = Optionals
+rawArg :: String -> Arg a
+rawArg = RawArg
 packageDependency :: PackageName -> Arg a
 packageDependency = PackageDependency
 
