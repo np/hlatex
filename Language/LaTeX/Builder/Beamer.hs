@@ -33,7 +33,7 @@ ppFrameOpt (Overlays overlays) = ppOverlays overlays
 ppFrameOpt Fragile             = [B.optional (B.rawTex "fragile")]
 
 ppOverlays :: Overlays -> [Arg LatexItem]
-ppOverlays (RawOverlays s) = [B.optional . B.hstring $ s]
+ppOverlays (RawOverlays s) = [B.optional . B.rawTex $ s]
 
 rawOverlays :: String -> Overlays
 rawOverlays =  RawOverlays
@@ -56,6 +56,12 @@ block title = B.parEnvironmentPar "block" [B.mandatory title]
 
 slide :: LatexItem -> ParItem -> ParItem
 slide tit body = frame (frametitle tit <> body)
+
+slideO :: LatexItem -> Overlays -> ParItem -> ParItem
+slideO tit ovs body = frameO ovs (frametitle tit <> body)
+
+fullOv :: Overlays
+fullOv = rawOverlays "<+->"
 
 alert :: LatexItem -> LatexItem
 alert = B.latexCmdArg "alert"
