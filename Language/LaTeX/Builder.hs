@@ -433,6 +433,7 @@ linebreak = texDeclOpt "linebreak" . num
 nolinebreak = texDeclOpt "nolinebreak" . num
 
 -- fragile
+-- ParItem? But then protect and verb would potentially needs it too ....
 newline :: LatexItem
 newline = texCmdNoArg "newline"
 newline' :: LatexSize -> TexDecl
