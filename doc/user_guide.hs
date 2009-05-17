@@ -147,7 +147,7 @@ doc = execWriter $ do
 
   section «French Quotes»
 
-  let pragmaOpts = "{-# OPTIONS_GHC -F -pgmF ./frquotes #-}"
+  let pragmaOpts = "{-# OPTIONS_GHC -F -pgmF frquotes #-}"
       pragmaLang = "{-# LANGUAGE QuasiQuotes #-}"
   subsection «Activating the extension»
 
