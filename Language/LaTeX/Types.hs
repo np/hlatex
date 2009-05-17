@@ -295,7 +295,7 @@ instance Traversable Row where
   sequenceA (Cline i j) = pure $ Cline i j
 -}
 
-data ListItm = ListItm { itemLabel :: Maybe LatexItm, itemContents :: ParItm }
+data ListItm = ListItm { itemOptions :: [Arg LatexItm], itemContents :: ParItm }
 
 newtype PackageName = PkgName { getPkgName :: String }
   deriving (Ord, Eq, Show, Typeable)
