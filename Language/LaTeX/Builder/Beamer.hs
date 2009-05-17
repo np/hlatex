@@ -7,7 +7,7 @@ import Language.LaTeX.Builder.MonoidUtils
 import Language.LaTeX.Types
 import qualified Language.LaTeX.Builder as B
 import Language.LaTeX.Builder.QQ
-import Data.List (sort)
+import Data.List (sort, intercalate)
 import Data.Maybe
 
 {-
@@ -26,6 +26,7 @@ data FrameOpt = Overlays Overlays
   deriving (Eq,Ord) -- Overlays is first
 
 data Overlays = RawOverlays String
+              | NoOverlays
   deriving (Eq,Ord)
 
 ppFrameOpt :: FrameOpt -> [Arg LatexItem]
@@ -33,10 +34,14 @@ ppFrameOpt (Overlays overlays) = ppOverlays overlays
 ppFrameOpt Fragile             = [B.optional (B.rawTex "fragile")]
 
 ppOverlays :: Overlays -> [Arg LatexItem]
-ppOverlays (RawOverlays s) = [B.optional . B.rawTex $ s]
+ppOverlays (RawOverlays s) = [B.optional . B.rawTex . ('<':) . (++">") $ s]
+ppOverlays NoOverlays      = []
 
 rawOverlays :: String -> Overlays
 rawOverlays =  RawOverlays
+
+noOverlays :: Overlays
+noOverlays = NoOverlays
 
 -- more options to add ?
 frame' :: [FrameOpt] -> ParItem  -> ParItem 
@@ -51,8 +56,8 @@ frame = B.parEnvironmentPar "frame" [{-B.packageDependency pkg-}]
 example :: ParItem -> ParItem
 example = B.parEnvironmentPar "example" []
 
-block :: LatexItem -> ParItem -> ParItem
-block title = B.parEnvironmentPar "block" [B.mandatory title]
+block :: Overlays -> LatexItem -> ParItem -> ParItem
+block ovs title = B.parEnvironmentPar "block" (B.mandatory title : ppOverlays ovs)
 
 slide :: LatexItem -> ParItem -> ParItem
 slide tit body = frame (frametitle tit <> body)
@@ -61,7 +66,10 @@ slideO :: LatexItem -> Overlays -> ParItem -> ParItem
 slideO tit ovs body = frameO ovs (frametitle tit <> body)
 
 fullOv :: Overlays
-fullOv = rawOverlays "<+->"
+fullOv = rawOverlays "+-"
+
+ovFromList :: [Int] -> Overlays
+ovFromList = rawOverlays . intercalate "," . map show
 
 alert :: LatexItem -> LatexItem
 alert = B.latexCmdArg "alert"
@@ -78,8 +86,8 @@ description = listLikeEnvO "description"
 
 -- AtBeginSubsection, AtBeginSection
 
-only :: LatexItem -> LatexItem
-only = B.latexCmdArg "only"
+only :: Overlays -> LatexItem -> LatexItem
+only ov arg = B.latexCmdArgs "only" (ppOverlays ov ++ [B.mandatory arg])
 
 usetheme, usefonttheme :: LatexItem -> PreambleItem
 usetheme = B.preambleCmdArg "usetheme"
