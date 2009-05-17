@@ -66,6 +66,16 @@ fullOv = rawOverlays "<+->"
 alert :: LatexItem -> LatexItem
 alert = B.latexCmdArg "alert"
 
+listLikeEnvO :: String -> Overlays -> [ListItem] -> ParItem
+listLikeEnvO name ov = B.listLikeEnv name (ppOverlays ov)
+
+itemize :: Overlays -> [ListItem] -> ParItem
+itemize = listLikeEnvO "itemize"
+enumerate :: Overlays -> [ListItem] -> ParItem
+enumerate = listLikeEnvO "enumerate"
+description :: Overlays -> [ListItem] -> ParItem
+description = listLikeEnvO "description"
+
 -- AtBeginSubsection, AtBeginSection
 
 only :: LatexItem -> LatexItem
