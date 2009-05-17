@@ -37,6 +37,10 @@ ppOverlays :: Overlays -> [Arg LatexItem]
 ppOverlays (RawOverlays s) = [B.rawArg . ('<':) . (++">") $ s]
 ppOverlays NoOverlays      = []
 
+ppOverlaysOpt :: Overlays -> [Arg LatexItem]
+ppOverlaysOpt (RawOverlays s) = [B.optional . B.rawTex . ('<':) . (++">") $ s]
+ppOverlaysOpt NoOverlays      = []
+
 rawOverlays :: String -> Overlays
 rawOverlays =  RawOverlays
 
@@ -48,7 +52,7 @@ frame' :: [FrameOpt] -> ParItem  -> ParItem
 frame' opts = B.parEnvironmentPar "frame" ({-B.packageDependency pkg : -}(ppFrameOpt =<< sort opts))
 
 frameO :: Overlays -> ParItem  -> ParItem 
-frameO overlays = B.parEnvironmentPar "frame" ({-B.packageDependency pkg : -}ppOverlays overlays)
+frameO overlays = B.parEnvironmentPar "frame" ({-B.packageDependency pkg : -}ppOverlaysOpt overlays)
 
 frame :: ParItem -> ParItem 
 frame = B.parEnvironmentPar "frame" [{-B.packageDependency pkg-}]
@@ -56,8 +60,8 @@ frame = B.parEnvironmentPar "frame" [{-B.packageDependency pkg-}]
 example :: ParItem -> ParItem
 example = B.parEnvironmentPar "example" []
 
-block :: Overlays -> LatexItem -> ParItem -> ParItem
-block ovs title = B.parEnvironmentPar "block" (B.mandatory title : ppOverlays ovs)
+block :: LatexItem -> ParItem -> ParItem
+block title = B.parEnvironmentPar "block" [B.mandatory title]
 
 slide :: LatexItem -> ParItem -> ParItem
 slide tit body = frame (frametitle tit <> body)
@@ -75,7 +79,7 @@ alert :: LatexItem -> LatexItem
 alert = B.latexCmdArg "alert"
 
 listLikeEnvO :: String -> Overlays -> [ListItem] -> ParItem
-listLikeEnvO name ov = B.listLikeEnv name (ppOverlays ov)
+listLikeEnvO name ov = B.listLikeEnv name (ppOverlaysOpt ov)
 
 itemize :: Overlays -> [ListItem] -> ParItem
 itemize = listLikeEnvO "itemize"
