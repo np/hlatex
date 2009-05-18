@@ -93,6 +93,12 @@ description = listLikeEnvO "description"
 only :: Overlays -> LatexItem -> LatexItem
 only ov arg = B.latexCmdArgs "only" (ppOverlays ov ++ [B.mandatory arg])
 
+visible :: Overlays -> LatexItem -> LatexItem
+visible ov arg = B.latexCmdArgs "visible" (ppOverlays ov ++ [B.mandatory arg])
+
+alt :: Overlays -> LatexItem -> LatexItem -> LatexItem
+alt ov arg1 arg2 = B.latexCmdArgs "alt" (ppOverlays ov ++ [B.mandatory arg1, B.mandatory arg2])
+
 usetheme, usefonttheme :: LatexItem -> PreambleItem
 usetheme = B.preambleCmdArg "usetheme"
 usefonttheme = B.preambleCmdArg "usefonttheme"
