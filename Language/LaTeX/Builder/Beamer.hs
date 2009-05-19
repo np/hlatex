@@ -26,36 +26,30 @@ data FrameOpt = Overlays Overlays
   deriving (Eq,Ord) -- Overlays is first
 
 data Overlays = RawOverlays String
-              | NoOverlays
   deriving (Eq,Ord)
 
 ppFrameOpt :: FrameOpt -> [Arg LatexItem]
-ppFrameOpt (Overlays overlays) = ppOverlays overlays
+ppFrameOpt (Overlays overlays) = [ppOverlaysArg overlays]
 ppFrameOpt Fragile             = [B.optional (B.rawTex "fragile")]
 
-ppOverlays :: Overlays -> [Arg LatexItem]
-ppOverlays (RawOverlays s) = [B.rawArg . ('<':) . (++">") $ s]
-ppOverlays NoOverlays      = []
+ppOverlays :: Overlays -> LatexItem
+ppOverlays (RawOverlays s) = B.rawTex . ('<':) . (++">") $ s
 
-ppOverlaysOpt :: Overlays -> [Arg LatexItem]
-ppOverlaysOpt (RawOverlays s) = [B.optional . B.rawTex . ('<':) . (++">") $ s]
-ppOverlaysOpt NoOverlays      = []
+ppOverlaysArg :: Overlays -> Arg LatexItem
+ppOverlaysArg (RawOverlays s) = B.rawArg . ('<':) . (++">") $ s
 
 rawOverlays :: String -> Overlays
 rawOverlays =  RawOverlays
 
-noOverlays :: Overlays
-noOverlays = NoOverlays
-
 -- more options to add ?
 frame' :: [FrameOpt] -> ParItem  -> ParItem 
-frame' opts = B.parEnvironmentPar "frame" ({-B.packageDependency pkg : -}(ppFrameOpt =<< sort opts))
+frame' opts = B.parEnvironmentPar "frame" (ppFrameOpt =<< sort opts)
 
 frameO :: Overlays -> ParItem  -> ParItem 
-frameO overlays = B.parEnvironmentPar "frame" ({-B.packageDependency pkg : -}ppOverlaysOpt overlays)
+frameO overlays = B.parEnvironmentPar "frame" [B.optional (ppOverlays overlays)]
 
 frame :: ParItem -> ParItem 
-frame = B.parEnvironmentPar "frame" [{-B.packageDependency pkg-}]
+frame = B.parEnvironmentPar "frame" []
 
 example :: ParItem -> ParItem
 example = B.parEnvironmentPar "example" []
@@ -78,26 +72,26 @@ ovFromList = rawOverlays . intercalate "," . map show
 alert :: LatexItem -> LatexItem
 alert = B.latexCmdArg "alert"
 
-listLikeEnvO :: String -> Overlays -> [ListItem] -> ParItem
-listLikeEnvO name ov = B.listLikeEnv name (ppOverlaysOpt ov)
-
+-- A shortcut for @itemize' . ppOverlays@
 itemize :: Overlays -> [ListItem] -> ParItem
-itemize = listLikeEnvO "itemize"
+itemize = B.itemize' . ppOverlays
+-- A shortcut for @enumerate' . ppOverlays@
 enumerate :: Overlays -> [ListItem] -> ParItem
-enumerate = listLikeEnvO "enumerate"
+enumerate = B.enumerate' . ppOverlays
+-- A shortcut for @description' . ppOverlays@
 description :: Overlays -> [ListItem] -> ParItem
-description = listLikeEnvO "description"
+description = B.description' . ppOverlays
 
 -- AtBeginSubsection, AtBeginSection
 
 only :: Overlays -> LatexItem -> LatexItem
-only ov arg = B.latexCmdArgs "only" (ppOverlays ov ++ [B.mandatory arg])
+only ov arg = B.latexCmdArgs "only" [ppOverlaysArg ov, B.mandatory arg]
 
 visible :: Overlays -> LatexItem -> LatexItem
-visible ov arg = B.latexCmdArgs "visible" (ppOverlays ov ++ [B.mandatory arg])
+visible ov arg = B.latexCmdArgs "visible" [ppOverlaysArg ov, B.mandatory arg]
 
 alt :: Overlays -> LatexItem -> LatexItem -> LatexItem
-alt ov arg1 arg2 = B.latexCmdArgs "alt" (ppOverlays ov ++ [B.mandatory arg1, B.mandatory arg2])
+alt ov arg1 arg2 = B.latexCmdArgs "alt" [ppOverlaysArg ov, B.mandatory arg1, B.mandatory arg2]
 
 usetheme, usefonttheme :: LatexItem -> PreambleItem
 usetheme = B.preambleCmdArg "usetheme"
