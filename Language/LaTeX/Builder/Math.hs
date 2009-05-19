@@ -741,7 +741,7 @@ charToMath ch
       , ('=', eq)
       , ('≠', neq)
       --, ('', cong)
-      --, ('', approx)
+      , ('≈', approx)
       --, ('', propto)
       , ('¬', neg)
       , ('⇒', implies)
