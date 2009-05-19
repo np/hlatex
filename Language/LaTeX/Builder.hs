@@ -137,7 +137,7 @@ figureLike x y = liftM $ FigureLike x y
 listLikeEnv :: String -> [Arg LatexItem] -> [ListItem] -> ParItem
 listLikeEnv name opts items =
   parEnvironmentPar name opts (mconcat <$> mapM (fmap mkItem) items)
-  where mkItem (ListItm opts contents) = ParCmdArgs "item" opts <> contents
+  where mkItem (ListItm opts' contents) = ParCmdArgs "item" opts' <> contents
 
 rawTex :: String -> LatexItem
 rawTex = pure . RawTex
@@ -388,7 +388,7 @@ addvspace = parCmdArg "addvspace" . size
 tiny, scriptsize, footnotesize, small, normalsize, large,
   _LARGE, _Large, huge, _Huge, mdseries, bfseries,
   itshape, slshape, scshape, upshape,
-  rmfamily, sffamily, ttfamily :: TexDecl
+  rmfamily, sffamily, ttfamily, normalfont :: TexDecl
 tiny         = texDecl "tiny"
 scriptsize   = texDecl "scriptsize"
 footnotesize = texDecl "footnotesize"

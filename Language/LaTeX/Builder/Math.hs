@@ -663,9 +663,9 @@ mchar x | x `elem` "#&{}$%"  = ['\\',x]
 -}
 
 mchar :: (Char -> LatexItem) -> (Char -> LatexItem)
-mchar xchar ch = maybe (xchar ch) B.math $ charToMath' ch
-  where charToMath' ch | isAscii ch && isAlphaNum ch = Nothing
-                       | otherwise                   = charToMath ch
+mchar xchar ch = maybe (xchar ch) B.math m'
+  where m' | isAscii ch && isAlphaNum ch = Nothing
+           | otherwise                   = charToMath ch
 
 stringToMath :: String -> Maybe MathItem
 stringToMath = fmap mconcat . mapM charToMath
