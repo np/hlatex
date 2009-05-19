@@ -678,6 +678,13 @@ enumerate = listLikeEnv "enumerate" []
 description :: [ListItem] -> ParItem
 description = listLikeEnv "description" []
 
+itemize' :: LatexItem -> [ListItem] -> ParItem
+itemize' = listLikeEnv "itemize" . pure . optional
+enumerate' :: LatexItem -> [ListItem] -> ParItem
+enumerate' = listLikeEnv "enumerate" . pure . optional
+description' :: LatexItem -> [ListItem] -> ParItem
+description' = listLikeEnv "description" . pure . optional
+
 figure, figureStar, table, tableStar :: [LocSpec] -> ParItem -> ParItem
 figure = figureLike "figure"
 figureStar = figureLike "figure*"
