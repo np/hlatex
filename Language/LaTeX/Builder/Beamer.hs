@@ -28,6 +28,8 @@ data FrameOpt = Overlays Overlays
 data Overlays = RawOverlays String
   deriving (Eq,Ord)
 
+type BeamerOpt = (String, String)
+
 ppFrameOpt :: FrameOpt -> [Arg LatexItem]
 ppFrameOpt (Overlays overlays) = [ppOverlaysArg overlays]
 ppFrameOpt Fragile             = [B.optional (B.rawTex "fragile")]
@@ -93,25 +95,49 @@ visible ov arg = B.latexCmdArgs "visible" [ppOverlaysArg ov, B.mandatory arg]
 alt :: Overlays -> LatexItem -> LatexItem -> LatexItem
 alt ov arg1 arg2 = B.latexCmdArgs "alt" [ppOverlaysArg ov, B.mandatory arg1, B.mandatory arg2]
 
-usetheme, usefonttheme :: LatexItem -> PreambleItem
-usetheme = B.preambleCmdArg "usetheme"
-usefonttheme = B.preambleCmdArg "usefonttheme"
+beamerOpts :: [BeamerOpt] -> [Arg LatexItem]
+beamerOpts [] = []
+beamerOpts os = [B.optional . B.rawTex . intercalate "," . map f $ os]
+  where f (x,y) = x ++ "=" ++ y
+
+beamerPreambleCmdArgs :: String -> [BeamerOpt] -> LatexItem -> PreambleItem
+beamerPreambleCmdArgs name opts arg = B.preambleCmdArgs name (beamerOpts opts ++ [B.mandatory arg])
+
+usetheme, usefonttheme, useinnertheme, useoutertheme,
+  usecolortheme :: [BeamerOpt] -> LatexItem -> PreambleItem
+
+usetheme      = beamerPreambleCmdArgs "usetheme"
+usefonttheme  = beamerPreambleCmdArgs "usefonttheme"
+useinnertheme = beamerPreambleCmdArgs "useinnertheme"
+useoutertheme = beamerPreambleCmdArgs "useoutertheme"
+usecolortheme = beamerPreambleCmdArgs "usecolortheme"
+
+-- | Disable those litte icons at the bottom right of your presentation.
+beamertemplatenavigationsymbolsempty :: PreambleItem
+beamertemplatenavigationsymbolsempty = B.preambleCmdArgs "beamertemplatenavigationsymbolsempty" []
+
+appendix :: ParItem
+appendix = B.parCmdArgs "appendix" []
+
 -- \setbeamercolor*{titlelike}{parent=structure}
 -- setbeamercolorStar = 
 
 data Footline = Footline { author_percent :: Percentage
                          , title_percent  :: Percentage
-                         , date_percent   :: Maybe Percentage }  
+                         , date_percent   :: Maybe Percentage
+                         , show_total_frames :: Bool }  
 
 defaultFootline :: Footline
 defaultFootline = Footline { author_percent = 34
                            , title_percent  = 36  
-                           , date_percent   = Nothing } 
+                           , date_percent   = Nothing
+                           , show_total_frames = True } 
 
 footline :: Footline -> PreambleItem
-footline Footline{author_percent=authorp,title_percent=titlep,date_percent=maydatep} =
+footline Footline{author_percent=authorp,title_percent=titlep,date_percent=maydatep,show_total_frames=stf} =
   let datep = fromMaybe (100 - authorp - titlep) maydatep
       f (Percentage p) = show p
+      maytotalframes = if stf then [$str| / \inserttotalframenumber|] else ""
   in
   B.rawPreamble $
   [$str|
@@ -130,7 +156,7 @@ footline Footline{author_percent=authorp,title_percent=titlep,date_percent=mayda
             \begin{beamercolorbox}[wd=.|] <> f datep <> [$str|\paperwidth,ht=2.25ex,dp=1.125ex,right]{date  in head/foot}%
               \usebeamerfont{date in head/foot}
               \insertshortdate{}\hspace*{2em}
-              \insertframenumber{} / \inserttotalframenumber\hspace*{2ex}
+              \insertframenumber{}|] <> maytotalframes <> [$str|\hspace*{2ex}
             \end{beamercolorbox}}%
           \vskip0pt%
         }
