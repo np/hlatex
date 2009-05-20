@@ -19,9 +19,6 @@ pkg = B.pkgName "beamer"
 documentclass :: DocumentClass
 documentclass =  OtherDocumentClass "beamer"
 
-frametitle :: LatexItem -> ParItem
-frametitle = B.parCmdArg "frametitle"
-
 type TargetName = String
 type Label = String
 
@@ -60,13 +57,19 @@ label :: Label -> FrameOpt
 label = Label
 
 -- more options to add ?
-frame :: Overlays -> Overlays -> [FrameOpt] -> LatexItem -> LatexItem -> ParItem  -> ParItem 
+frame :: Overlays -> Overlays -> [FrameOpt] -> LatexItem -> LatexItem -> ParItem  -> ParItem
 frame ov mov fopts title subtitle =
+  {- recent beamer versions
   B.parEnvironmentPar "frame" $ [ ppOverlaysArg ov
                                 , maybe B.noArg B.optional $ ppOverlaysOpt mov
                                 ] ++ ppFrameOpts fopts ++
-                                [ B.mandatory title 
+                                [ B.mandatory title
                                 , B.mandatory subtitle ]
+  -}
+  B.parEnvironmentPar "frame" ([ ppOverlaysArg ov
+                               , maybe B.noArg B.optional $ ppOverlaysOpt mov
+                               ] ++ ppFrameOpts fopts) .
+     (frametitle title<>) . (framesubtitle subtitle<>)
 
 frameO :: Overlays -> ParItem  -> ParItem 
 frameO overlays = B.parEnvironmentPar "frame" [maybe B.noArg B.optional $ ppOverlaysOpt overlays]
@@ -82,6 +85,12 @@ slide tit body = frame noOverlays noOverlays [] tit mempty body
 
 slideO :: LatexItem -> Overlays -> ParItem -> ParItem
 slideO tit ovs body = frameO ovs (frametitle tit <> body)
+
+frametitle :: LatexItem -> ParItem
+frametitle = B.parCmdArg "frametitle"
+
+framesubtitle :: LatexItem -> ParItem
+framesubtitle = B.parCmdArg "framesubtitle"
 
 fullOv :: Overlays
 fullOv = rawOverlays "+-"
