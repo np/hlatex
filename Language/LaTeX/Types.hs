@@ -29,6 +29,20 @@ data Root = Root PreambleItm Document
 data Document = Document ParItm
   deriving (Show, Eq, Typeable)
 
+type LineNumber = Int
+type CharNumber = Int
+
+data Loc = Loc { locFile :: FilePath
+               , locLine :: LineNumber
+               , locChar :: CharNumber
+               }
+   deriving (Show, Eq, Typeable)
+
+data Note = TextNote String
+          | IntNote Int
+          | LocNote Loc
+   deriving (Show, Eq, Typeable)
+
 data DocumentClass = Article
                    | Book
                    | Report
@@ -41,6 +55,7 @@ data PreambleItm = PreambleCmd String
               | PreambleConcat [PreambleItm]
               | Usepackage PackageName [Arg LatexItm]
               | RawPreamble String
+              | PreambleNote Note PreambleItm
   deriving (Show, Eq, Typeable)
 
 instance Monoid PreambleItm where
@@ -70,6 +85,7 @@ data LatexItm
            | RawTex String
            | TexGroup LatexItm
            | LatexConcat [LatexItm]
+           | LatexNote Note LatexItm
   deriving (Show, Eq, Typeable)
 
 instance Monoid LatexItm where
@@ -127,6 +143,7 @@ data ParItm  = Para LatexItm -- Here LatexItm does not mean LR mode
              | RawParMode String
              | ParGroup ParItm -- check validity of this
              | ParConcat [ParItm]
+             | ParNote Note ParItm
   deriving (Show, Eq, Typeable)
 
 instance Monoid ParItm where
@@ -149,6 +166,7 @@ data MathItm   = MathDecls [MathDcl]
                | MathConcat [MathItm]
                | MathBinOp String MathItm MathItm
                | MathUnOp String MathItm
+               | MathNote Note MathItm
   deriving (Show, Eq, Typeable)
 
 instance Monoid MathItm where
@@ -390,6 +408,8 @@ $(derive makeFunctor     ''Row)
 $(derive makeFoldable    ''Row)
 $(derive makeTraversable ''Row)
 
+$(derive makePlateTypeable ''Loc)
+$(derive makePlateTypeable ''Note)
 $(derive makePlateTypeable ''Arg)
 $(derive makePlateTypeable ''TexDcl)
 $(derive makePlateTypeable ''MathDcl)

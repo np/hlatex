@@ -114,6 +114,8 @@ pp (TexGroup t) = braces $ pp t
 
 pp (LatexConcat contents) = mconcat $ map pp contents
 
+pp (LatexNote note t) = ppNote note pp t
+
 ppParMode :: ParItm -> ShowS
 ppParMode (Para t) = pp t
 ppParMode (ParCmdArgs cmdName args) = ppCmdArgs cmdName $ map (fmap pp) args
@@ -129,6 +131,7 @@ ppParMode (Tabular specs rows) =
 ppParMode (FigureLike name locs body) = ppEnv name [Optional $ text $ map locSpecChar locs] $ ppParMode body
 
 ppParMode (ParConcat contents) = vcat $ map ppParMode contents
+ppParMode (ParNote note t) = ppNote note ppParMode t
 
 ppMath :: MathItm -> ShowS
 ppMath (MathDecls decls) = mconcatMap ppMathDecl decls
@@ -143,6 +146,7 @@ ppMath (MathConcat ms) = mconcat $ map ppMath ms
 ppMath (MathUnOp op m) = text op <> sp <> ppMath m
 ppMath (MathBinOp op l r) = parens (ppMath l <> sp <> text op <> sp <> ppMath r)
 ppMath (MathToLR cmdName args) = ppCmdArgs cmdName $ map (fmap pp) args
+ppMath (MathNote note m) = ppNote note ppMath m
 
 ppRowSpec :: RowSpec ShowS -> ShowS
 ppRowSpec Rc        = text "c"
@@ -193,6 +197,17 @@ ppPreamble (PreambleConcat ps) = vcat $ map ppPreamble ps
 ppPreamble (Usepackage pkg args)
   = ppCmdArgs "usepackage" (map (fmap pp) args ++ [Mandatory (text $ getPkgName pkg)])
 ppPreamble (RawPreamble raw) = text raw
+ppPreamble (PreambleNote note p) = ppNote note ppPreamble p
+
+ppNote :: Note -> (a -> ShowS) -> a -> ShowS
+ppNote note ppElt elt =  nl' <> mconcat (map ((<>nl') . text) . lines . showNote $ note) <> ppElt elt <> nl'
+  where nl' = text "%\n%"
+        showNote (TextNote s) = show s
+        showNote (IntNote  i) = show i
+        showNote (LocNote  loc) = showLoc loc
+
+showLoc :: Loc -> String
+showLoc (Loc fp line char) = unwords [fp, ":", show line, ":", show char]
 
 ppRoot :: Root -> ShowS
 ppRoot (Root preamb (Document doc)) = ppPreamble preamb $$ ppEnv "document" [] (ppParMode doc)

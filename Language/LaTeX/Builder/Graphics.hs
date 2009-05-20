@@ -11,7 +11,7 @@ module Language.LaTeX.Builder.Graphics
   , pkg)
 where
 
-import Language.LaTeX.Types
+import Language.LaTeX.Types hiding (Loc)
 import Language.LaTeX.Builder (parCmdArgs, size, bool, coord, packageDependency,
                                rat, rawTex, optional, mandatory)
 import Language.LaTeX.Builder.MonoidUtils ((<>))
