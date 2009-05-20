@@ -7,6 +7,7 @@ import Language.LaTeX.Builder.MonoidUtils
 import Language.LaTeX.Types
 import qualified Language.LaTeX.Builder as B
 import Language.LaTeX.Builder.QQ
+import Control.Applicative
 import Data.List (intercalate)
 import Data.Maybe
 import Data.Monoid
@@ -71,7 +72,7 @@ frame ov mov fopts title subtitle =
                                ] ++ ppFrameOpts fopts) .
      (frametitle title<>) . (framesubtitle subtitle<>)
 
-frameO :: Overlays -> ParItem  -> ParItem 
+frameO :: Overlays -> ParItem  -> ParItem
 frameO overlays = B.parEnvironmentPar "frame" [maybe B.noArg B.optional $ ppOverlaysOpt overlays]
 
 example :: ParItem -> ParItem
@@ -190,36 +191,76 @@ hyperlink ov1 target linkText ov2 =
                              , B.mandatory (B.rawTex target)
                              , B.mandatory linkText
                              , ppOverlaysArg ov2
-                             ] 
+                             ]
 
 againframe :: Overlays -> Overlays -> [FrameOpt] -> Label -> ParItem
 againframe ov1 ov2 fopts lbl =
   B.parCmdArgs "againframe" . concat $ [ ppOverlaysArg ov1
                                        , ppOverlaysArg ov2
-                                       ] 
+                                       ]
                                        : ppFrameOpts fopts : [[B.mandatory (B.rawTex lbl)]]
-                                
+
 
 -- | Disable those litte icons at the bottom right of your presentation.
 beamertemplatenavigationsymbolsempty :: PreambleItem
 beamertemplatenavigationsymbolsempty = B.preambleCmdArgs "beamertemplatenavigationsymbolsempty" []
 
+type TexDimension = LatexSize
+
+data BeamerSize
+  = TextMarginLeft TexDimension
+    -- ^ sets a new left margin. This excludes the left sidebar. Thus,
+    -- it is the distance between the right edge of the left sidebar and the left edge of the text.
+  | TextMarginRight TexDimension
+    -- ^ sets a new right margin.
+  | SidebarWidthLeft TexDimension
+    -- ^ sets the size of the left sidebar. Currently, this command
+    -- should be given before a shading is installed for the sidebar canvas.
+  | SidebarWidthRight TexDimension
+    -- ^ sets the size of the right sidebar.
+  | DescriptionWidth TexDimension
+    -- ^ sets the default width of description labels, see Beamer User Guide Section 11.1.
+  | DescriptionWidthOf LatexItem
+    -- ^ sets the default width of description labels to the width of the
+    -- text, see Section 11.1.
+  | MiniFrameSize TexDimension
+    -- ^ sets the size of mini frames in a navigation bar. When two
+    -- mini frame icons are shown alongside each other, their left end points are
+    -- 'TexDimension' far apart.
+  | MiniFrameOffset TexDimension
+    -- ^ set an additional vertical offset that is added to the mini
+    -- frame size when arranging mini frames vertically.
+
+ppBeamerSizeArg :: BeamerSize -> LatexItem
+ppBeamerSizeArg bs = case bs of
+  TextMarginLeft dim -> B.rawTex "text margin left=" <> B.size dim
+  TextMarginRight dim -> B.rawTex "text margin right=" <> B.size dim
+  SidebarWidthLeft dim -> B.rawTex "sidebar width left=" <> B.size dim
+  SidebarWidthRight dim -> B.rawTex "sidebar width right=" <> B.size dim
+  DescriptionWidth dim -> B.rawTex "description width=" <> B.size dim
+  DescriptionWidthOf txt -> B.rawTex "description width of=" <> txt
+  MiniFrameSize dim -> B.rawTex "mini frame size=" <> B.size dim
+  MiniFrameOffset dim -> B.rawTex "mini frame offset=" <> B.size dim
+
+setbeamersize :: BeamerSize -> PreambleItem
+setbeamersize = B.preambleCmdArgs "setbeamersize" . pure . B.mandatory . ppBeamerSizeArg
+
 appendix :: ParItem
 appendix = B.parCmdArgs "appendix" []
 
 -- \setbeamercolor*{titlelike}{parent=structure}
--- setbeamercolorStar = 
+-- setbeamercolorStar =
 
 data Footline = Footline { author_percent :: Percentage
                          , title_percent  :: Percentage
                          , date_percent   :: Maybe Percentage
-                         , show_total_frames :: Bool }  
+                         , show_total_frames :: Bool }
 
 defaultFootline :: Footline
 defaultFootline = Footline { author_percent = 34
-                           , title_percent  = 36  
+                           , title_percent  = 36
                            , date_percent   = Nothing
-                           , show_total_frames = True } 
+                           , show_total_frames = True }
 
 footline :: Footline -> PreambleItem
 footline Footline{author_percent=authorp,title_percent=titlep,date_percent=maydatep,show_total_frames=stf} =
