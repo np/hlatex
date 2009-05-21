@@ -8,7 +8,7 @@ import Language.LaTeX.Types
 import qualified Language.LaTeX.Builder as B
 import Language.LaTeX.Builder.QQ
 import Control.Applicative
-import Data.List (intercalate)
+import Data.List (intersperse,intercalate)
 import Data.Maybe
 import Data.Monoid
 
@@ -25,34 +25,55 @@ type Label = String
 
 data FrameOpt = Label Label
               | Fragile
-  deriving (Eq,Ord) -- Overlays is first
-
-data Overlays = RawOverlays String
-              | NoOverlays
+              | OtherOption String String
   deriving (Eq,Ord)
+
+data OverlayInt = OvInt Int
+                | OvPlus
+                | OvPlusOffset Int
+                | OvDot
+  deriving (Eq,Ord)
+
+-- | Only overlay actions are not supported currently.
+data Overlay = OvSingle OverlayInt
+             | OvFromTo OverlayInt OverlayInt
+             | OvFrom OverlayInt
+  deriving (Eq,Ord)
+
+type Overlays = [Overlay]
 
 type BeamerOpt = (String, String)
 
-ppFrameOpt :: FrameOpt -> BeamerOpt
-ppFrameOpt (Label lbl) = ("label",lbl)
-ppFrameOpt Fragile     = ("fragile","")
+texFrameOpt :: FrameOpt -> BeamerOpt
+texFrameOpt (Label lbl) = ("label",lbl)
+texFrameOpt Fragile     = ("fragile","")
+texFrameOpt (OtherOption a b) = (a,b)
 
-ppFrameOpts :: [FrameOpt] -> [Arg LatexItem]
-ppFrameOpts = beamerOpts . map ppFrameOpt
+texFrameOpts :: [FrameOpt] -> [Arg LatexItem]
+texFrameOpts = beamerOpts . map texFrameOpt
 
-ppOverlaysOpt :: Overlays -> Maybe LatexItem
-ppOverlaysOpt (RawOverlays s) = Just . B.rawTex . ('<':) . (++">") $ s
-ppOverlaysOpt NoOverlays      = Nothing
+showOvInt :: OverlayInt -> ShowS
+showOvInt (OvInt i)          = shows i
+showOvInt OvPlus             = ('+':)
+showOvInt OvDot              = ('.':)
+showOvInt (OvPlusOffset off) = ('+':) . ('(':) . shows off . (')':)
 
-ppOverlaysArg :: Overlays -> Arg LatexItem
-ppOverlaysArg (RawOverlays s) = B.rawArg . ('<':) . (++">") $ s
-ppOverlaysArg NoOverlays      = B.noArg
+showOverlay :: Overlay -> ShowS
+showOverlay (OvSingle i)   = showOvInt i
+showOverlay (OvFromTo i j) = showOvInt i . ('-':) . showOvInt j
+showOverlay (OvFrom i)     = showOvInt i . ('-':)
 
-rawOverlays :: String -> Overlays
-rawOverlays =  RawOverlays
+showOverlays :: Overlays -> Maybe String
+showOverlays []  = Nothing
+showOverlays ovs = Just . ('<':) . (++">") . showsOv ovs $ []
+   where showsOv :: Overlays -> ShowS
+         showsOv = mconcat . intersperse (',':) . map showOverlay
 
-noOverlays :: Overlays
-noOverlays = NoOverlays
+texOverlaysOpt :: Overlays -> Maybe LatexItem
+texOverlaysOpt = fmap B.rawTex . showOverlays
+
+texOverlaysArg :: Overlays -> Arg LatexItem
+texOverlaysArg = maybe B.noArg B.rawArg . showOverlays
 
 label :: Label -> FrameOpt
 label = Label
@@ -61,19 +82,19 @@ label = Label
 frame :: Overlays -> Overlays -> [FrameOpt] -> LatexItem -> LatexItem -> ParItem  -> ParItem
 frame ov mov fopts title subtitle =
   {- recent beamer versions
-  B.parEnvironmentPar "frame" $ [ ppOverlaysArg ov
-                                , maybe B.noArg B.optional $ ppOverlaysOpt mov
-                                ] ++ ppFrameOpts fopts ++
+  B.parEnvironmentPar "frame" $ [ texOverlaysArg ov
+                                , maybe B.noArg B.optional $ texOverlaysOpt mov
+                                ] ++ texFrameOpts fopts ++
                                 [ B.mandatory title
                                 , B.mandatory subtitle ]
   -}
-  B.parEnvironmentPar "frame" ([ ppOverlaysArg ov
-                               , maybe B.noArg B.optional $ ppOverlaysOpt mov
-                               ] ++ ppFrameOpts fopts) .
+  B.parEnvironmentPar "frame" ([ texOverlaysArg ov
+                               , maybe B.noArg B.optional $ texOverlaysOpt mov
+                               ] ++ texFrameOpts fopts) .
      (frametitle title<>) . (framesubtitle subtitle<>)
 
 frameO :: Overlays -> ParItem  -> ParItem
-frameO overlays = B.parEnvironmentPar "frame" [maybe B.noArg B.optional $ ppOverlaysOpt overlays]
+frameO overlays = B.parEnvironmentPar "frame" [maybe B.noArg B.optional $ texOverlaysOpt overlays]
 
 example :: ParItem -> ParItem
 example = B.parEnvironmentPar "example" []
@@ -82,7 +103,7 @@ block :: LatexItem -> ParItem -> ParItem
 block title = B.parEnvironmentPar "block" [B.mandatory title]
 
 slide :: LatexItem -> ParItem -> ParItem
-slide tit body = frame noOverlays noOverlays [] tit mempty body
+slide tit body = frame [] [] [] tit mempty body
 
 slideO :: LatexItem -> Overlays -> ParItem -> ParItem
 slideO tit ovs body = frameO ovs (frametitle tit <> body)
@@ -93,35 +114,66 @@ frametitle = B.parCmdArg "frametitle"
 framesubtitle :: LatexItem -> ParItem
 framesubtitle = B.parCmdArg "framesubtitle"
 
-fullOv :: Overlays
-fullOv = rawOverlays "+-"
+-- | All overlays counting from the given argument (like in @<1->@).
+ovFrom :: OverlayInt -> Overlay
+ovFrom = OvFrom
 
-ovFromList :: [Int] -> Overlays
-ovFromList = rawOverlays . intercalate "," . map show
+-- | All overlays between the given arguments (like in @<1-3>@).
+ovFromTo :: OverlayInt -> OverlayInt -> Overlay
+ovFromTo = OvFromTo
+
+-- | The single overlay (like in @<1>@).
+ovSingle :: OverlayInt -> Overlay
+ovSingle = OvSingle
+
+-- | Lift a strictly positive 'Int' to an 'OverlayInt'
+ovInt :: Int -> OverlayInt
+ovInt i | i > 0     = OvInt i
+        | otherwise = error "ovInt: strictly positive Int expected"
+
+{- | The '+' incremental overlay specification (like in @<+->@).
+
+     Beamer User Guide at 8.6.4 Incremental Specifications -}
+ovPlus :: OverlayInt
+ovPlus = OvPlus
+
+{- | The '.' incremental overlay specification (like in @<.->@).
+
+     Beamer User Guide at 8.6.4 Incremental Specifications -}
+ovDot :: OverlayInt
+ovDot = OvDot
+
+-- | Handy shortcut for @[ovFrom ovPlus]@ aka @<+->@.
+ovIncr :: Overlays
+ovIncr = [ovFrom ovPlus]
+
+-- | Handy lifting for a list of strictly positive integers.
+ovInts :: [Int] -> Overlays
+ovInts = map (ovSingle . ovInt)
 
 alert :: LatexItem -> LatexItem
 alert = B.latexCmdArg "alert"
 
--- A shortcut for @itemize' . ppOverlays@
+-- A shortcut for @itemize' . texOverlaysOpt@
 itemize :: Overlays -> [ListItem] -> ParItem
-itemize = B.itemize' . ppOverlaysOpt
--- A shortcut for @enumerate' . ppOverlays@
+itemize = B.itemize' . texOverlaysOpt
+-- A shortcut for @enumerate' . texOverlaysOpt@
 enumerate :: Overlays -> [ListItem] -> ParItem
-enumerate = B.enumerate' . ppOverlaysOpt
--- A shortcut for @description' . ppOverlays@
+enumerate = B.enumerate' . texOverlaysOpt
+-- A shortcut for @description' . texOverlaysOpt@
 description :: Overlays -> [ListItem] -> ParItem
-description = B.description' . ppOverlaysOpt
+description = B.description' . texOverlaysOpt
 
 -- AtBeginSubsection, AtBeginSection
 
 only :: Overlays -> LatexItem -> LatexItem
-only ov arg = B.latexCmdArgs "only" [ppOverlaysArg ov, B.mandatory arg]
+only ov arg = B.latexCmdArgs "only" [texOverlaysArg ov, B.mandatory arg]
 
 visible :: Overlays -> LatexItem -> LatexItem
-visible ov arg = B.latexCmdArgs "visible" [ppOverlaysArg ov, B.mandatory arg]
+visible ov arg = B.latexCmdArgs "visible" [texOverlaysArg ov, B.mandatory arg]
 
 alt :: Overlays -> LatexItem -> LatexItem -> LatexItem
-alt ov arg1 arg2 = B.latexCmdArgs "alt" [ppOverlaysArg ov, B.mandatory arg1, B.mandatory arg2]
+alt ov arg1 arg2 = B.latexCmdArgs "alt" [texOverlaysArg ov, B.mandatory arg1, B.mandatory arg2]
 
 beamerOpts :: [BeamerOpt] -> [Arg LatexItem]
 beamerOpts [] = []
@@ -187,18 +239,18 @@ beamerreturnbutton = B.latexCmdArg "beamerreturnbutton"
 -}
 hyperlink :: Overlays -> TargetName -> LatexItem -> Overlays -> LatexItem
 hyperlink ov1 target linkText ov2 =
-  B.latexCmdArgs "hyperlink" [ ppOverlaysArg ov1
+  B.latexCmdArgs "hyperlink" [ texOverlaysArg ov1
                              , B.mandatory (B.rawTex target)
                              , B.mandatory linkText
-                             , ppOverlaysArg ov2
+                             , texOverlaysArg ov2
                              ]
 
 againframe :: Overlays -> Overlays -> [FrameOpt] -> Label -> ParItem
 againframe ov1 ov2 fopts lbl =
-  B.parCmdArgs "againframe" . concat $ [ ppOverlaysArg ov1
-                                       , ppOverlaysArg ov2
+  B.parCmdArgs "againframe" . concat $ [ texOverlaysArg ov1
+                                       , texOverlaysArg ov2
                                        ]
-                                       : ppFrameOpts fopts : [[B.mandatory (B.rawTex lbl)]]
+                                       : texFrameOpts fopts : [[B.mandatory (B.rawTex lbl)]]
 
 
 -- | Disable those litte icons at the bottom right of your presentation.
@@ -231,8 +283,8 @@ data BeamerSize
     -- ^ set an additional vertical offset that is added to the mini
     -- frame size when arranging mini frames vertically.
 
-ppBeamerSizeArg :: BeamerSize -> LatexItem
-ppBeamerSizeArg bs = case bs of
+texBeamerSizeArg :: BeamerSize -> LatexItem
+texBeamerSizeArg bs = case bs of
   TextMarginLeft dim -> B.rawTex "text margin left=" <> B.size dim
   TextMarginRight dim -> B.rawTex "text margin right=" <> B.size dim
   SidebarWidthLeft dim -> B.rawTex "sidebar width left=" <> B.size dim
@@ -243,7 +295,7 @@ ppBeamerSizeArg bs = case bs of
   MiniFrameOffset dim -> B.rawTex "mini frame offset=" <> B.size dim
 
 setbeamersize :: BeamerSize -> PreambleItem
-setbeamersize = B.preambleCmdArgs "setbeamersize" . pure . B.mandatory . ppBeamerSizeArg
+setbeamersize = B.preambleCmdArgs "setbeamersize" . pure . B.mandatory . texBeamerSizeArg
 
 appendix :: ParItem
 appendix = B.parCmdArgs "appendix" []
