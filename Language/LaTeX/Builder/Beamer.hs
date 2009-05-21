@@ -91,7 +91,7 @@ frame ov mov fopts title subtitle =
   B.parEnvironmentPar "frame" ([ texOverlaysArg ov
                                , maybe B.noArg B.optional $ texOverlaysOpt mov
                                ] ++ texFrameOpts fopts) .
-     (frametitle title<>) . (framesubtitle subtitle<>)
+     (mapNonEmpty frametitle title<>) . (mapNonEmpty framesubtitle subtitle<>)
 
 frameO :: Overlays -> ParItem  -> ParItem
 frameO overlays = B.parEnvironmentPar "frame" [maybe B.noArg B.optional $ texOverlaysOpt overlays]
