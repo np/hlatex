@@ -14,6 +14,7 @@ import Language.LaTeX.Types
 import Language.LaTeX.Printer (showLaTeX)
 import Language.LaTeX.Builder.MonoidUtils
 import Language.LaTeX.Builder ((!$), ($?), (!$?))
+import Control.Monad (when)
 import Control.Monad.Writer (Writer, tell)
 import System.Cmd (system)
 import System.FilePath
@@ -22,18 +23,20 @@ import Codec.Binary.UTF8.String (encodeString)
 
 data ViewOpts = ViewOpts { basedir   :: FilePath
                          , pdflatex  :: String
-                         , pdfviewer :: String }
+                         , pdfviewer :: String
+                         , showoutput :: Bool }
 
 myViewOpts, testViewOpts :: ViewOpts
 myViewOpts = ViewOpts { basedir   = ""
                       , pdflatex  = "texi2pdf"
-                      , pdfviewer = "open" }
+                      , pdfviewer = "open"
+                      , showoutput = True }
 
 testViewOpts = myViewOpts { basedir = "tests" }
 
 quickView :: ViewOpts -> FilePath -> LatexM Root -> IO ()
 quickView vo basename root =
-     do putStrLn s
+     do when (showoutput vo) $ putStrLn s
         writeFile (basedir vo </> ltx) s
         exitWith =<< system cmd
   where s = encodeString . either error id $ showLaTeX root
