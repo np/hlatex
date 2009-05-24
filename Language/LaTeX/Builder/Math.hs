@@ -43,14 +43,15 @@ import Data.Maybe
 import Data.Monoid
 import qualified Data.IntMap as IntMap
 import Control.Arrow
-import Control.Applicative hiding (optional)
+import Control.Applicative
 import Control.Monad hiding (mapM)
 import Control.Monad.Error (throwError)
 
 import Language.LaTeX.Types
 import Language.LaTeX.Builder.MonoidUtils
-import Language.LaTeX.Builder (mandatory, optional, cell, cells, vline, hline, cline, tabularLike)
+import Language.LaTeX.Builder (cell, cells, vline, hline, cline)
 import qualified Language.LaTeX.Builder as B
+import qualified Language.LaTeX.Builder.Internal as B
 
 group :: MathItem -> MathItem
 group = liftM MathGroup
@@ -59,7 +60,7 @@ mathCmdArgs :: String -> [Arg MathItem] -> MathItem
 mathCmdArgs m1 ys = MathCmdArgs m1 <$> mapM sequenceA ys
 
 mathCmdArg :: String -> MathItem -> MathItem
-mathCmdArg m1 m2 = mathCmdArgs m1 [mandatory m2]
+mathCmdArg m1 m2 = mathCmdArgs m1 [B.mandatory m2]
 
 mathToLR :: String -> [Arg LatexItem] -> MathItem
 mathToLR cmdName args = MathToLR cmdName <$> mapM sequenceA args
@@ -99,17 +100,17 @@ sub = (rawMath "_" <>) . mathGroup
 sup = (rawMath "^" <>) . mathGroup
 
 frac, stackrel :: MathItem -> MathItem -> MathItem
-frac m1 m2 = mathCmdArgs "frac" [mandatory m1,mandatory m2]
-stackrel m1 m2 = mathCmdArgs "stackrel" [mandatory m1,mandatory m2]
+frac m1 m2 = mathCmdArgs "frac" [B.mandatory m1,B.mandatory m2]
+stackrel m1 m2 = mathCmdArgs "stackrel" [B.mandatory m1,B.mandatory m2]
 
 sqrt :: MathItem -> MathItem
-sqrt = mathCmdArgs "sqrt" . (:[]) . mandatory
+sqrt = mathCmdArgs "sqrt" . (:[]) . B.mandatory
 
 sqrt' :: MathItem -> MathItem -> MathItem
-sqrt' n1 m1 = mathCmdArgs "sqrt" [optional n1, mandatory m1]
+sqrt' n1 m1 = mathCmdArgs "sqrt" [B.optional n1, B.mandatory m1]
 
 phantom :: MathItem -> MathItem
-phantom = mathCmdArgs "phantom" . (:[]) . mandatory
+phantom = mathCmdArgs "phantom" . (:[]) . B.mandatory
 
 mleft, mright :: Char -> MathItem
 mleft m1  = rawMath "\\left"  <> (RawMath <$> parenChar m1)

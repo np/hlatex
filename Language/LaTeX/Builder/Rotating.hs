@@ -1,7 +1,7 @@
 module Language.LaTeX.Builder.Rotating (pkg, turn) where
 
 import Language.LaTeX.Types
-import qualified Language.LaTeX.Builder as B
+import qualified Language.LaTeX.Builder.Internal as B
 
 pkg :: PackageName
 pkg = B.pkgName "rotating"

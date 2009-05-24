@@ -5,6 +5,7 @@ where
 
 import Language.LaTeX.Builder.MonoidUtils
 import Language.LaTeX.Types
+import qualified Language.LaTeX.Builder.Internal as B
 import qualified Language.LaTeX.Builder as B
 import Language.LaTeX.Builder.QQ
 import Control.Applicative

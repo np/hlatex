@@ -23,7 +23,7 @@ import Data.String
 import Data.List
 import Data.Monoid
 import Language.LaTeX.Types
-import qualified Language.LaTeX.Builder as B
+import qualified Language.LaTeX.Builder.Internal as B
 import Control.Monad.Error (throwError)
 
 data Color = BaseColor String

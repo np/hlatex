@@ -5,7 +5,7 @@ import Data.List
 import Data.Char
 import qualified Language.Haskell.TH as TH
 import Language.Haskell.TH.Quote
-import Language.LaTeX.Builder (rawTex)
+import Language.LaTeX.Builder.Internal (rawTex)
 
 frTop :: a -> a
 frTop = id
