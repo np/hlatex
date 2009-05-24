@@ -96,7 +96,10 @@ instance Monoid LatexItm where
   x              `mappend` y              = LatexConcat [x, y]
 
 instance IsString LatexItm where
-  fromString = RawTex . concatMap hchar . concat . intersperse "\n" . filter (not . null) . lines
+  fromString s
+    | null s    = mempty
+    | otherwise = f s
+    where f = RawTex . concatMap hchar . concat . intersperse "\n" . filter (not . null) . lines
 
 data Arg a = NoArg
            | Optional a

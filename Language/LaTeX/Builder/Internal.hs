@@ -38,11 +38,13 @@ coordinates = Coordinates
 optionals :: [a] -> Arg a
 optionals = Optionals
 
+-- Note that @rawArg ""@ reduces to mempty.
 rawArg :: String -> Arg a
-rawArg = RawArg
+rawArg s | null s    = NoArg
+         | otherwise = RawArg s
 
 rawDecls :: [TexDecl] -> LatexItem
-rawDecls = fmap TexDecls . sequenceA
+rawDecls = mapNonEmpty $ fmap TexDecls . sequenceA
 
 texDecl :: String -> TexDecl
 texDecl s = pure $ TexDcl s []
@@ -81,7 +83,7 @@ preambleCmdArg :: String -> LatexItem -> PreambleItem
 preambleCmdArg x y = preambleCmdArgs x [mandatory y]
 
 rawPreamble :: String -> PreambleItem
-rawPreamble = pure . RawPreamble
+rawPreamble = mapNonEmpty $ pure . RawPreamble
 
 size :: LatexSize -> LatexItem
 size = pure . LatexSize
@@ -117,7 +119,7 @@ listLikeEnv name opts items =
   where mkItem (ListItm opts' contents) = ParCmdArgs "item" opts' <> contents
 
 rawTex :: String -> LatexItem
-rawTex = pure . RawTex
+rawTex = mapNonEmpty $ pure . RawTex
 
 texCmdNoArg :: String -> LatexItem
 texCmdNoArg = pure . TexCmdNoArg
