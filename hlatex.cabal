@@ -11,10 +11,14 @@ synopsis:        A library to build valid LaTeX files
 description:     ...
 stability:       Provisional
 build-type:      Simple
-build-depends:   base>=3.0&&<4, containers>=0.1, process, filepath,
+
+library
+    build-depends:
+                 base>=3.0&&<4, containers>=0.1, process, filepath,
                  template-haskell, transformers>=0.1.3, monads-fd, uniplate,
                  derive, utf8-string
-exposed-modules: Language.LaTeX,
+    exposed-modules:
+                 Language.LaTeX,
                  Language.LaTeX.Types,
                  Language.LaTeX.Builder,
                  Language.LaTeX.Builder.Internal,
@@ -26,14 +30,20 @@ exposed-modules: Language.LaTeX,
                  Language.LaTeX.Builder.QQ,
                  Language.LaTeX.Builder.Beamer,
                  Language.LaTeX.Printer
-ghc-options:     -Wall
+    ghc-options: -Wall
 
---source-repository head
---  type:     darcs
---  location: http://code.haskell.org/hlatex
+executable generate_hlatex_user_guide
+    Build-depends: base>=3.0, containers>=0.1,
+                   transformers, monads-fd, uniplate>=1.2
+    main-is: doc/user_guide.hs
+    ghc-options: -Wall
+
+source-repository head
+  type:     darcs
+  location: http://patch-tag.com/publicrepos/hlatex
 
 --source-repository this
 --  type:     darcs
---  location: http://code.haskell.org/hlatex
+--  location: http://patch-tag.com/publicrepos/hlatex
 --  tag:      0.1
 
