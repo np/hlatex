@@ -13,8 +13,8 @@ main :: IO ()
 main = do
   args <- getArgs
   case args of
-    [] -> exitWith =<< system "mempty | frquotes"
+    [] -> exitWith =<< system "ppmonoid | frquotes"
     [in1,inp,outp] -> exitWith =<< whileSuccess [rawSystem "frquotes" [in1, inp, tmpp]
-                                                ,rawSystem "mempty" [in1, tmpp, outp]]
+                                                ,rawSystem "ppmonoid" [in1, tmpp, outp]]
                    where tmpp = outp ++ ".pphlatex"
     _  -> fail "Usage: pphlatex [orig input output]"
