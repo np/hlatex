@@ -152,16 +152,14 @@ unsafeNewsavebox n =
 -- sectioning
 
 -- Sectioning commands arguments are 'moving'.
-sectioning :: String -> ((LatexItem -> ParItem), (Star -> Maybe LatexItem -> LatexItem -> ParItem))
-sectioning name = (sect, sect')
-  where sect = sect' NoStar Nothing
-        sect' star opt arg = parCmdArgs (name ++ addstar star)
-                                        (maybeToList (fmap optional opt) ++ [mandatory arg])
-        addstar Star   = "*"
-        addstar NoStar = ""
-
-unwords :: [LatexItem] -> LatexItem
-unwords = mconcat . intersperse space
+sectioning :: String -> ((LatexItem -> ParItem),
+                         (LatexItem -> ParItem),
+                         (Maybe LatexItem -> LatexItem -> ParItem))
+sectioning name = (sect, sectNoTOC, sect')
+  where sect = sect' Nothing
+        sectNoTOC arg = parCmdArgs (name ++ "*") [mandatory arg]
+        sect' opt arg = parCmdArgs name
+                                   (maybeToList (fmap optional opt) ++ [mandatory arg])
 
 -- The array and tablular Environments
 

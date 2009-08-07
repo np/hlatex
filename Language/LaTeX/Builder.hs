@@ -270,6 +270,9 @@ smallskip = parCmdArgs "smallskip" [] -- = vspace smallskipamount
 addvspace :: LatexSize -> ParItem
 addvspace = parCmdArg "addvspace" . size
 
+unwords :: [LatexItem] -> LatexItem
+unwords = mconcat . intersperse space
+
 
 -- Fonts
 -- some ref used: http://www.cl.cam.ac.uk/~rf10/pstex/latexcommands.htm
@@ -509,18 +512,19 @@ nocite = latexCmdArg "nocite" . latexKeys
 
 -- sectioning
 
-part, chapter, section, subsection,  subsubsection, paragraph,
-  subparagraph :: LatexItem -> ParItem
+part, chapter, section, subsection,  subsubsection, paragraph, subparagraph,
+  partNoTOC, chapterNoTOC, sectionNoTOC, subsectionNoTOC, subsubsectionNoTOC,
+  paragraphNoTOC, subparagraphNoTOC :: LatexItem -> ParItem
 part', chapter', section', subsection', subsubsection', paragraph',
-  subparagraph' :: Star -> Maybe LatexItem -> LatexItem -> ParItem
+  subparagraph' :: Maybe LatexItem -> LatexItem -> ParItem
 
-(part, part')       = sectioning "part"
-(chapter, chapter') = sectioning "chapter"
-(section, section') = sectioning "section"
-(subsection, subsection')       = sectioning "subsection"
-(subsubsection, subsubsection') = sectioning "subsubsection"
-(paragraph, paragraph')         = sectioning "paragraph"
-(subparagraph, subparagraph')   = sectioning "subparagraph"
+(part,          partNoTOC,          part')          = sectioning "part"
+(chapter,       chapterNoTOC,       chapter')       = sectioning "chapter"
+(section,       sectionNoTOC,       section')       = sectioning "section"
+(subsection,    subsectionNoTOC,    subsection')    = sectioning "subsection"
+(subsubsection, subsubsectionNoTOC, subsubsection') = sectioning "subsubsection"
+(paragraph,     paragraphNoTOC,     paragraph')     = sectioning "paragraph"
+(subparagraph , subparagraphNoTOC,  subparagraph')  = sectioning "subparagraph"
 
 -- | Don't confuse 'paragraph' with 'para', 'para' is to make a paragraph,
 -- 'paragraph' is to group a set of paragraphs.

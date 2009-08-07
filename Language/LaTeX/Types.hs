@@ -328,8 +328,6 @@ newtype Key = Key { getKey :: String }
 newtype SaveBin = UnsafeMakeSaveBin { unsafeGetSaveBin :: Int }
   deriving (Eq, Show, Typeable)
 
-data Star = Star | NoStar
-
 data LatexState = LS { freshSaveBin :: SaveBin }
 
 instance (Error a, Eq a, Show a, Num b) => Num (Either a b) where
