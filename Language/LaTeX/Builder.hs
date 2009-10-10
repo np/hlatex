@@ -43,8 +43,8 @@ vspace, vspaceStar,
   where
 
 import Prelude hiding (sqrt, min, max, lcm, gcd, log, mod, tanh, cosh, tan, sinh,
-                       sin, cos, succ, sum, pi, mapM)
-import Data.List hiding (sum, and, group)
+                       sin, cos, succ, sum, pi, mapM, unwords)
+import Data.List hiding (sum, and, group, unwords)
 import qualified Data.List as L
 import Data.Maybe
 import Data.Ratio
