@@ -1,5 +1,5 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, NoMonomorphismRestriction #-}
-{-# OPTIONS_GHC -fno-warn-missing-signatures -F -pgmF pphlatex #-}
+{-# OPTIONS_GHC -fno-warn-missing-signatures -F -pgmF ../../../pphlatex/pphlatex #-}
 import Language.LaTeX
 import qualified Language.LaTeX.Builder as B
 import qualified Language.LaTeX.Builder.Color as C
@@ -94,7 +94,6 @@ doc = do
     {ltxenv "array"} environment, and a lot more as the library is being improved.»
   -- TODO cross-references and citations, math mode nestings like a_{b}_{c}...
 
-
   section «Design principles»
 
   subsection «Naming conventions»
@@ -156,7 +155,8 @@ doc = do
   p «The point of using this kind of abstraction instead of their concrete
     representations is to share generic functions over them. For instance composing
     a list of values can be done with the {hcode "mconcat"} function, another
-    variant is included in this library called {hcode "mconcatMap"}.»
+    variants are included in the {hcode "Data.Foldable"} module like the
+    {hcode "fold"} and {hcode "foldMap"} functions.»
     -- also add mapNonEmpty when I would have found another name.
 
 {-
@@ -167,40 +167,92 @@ doc = do
   p «»
 -}
 
+  section «Injecting strings»
+
+  p «While the main job of {hlatex} is to give access to {latex} commands in
+    {haskell}, generating documents using {haskell} needs also to cope with
+    80% of the contents, namely the text.»
+
+  p «Plain text can be converted to {latex} using the {hcode "hstring"} function.»
+
+  subsection «The {hcode "hstring"} function»
+
+  p «This function convert an {haskell} string to a piece of {latex}. While the
+    semantics of this function is obvious for characters like `a' or `X', what
+    the result for blanks, special characters and unicode characters.»
+
+  p «The semantics is clear, {hcode "hstring"} converts each character to a
+    {}»
+
+  todo «note that {hcode "hstring \"\""} reduces to {hcode "mempty"}»
+
+  subsection «The IsString class»
+
   section «Lexical extensions and preprocessing»
+
+  subsection «Activating the extensions»
 
   let pragmaOpts = "{-# OPTIONS_GHC -F -pgmF pphlatex #-}"
       pragmaLang = "{-# LANGUAGE QuasiQuotes #-}"
-  subsection «Activating the extension»
 
   p «Using the following {ghc} pragma {hcode pragmaOpts}, and since this
     extension relies on quasi-quoting one also needs this pragma
     {hcode pragmaLang}.»
 
+  p «Extensions contained in {pphlatex} are twofold:»
+
   subsection «French Quotes Extension»
-  -- TODO
+
   p «{frquotes} is a lexical syntax extension enabling lightweight interpolated  
     literal piece of text. Once desugared this extension relies on the  
     quasi-quoting system provided by {ghc}.»
 
-  subsection «Mempty Extension»
+  let (frO, frC, brO, brC) = ("«", "»", "{", "}")
+  p «Currently the French Quotes extension only desugar to litteral strings
+    and monoid compositions. French Quotes are introduced using `{frO}' and
+    closed using `{frQ}'. Interpolation (injection of {haskell} code inside the
+    quotes) is done using braces (`{brO}' and `{brC}'). These interpolated holes
+    can contains an {haskell} expression including nested French Quotes,
+    string, comments, braces, etc. The French Quotes characters can be used
+    inside French Quotes but must be balanced.»
+
+  subsection «Monoid Syntax Extension»
+
+  p «This syntax extension just replaces occurences of `ø' and `⊕' in {haskell}
+     code by {hcode "(mempty)"} and {hcode "`mappend`"} respectively. For example
+     {hcode "ø ⊕ x ⊕ ø"} is desugared to {hcode "(mempty) `mappend` (mempty)"}.»
   -- TODO
 
-  section «Injecting strings»
-  subsection «The IsString class»
-  subsection «The hstring function»
-      -- maybe useless to say
-  todo «note that hstring "" reduces to mempty»
-
   section «Sectioning»
+
+  p «In {latex} sectioning is done by inserting separators commands. In {hlatex}
+    all these commands are exported in a straightforward way. Most of these commands
+    appears in three variants, for instance {ltxcode "\\section"} can be produced
+    by {hcode "section"} and just waits for a {hcode "LatexItem"} as title,
+    for {ltxcode "\\section*"} just use {hcode "sectionNoTOC"}, and finally
+    {hcode "section'"} waits for an extra optional argument that represents the
+    text to be used in the table of contents.»
 
   section «List like environment»
   todo "how to put a paritem between items"
 
   section «Declarations»
-  todo «decls are side effects and {"{}"} are scopes
-    in hlatex all declarations are explicitely scoped (effects don't   pass through <>)
-    unsafe injection is still available though»
+
+  p «In {latex} declarations are side effects.  For instance {ltxcode "\\small"}
+    changes the current size of text to make it smaller, it is an effect on
+    the size.  However the scope of declarations can be delimited using braces
+    ({"{"} and {"}"}).»
+
+-- "toto " ⊕ "\small" ⊕ " tata"
+-- toto ⊕ {\small ⊕ tata} ⊕ tutu
+
+  p «In {hlatex} all declarations are explicitely scoped.
+    In other words the effects of declarations do not pass through concatenation
+    ({hcode "<>"}) of {latex} pieces.
+    They are represented in {hlatex} with types {hcode "TexDecl"} and
+    {hcode "MathDecl"} for the math mode.
+    The unsafe injection from declarations to pieces of {latex} is still
+    available though.»
 
   section «Tabulars»
   todo «
@@ -218,6 +270,17 @@ doc = do
 
   section «Math mode»
   subsection «No plain strings»
+
+
+
+  -- p (math "1" ⊕ "+" ⊕ "2")
+
+  (&) fct arg = fct ⊕ M.parens arg 
+  f arg = M.f & arg
+
+  f M.x
+  M.«1 + f({arg}) + Σ^i_(0..n)»
+
   subsection «No plain chars»
   todo "=> (M.a, M.b...), in fact yes as unicode support"
   todo "still low level (sum has only one arg)"
@@ -225,7 +288,17 @@ doc = do
   todo "num class"
 
   section «Verbatim mode»
+
   subsection «Why not using the {latex} verbatim mode?»
+
+  p «{latex} verbatim mode is a hack.  It is a kind of global side-effect that
+    changes the meaning of letters to turn off their original meaning and
+    produce fixed width characters.  In result the verbatim mode interacts badly
+    with other fancy environments.»
+
+  p «In {haskell} this task is much simpler, indeed we do have literal strings.
+    There is no need to change some existing meaning.  We just need a function
+    from {hcode "String"} to {hcode "LatexItem"}».
   subsection «The protect function»
   todo «special characters
      Ligatures
