@@ -2,6 +2,7 @@
 {-# OPTIONS -Wall -fno-warn-missing-signatures #-}
 import Language.LaTeX
 import qualified Language.LaTeX.Builder as B
+import qualified Language.LaTeX.Builder.Internal as BI
 import qualified Language.LaTeX.Builder.Math as M
 import qualified Language.LaTeX.Builder.Graphics as G
 import qualified Language.LaTeX.Builder.Rotating as R
@@ -21,26 +22,26 @@ root = B.root preamb body
 preamb = B.documentclass (Just (B.pt 11)) (Just B.a4paper) B.book
      -- <> B.usepackage [B.optional "francais"] (B.pkgName "babel")
 
-body = B.document <! do
+body = B.document $? do
   tell B.tableofcontents
-  B.part !< "The prologue"
+  B.part !$ "The prologue"
 
-  B.chapter' NoStar (Just "Introduction (toc)") !< "Introduction (not toc)"
+  B.chapter' (Just "Introduction (toc)") !$ "Introduction (not toc)"
 
-  B.section !< "The context"
+  B.section' (Just "") !$ "The context"
 
-  B.subsection !< "The precise context"
+  B.subsection !$ "The precise context"
 
-  B.para !< ("The " <> B.textbf "initial" <> " formula was " <>
+  B.para !$ ("The " <> B.textbf "initial" <> " formula was " <>
              B.math (M.sum <> M.sub (M.i<>M.eq<>0) <> M.sup M.infty <>
                      M.i <> M.sup 2 <> M.alpha) <>
              " but it turns out to be not that accurate.")
 
-  B.section !< "The action plan"
+  B.section !$ "The action plan"
 
-  B.paragraph !< "Here comes an itemize"
+  B.paragraph !$ "Here comes an itemize"
 
-  B.itemize !<
+  B.itemize !$
      [ B.item $ B.para "Find a better formula"
      , B.item $ B.para "Write some proofs about it"
      , B.item $ B.para "[I'm not a label] of this item"
@@ -48,16 +49,16 @@ body = B.document <! do
      , B.item $ B.para "Convince people around that this one is much better"
      ]
 
-  B.section !< "Related Works"
+  B.section !$ "Related Works"
 
-  B.tabular [B.c,B.l,B.r] !<
+  B.tabular [B.c,B.l,B.r] !$
        [ B.cells $ map B.math [M.alpha + 3 * M.beta, M.eq, 2 * 21]
        , B.hline, B.hline
        , B.cells [mempty, B.math M.eq, B.math 42]
        , B.cline 2 3
        ]
 
-  B.displaymath !<
+  B.displaymath !$
     M.array [B.vline,B.l,B.vline,B.vline,B.c,B.vline,B.r,B.vline]
             [ B.hline
             , B.cells [1, 2, 3]
@@ -65,33 +66,33 @@ body = B.document <! do
                       , M.sum <> M.sub M.i <> M.sup M.infty <> M.i <> M.sup M.i]
             , B.hline]
 
-  B.displaymath !< M.brackets mat33
+  B.displaymath !$ M.brackets mat33
 
-  B.displaymath !< M.parens mat33
+  B.displaymath !$ M.parens mat33
 
-  B.displaymath !< M.braces mat33
+  B.displaymath !$ M.braces mat33
 
-  B.displaymath !< M.between '(' '[' mat33
+  B.displaymath !$ M.between '(' '[' mat33
 
-  B.displaymath !< (M.array [B.c,B.c,B.c]
+  B.displaymath !$ (M.array [B.c,B.c,B.c]
        [B.cells [M.text "f x = "
                 ,M.between '{' '.' (M.array [B.l] (map B.cell [1, 0]))
                 ,M.array [B.r] (map (B.cell . M.text) ["if x is positive", "otherwise"])
                 ]
        ])
 
-  B.displaymath !< M.sqrt' M.alpha M.beta
+  B.displaymath !$ M.sqrt' M.alpha M.beta
 
   tell B.newpage
 
   let letters = splitEvery 10 $ filter isPrint $ map chr [0..255]
-  paraNoindent !< (B.texttt $ mconcat $ intersperse B.newline $ map B.protect letters)
-  paraNoindent !< (mconcat $ intersperse B.newline $ map B.hstring letters)
+  paraNoindent !$ (B.texttt $ mconcat $ intersperse B.newline $ map B.protect letters)
+  paraNoindent !$ (mconcat $ intersperse B.newline $ map B.hstring letters)
 
-  B.section !< "Let's try the Writer monad to write documents"
+  B.section !$ "Let's try the Writer monad to write documents"
 
-  B.subsection !< "execWriter, tell and (!<!)"
-  B.description !<
+  B.subsection !$ "execWriter, tell and (!$?)"
+  B.description !$
     let doNotation = B.texttt "do" <> " notation" in
     [ B.item' "execWriter" $ B.para $
         "This function runs the writing computation and returns       \
@@ -100,62 +101,62 @@ body = B.document <! do
     , B.item' "tell" $ B.para $
         "This function accumulate the given value, this is commonly used \
         \inside the "<>doNotation<>"."
-    , B.item' "(!<!)" $ B.para $
+    , B.item' "(!$?)" $ B.para $
         "This function combines "<>B.texttt "execWriter"<>" and "<>B.texttt "tell"<>
         " to be easily used when building documents with the "<>doNotation<>"."
     ]
 
-  B.center !<! do
-    B.para !< "Frist centered paragraph"
-    B.para !< "Second centered paragraph"
+  B.center !$? do
+    B.para !$ "Frist centered paragraph"
+    B.para !$ "Second centered paragraph"
 
-  B.section !< "Exotic tabular features"
+  B.section !$ "Exotic tabular features"
 
-  B.tabular [B.r, B.rtext "@", B.l, B.rtext (B.math M.alpha), B.c] !<
+  B.tabular [B.r, B.rtext "@", B.l, B.rtext (B.math M.alpha), B.c] !$
                (map B.cells [["x","y","z"],["foo", "bar", "baz"],["a", "b", "c"]])
 
-  B.displaymath !<
+  B.displaymath !$
      (M.array [B.r, B.rtext M.vdots, B.l, B.rtext M.alpha, B.c]
                (map B.cells [[M.x,M.y,M.z],[1,2,3],[M._R, M._C, M._N]]))
 
-  G.includegraphics (\r-> r{G.angle=45, G.scale=1%2}) !< "yi.pdf"
+  G.includegraphics (\r-> r{G.angle=45, G.scale=1%2}) !$ "yi.pdf"
 
-  B.para !< (B.noindent<>B.decl B._Large ("Not shelfful"<>B.newline<>"but shelf"<>B.sep<>"ful"))
+  B.para !$ (B.noindent<>B.decl B._Large ("Not shelfful"<>B.newline<>"but shelf"<>B.sep<>"ful"))
 
-  B.para !< "This is some|text"
-  B.para !< "This is some-text"
-  B.para !< "This is some--text"
-  B.para !< B.rawTex "This is some|text"
-  B.para !< "This is some---text"
-  B.para !< ("This is some"<>B.dash1<>"text")
-  B.para !< ("This is some"<>B.dash2<>B.dash1<>"text")
-  B.para !< ("This is some"<>B.dash3<>"text")
-  B.para !< "This is some``text"
-  B.para !< "This is ''some``text"
-  B.para !< "This is ''''some``text"
-  B.para !< "This is ''''some````text"
-  B.para !< "This is ''``''''````''``"
-  B.para !< "This is some``text''"
-  B.para !< "This is so's'"
-  B.para !< "This is so's''"
-  B.para !< "This is so`s`"
-  B.para !< "This is so`s``"
+  B.para !$ "This is some|text"
+  B.para !$ "This is some-text"
+  B.para !$ "This is some--text"
+  B.para !$ BI.rawTex "This is some|text"
+  B.para !$ "This is some---text"
+  B.para !$ ("This is some"<>B.dash1<>"text")
+  B.para !$ ("This is some"<>B.dash2<>B.dash1<>"text")
+  B.para !$ ("This is some"<>B.dash3<>"text")
+  B.para !$ "This is some``text"
+  B.para !$ "This is ''some``text"
+  B.para !$ "This is ''''some``text"
+  B.para !$ "This is ''''some````text"
+  B.para !$ "This is ''``''''````''``"
+  B.para !$ "This is some``text''"
+  B.para !$ "This is so's'"
+  B.para !$ "This is so's''"
+  B.para !$ "This is so`s`"
+  B.para !$ "This is so`s``"
 
-  B.para !<! do
-    B.circ !< "o"
-    B.tilde !< B.i
-    B.grave !< "e"
-    B.check !< B.j
-    B.grave !< "z"
-    B.acute !< "y"
-    B.uml !< "e"
-    B.cedil !< "a"
-    B.ring !< "u"
-    B.dot !< "o"
-    B.tieafter !< "uv"
-    B.overbar !< "f"
-    B.overdot !< "c"
-    B.underbar !< B.ae
+  B.para !$? do
+    B.circ !$ "o"
+    B.tilde !$ B.i
+    B.grave !$ "e"
+    B.check !$ B.j
+    B.grave !$ "z"
+    B.acute !$ "y"
+    B.uml !$ "e"
+    B.cedil !$ "a"
+    B.ring !$ "u"
+    B.dot !$ "o"
+    B.tieafter !$ "uv"
+    B.overbar !$ "f"
+    B.overdot !$ "c"
+    B.underbar !$ B.ae
     tell $ B.math $ mconcat
       [ M.acute M.alpha
       , M.breve M.beta
@@ -179,7 +180,7 @@ body = B.document <! do
     , B.pounds
     ]
 
-  B.tabular [B.vline, B.c, B.vline, B.c, B.vline] !<
+  B.tabular [B.vline, B.c, B.vline, B.c, B.vline] !$
     [B.hline
     ,B.cells (map (R.turn 90) ["foo", "bar"])
     ,B.hline
