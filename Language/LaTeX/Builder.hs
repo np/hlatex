@@ -956,9 +956,6 @@ date = preambleCmdArg "date"
 author = preambleCmdArg "author"
 institute = preambleCmdArg "institute"
 
-usepackage :: [Arg LatexItem] -> PackageName -> PreambleItem
-usepackage args pkg = Usepackage pkg <$> mapM sequenceA args
-
 authors :: [LatexItem] -> PreambleItem
 authors = author . mconcat . intersperse (rawTex " & ")
 
