@@ -1,42 +1,41 @@
 module Language.LaTeX.Builder
   ( (!$), (!$?), ($?), HaveC(..), HaveL(..), HaveR(..),
 Spaces(..), _AA, _AE, _H, _Huge, _L, _LARGE, _LaTeX,
-_Large, _O, _OE, _P, _S, _TeX, _l, a4paper, aa, abovedisplayshortskip,
-abovedisplayskip, acute, addvspace, ae, allTexDecls, appendix, arraycolsep,
-arrayrulewidth, arraystretch, article, author, authors, baselineskip,
-baselinestrech, belowdisplayshortskip, belowdisplayskip, bf, bfseries,
-bibliography, bibliographystyle, bigskip, bigskipamount, book, boxedminipage,
-bp, caption, caption', cc, cedil, cell, cells, center, chapter, chapter',
-chapterNoTOC, check, circ, cite, cite', cleardoublepage, clearpage, cline, cm,
-columnsep, columnseprule, compressSpaces, copyright, corrspace, dag, dash1,
-dash2, dash3, date, dblfloatpagefraction, dblfloatsep, dbltextfloatsep,
-dbltopfaction, dd, ddag, decl, decls, description, description', displaymath,
-document, documentclass, dot, dotfill, doublerulesep, em, emph, enumerate,
-enumerate', evensidemargin, ex, fbox, fboxrule, fboxsep, figure, figureStar,
-fill, floatpagefraction, floatsep, flushleft, footheight, footnote,
-footnotesize, footskip, framebox, fussy, grave, group, hat, headheight,
-headsep, hfill, hline, hr, href, hrulefill, space, hspace, hspaceStar, hspaces,
-hstring, huge, hyphen, hyphenation, i, inch, institute, intextsep, it, item,
-item', itemindent, itemize, itemize', itemsep, itshape, j, jot, label,
-labelsep, labelwidth, large, ldots, leftmargin, letter, linebreak, linewidth,
-listparindent, lq, makebox, maketitle, marginparpush, marginparsep,
-marginparwidth, math, mathindent, mbox, mdseries, medskip, medskipamount,
-minipage, minipageBot, minipageTop, mm, mu, nbsp, negthinspace, newline,
+_Large, _O, _OE, _P, _S, _TeX, _l, a4paper, aa,
+acute, addvspace, ae, allTexDecls, appendix,
+article, author, authors,
+bf, bfseries, bigskip,
+bibliography, bibliographystyle, book, boxedminipage,
+caption, caption', cedil, cell, cells, center, chapter, chapter',
+chapterNoTOC, check, circ, cite, cite', cleardoublepage, clearpage, cline,
+compressSpaces, copyright, corrspace, dag, dash1,
+dash2, dash3, date, ddag, decl, decls, description, description', displaymath,
+document, documentclass, dot, dotfill, em, emph, enumerate,
+enumerate', fbox, figure, figureStar,
+flushleft, footnote,
+footnotesize, framebox, fussy, grave, group, hat,
+hfill, hline, hr, href, hrulefill, space, hspace, hspaceStar, hspaces,
+hstring, huge, hyphen, hyphenation, i, institute, it, item,
+item', itemize, itemize', itshape, j, label,
+large, ldots, letter, linebreak,
+lq, makebox, maketitle,
+math, mbox, mdseries, medskip,
+minipage, minipageBot, minipageTop, nbsp, negthinspace, newline,
 newline', newpage, nocite, noindent, nolinebreak, nopagebreak, normalfont,
-normalmarginpar, normalsize, num, o, oddsidemargin, oe, overbar, overdot, pagebreak,
-pageref, para, paragraph, paragraph', paragraphNoTOC, parbox, parboxBot,
-parboxTop, parindent, parsep, parskip, part, part', partNoTOC, partopsep, pc,
-person, phantom, pounds, protect, pt, quotation, quote, raisebox, raisebox',
-rat, ref, report, reversemarginpar, rightmargin, ring, rm, rmfamily, root, rq,
+normalmarginpar, normalsize, num, o, oe, overbar, overdot, pagebreak,
+pageref, pagestyle, para, paragraph, paragraph', paragraphNoTOC, parbox, parboxBot,
+parboxTop, part, part', partNoTOC,
+person, phantom, pounds, protect, quotation, quote, raisebox, raisebox',
+rat, ref, report, reversemarginpar, ring, rm, rmfamily, root, rq,
 rtext, rule, rule', samepage, savebox, sbox, sc, scriptsize, scshape, section,
 section', sectionNoTOC, sep, setlength, sf, sffamily, sl, sloppy, sloppypar,
-slshape, small, smallskip, smallskipamount, sp, ss, stretch, subparagraph,
+slshape, small, smallskip, ss, subparagraph,
 subparagraph', subparagraphNoTOC, subsection, subsection', subsectionNoTOC,
-subsubsection, subsubsection', subsubsectionNoTOC, subtitle, tabcolsep, table,
-tableStar, tableofcontents, tabular, textbf, textdegree, textfloatsep,
-textfraction, textheight, textit, textmd, textnormal, textrm, textsc, textsf,
-textsl, texttt, textup, textwidth, thinspace, thispagestyle, tieafter, tilde,
-tiny, title, titlepage, topmargin, topsep, topskip, tt, ttchar, ttfamily, uml,
+subsubsection, subsubsection', subsubsectionNoTOC, subtitle, table,
+tableStar, tableofcontents, tabular, textbf, textdegree,
+textit, textmd, textnormal, textrm, textsc, textsf,
+textsl, texttt, textup, thinspace, thispagestyle, tieafter, tilde,
+tiny, title, titlepage, tt, ttchar, ttfamily, uml,
 underbar, unwords, upshape, usebox, verb, verse, vfill, vline,
 vspace, vspaceStar,
   )
@@ -61,6 +60,7 @@ import Control.Arrow
 
 import Language.LaTeX.Types
 import Language.LaTeX.Builder.Internal
+import qualified Language.LaTeX.Length as L
 import Language.LaTeX.Builder.MonoidUtils
 
 
@@ -126,7 +126,7 @@ f _ = 3
 newtype Spaces = Spaces { countSpaces :: Int }
 
 hspaces :: Spaces -> LatexItem
-hspaces (Spaces n) = mbox . hspace . Em $ 1%2 * fromIntegral n
+hspaces (Spaces n) = mbox . hspace . L.em $ 1%2 * fromIntegral n
 
 compressSpaces :: [Char] -> [Either Char Spaces]
 compressSpaces [] = []
@@ -151,23 +151,9 @@ href x y = latexCmdArgs "href" [mandatory x,mandatory y]
 person :: String -> String -> LatexItem
 person name email = href (hstring ("mailto:"++email)) (hstring name)
 
-inch, pt, cm, mm, ex, pc, sp, bp, dd, cc, mu :: Rational -> LatexSize
-pt = Pt
--- em = Em
-cm = Cm
-mm = Mm
-ex = Ex
-pc = Pc
-inch = In
-sp = Sp
-bp = Bp
-dd = Dd
-cc = Cc
-mu = Mu
-
 -- simulate the <hr> html tag
 hr :: LatexItem
-hr = group $ noindent <> rule linewidth (pt 1.5)
+hr = group $ noindent <> rule L.linewidth (L.pt 1.5)
 
 hstring :: String -> LatexItem
 hstring = fromString
@@ -183,77 +169,6 @@ maketitle = parCmdArgs "maketitle" []
 noindent :: LatexItem
 noindent = texCmdNoArg "noindent"
 
--- robust
-stretch :: Rational -> LatexSize
-stretch = SizeCmdRatArg "stretch"
-
-parindent, textwidth, linewidth, textheight, parsep, parskip, baselineskip, baselinestrech,
-  fill, columnsep, columnseprule, mathindent, oddsidemargin, evensidemargin, marginparwidth,
-  marginparsep, marginparpush, topmargin, headheight, headsep, topskip, footheight, footskip,
-  topsep, partopsep, itemsep, itemindent, labelsep, labelwidth, leftmargin, rightmargin,
-  listparindent, jot, abovedisplayskip, belowdisplayskip, abovedisplayshortskip,
-  belowdisplayshortskip, floatsep, textfloatsep, intextsep, dblfloatsep, dbltextfloatsep,
-  textfraction, floatpagefraction, dbltopfaction, dblfloatpagefraction, arraycolsep,
-  tabcolsep, arrayrulewidth, doublerulesep, arraystretch, bigskipamount, medskipamount,
-  smallskipamount, fboxrule, fboxsep :: LatexSize
-
-parindent = SizeCmd "parindent"
-textwidth = SizeCmd "textwidth"
-linewidth = SizeCmd "linewidth"
-textheight = SizeCmd "textheight"
-parsep = SizeCmd "parsep"
-parskip = SizeCmd "parskip"
-baselineskip = SizeCmd "baselineskip"
-baselinestrech = SizeCmd "baselinestrech"
-fill = SizeCmd "fill"
-columnsep = SizeCmd "columnsep"
-columnseprule = SizeCmd "columnseprule"
-mathindent = SizeCmd "mathindent"
-oddsidemargin = SizeCmd "oddsidemargin"
-evensidemargin = SizeCmd "evensidemargin"
-marginparwidth = SizeCmd "marginparwidth"
-marginparsep = SizeCmd "marginparsep"
-marginparpush = SizeCmd "marginparpush"
-topmargin = SizeCmd "topmargin"
-headheight = SizeCmd "headheight"
-headsep = SizeCmd "headsep"
-topskip = SizeCmd "topskip"
-footheight = SizeCmd "footheight"
-footskip = SizeCmd "footskip"
-topsep = SizeCmd "topsep"
-partopsep = SizeCmd "partopsep"
-itemsep = SizeCmd "itemsep"
-itemindent = SizeCmd "itemindent"
-labelsep = SizeCmd "labelsep"
-labelwidth = SizeCmd "labelwidth"
-leftmargin = SizeCmd "leftmargin"
-rightmargin = SizeCmd "rightmargin"
-listparindent = SizeCmd "listparindent"
-jot = SizeCmd "jot"
-abovedisplayskip = SizeCmd "abovedisplayskip"
-belowdisplayskip = SizeCmd "belowdisplayskip"
-abovedisplayshortskip = SizeCmd "abovedisplayshortskip"
-belowdisplayshortskip = SizeCmd "belowdisplayshortskip"
-floatsep = SizeCmd "floatsep"
-textfloatsep = SizeCmd "textfloatsep"
-intextsep = SizeCmd "intextsep"
-dblfloatsep = SizeCmd "dblfloatsep"
-dbltextfloatsep = SizeCmd "dbltextfloatsep"
-textfraction = SizeCmd "textfraction"
-floatpagefraction = SizeCmd "floatpagefraction"
-dbltopfaction = SizeCmd "dbltopfaction"
-dblfloatpagefraction = SizeCmd "dblfloatpagefraction"
-arraycolsep = SizeCmd "arraycolsep"
-tabcolsep = SizeCmd "tabcolsep"
-arrayrulewidth = SizeCmd "arrayrulewidth"
-doublerulesep = SizeCmd "doublerulesep"
-arraystretch = SizeCmd "arraystretch"
-bigskipamount = SizeCmd "bigskipamount"
-medskipamount = SizeCmd "medskipamount"
-smallskipamount = SizeCmd "smallskipamount"
-fboxrule = SizeCmd "fboxrule"
-fboxsep = SizeCmd "fboxsep"
-
 -- Marginal Notes
 
 reversemarginpar :: TexDecl
@@ -268,22 +183,22 @@ normalmarginpar = texDecl "normalmarginpar"
 -- Spaces
 
 -- robust
-hspace :: LatexSize -> LatexItem
-hspace = latexCmdArg "hspace" . size
+hspace :: LatexLength -> LatexItem
+hspace = latexCmdArg "hspace" . texLength
 
 -- robust
-hspaceStar :: LatexSize -> LatexItem
-hspaceStar = latexCmdArg "hspace*" . size
+hspaceStar :: LatexLength -> LatexItem
+hspaceStar = latexCmdArg "hspace*" . texLength
 
 -- fragile
 -- the says that's a command however putting braces around disable
 -- its effect. We expose it as a ParItem since this is its main usage.
-vspace :: LatexSize -> ParItem
-vspace = parCmdArg "vspace" . size
+vspace :: LatexLength -> ParItem
+vspace = parCmdArg "vspace" . texLength
 
 -- fragile
-vspaceStar :: LatexSize -> ParItem
-vspaceStar = parCmdArg "vspace*" . size
+vspaceStar :: LatexLength -> ParItem
+vspaceStar = parCmdArg "vspace*" . texLength
 
 vfill :: ParItem
 vfill = parCmdArgs "vfill" [] -- = vspace fill
@@ -316,8 +231,8 @@ medskip = parCmdArgs "medskip" [] -- = vspace medskipamount
 smallskip :: ParItem
 smallskip = parCmdArgs "smallskip" [] -- = vspace smallskipamount
 
-addvspace :: LatexSize -> ParItem
-addvspace = parCmdArg "addvspace" . size
+addvspace :: LatexLength -> ParItem
+addvspace = parCmdArg "addvspace" . texLength
 
 unwords :: [LatexItem] -> LatexItem
 unwords = mconcat . intersperse space
@@ -381,8 +296,8 @@ nolinebreak = texDeclOpt "nolinebreak" . num
 -- ParItem? But then protect and verb would potentially needs it too ....
 newline :: LatexItem
 newline = texCmdNoArg "newline"
-newline' :: LatexSize -> TexDecl
-newline' = texDeclOpt "newline" . size
+newline' :: LatexLength -> TexDecl
+newline' = texDeclOpt "newline" . texLength
 
 -- robust
 hyphen :: LatexItem
@@ -430,7 +345,7 @@ class Mbox a where
   mbox :: LatexItem -> a
 
   -- fragile
-  makebox :: LatexSize -> LatexSize -> LatexItem -> a
+  makebox :: LatexLength -> LatexLength -> LatexItem -> a
 
 instance Mbox MathItem where
   mbox = MathToLR Nothing Nothing
@@ -447,9 +362,9 @@ mbox :: LatexItem -> LatexItem
 mbox = latexCmdArg "mbox"
 
 -- fragile
-makebox :: LatexSize -> Pos -> LatexItem -> LatexItem
+makebox :: LatexLength -> Pos -> LatexItem -> LatexItem
 makebox width pos txt =
-  latexCmdArgs "makebox" [optional $ size width
+  latexCmdArgs "makebox" [optional $ texLength width
                          ,optional $ rawTex [charPos pos]
                          ,mandatory txt]
 
@@ -458,8 +373,8 @@ fbox :: LatexItem -> LatexItem
 fbox = latexCmdArg "fbox"
 
 -- fragile
-framebox :: LatexSize -> Pos -> LatexItem -> LatexItem
-framebox width pos txt = latexCmdArgs "framebox" [optional $ size width
+framebox :: LatexLength -> Pos -> LatexItem -> LatexItem
+framebox width pos txt = latexCmdArgs "framebox" [optional $ texLength width
                                                  ,optional $ rawTex [charPos pos]
                                                  ,mandatory txt]
 
@@ -471,10 +386,10 @@ sbox :: SaveBin -> LatexItem -> LatexItem
 sbox bin txt = latexCmdArgs "sbox" [mandatory $ latexSaveBin bin, mandatory txt]
 
 -- fragile
-savebox :: SaveBin -> Maybe LatexSize -> Maybe (Either () ()) -> LatexItem -> LatexItem
+savebox :: SaveBin -> Maybe LatexLength -> Maybe (Either () ()) -> LatexItem -> LatexItem
 savebox bin width dir txt =
   latexCmdArgs "savebox" [mandatory $ latexSaveBin bin
-                         ,maybe noArg (optional . size) width
+                         ,maybe noArg (optional . texLength) width
                          ,maybe noArg (optional . either ll rr) dir
                          ,mandatory txt]
   where ll _ = rawTex "l"
@@ -485,48 +400,48 @@ usebox :: SaveBin -> LatexItem
 usebox bin = latexCmdArgs "usebox" [mandatory $ latexSaveBin bin]
 
 -- fragile
-parbox :: LatexSize -> LatexItem -> LatexItem
+parbox :: LatexLength -> LatexItem -> LatexItem
 parbox width txt =
-  latexCmdArgs "parbox" [mandatory $ size width, mandatory  txt]
+  latexCmdArgs "parbox" [mandatory $ texLength width, mandatory  txt]
 
 -- fragile
-parboxTop :: LatexSize -> LatexItem -> LatexItem
+parboxTop :: LatexLength -> LatexItem -> LatexItem
 parboxTop width txt =
-  latexCmdArgs "parbox" [optional $ rawTex "t", mandatory $ size width, mandatory  txt]
+  latexCmdArgs "parbox" [optional $ rawTex "t", mandatory $ texLength width, mandatory  txt]
 
 -- fragile
-parboxBot :: LatexSize -> LatexItem -> LatexItem
+parboxBot :: LatexLength -> LatexItem -> LatexItem
 parboxBot width txt =
-  latexCmdArgs "parbox" [optional $ rawTex "b", mandatory $ size width, mandatory  txt]
+  latexCmdArgs "parbox" [optional $ rawTex "b", mandatory $ texLength width, mandatory  txt]
 
-minipage :: LatexSize -> ParItem -> LatexItem
-minipage width = latexEnvironmentPar "minipage" [mandatory $ size width]
+minipage :: LatexLength -> ParItem -> LatexItem
+minipage width = latexEnvironmentPar "minipage" [mandatory $ texLength width]
 
-minipageTop :: LatexSize -> ParItem -> LatexItem
-minipageTop width = latexEnvironmentPar "minipage" [optional $ rawTex "t", mandatory $ size width]
+minipageTop :: LatexLength -> ParItem -> LatexItem
+minipageTop width = latexEnvironmentPar "minipage" [optional $ rawTex "t", mandatory $ texLength width]
 
-minipageBot :: LatexSize -> ParItem -> LatexItem
-minipageBot width = latexEnvironmentPar "minipage" [optional $ rawTex "b", mandatory $ size width]
-
--- fragile
-rule :: LatexSize -> LatexSize -> LatexItem
-rule width height = latexCmdArgs "rule" [mandatory $ size width,mandatory $ size height]
+minipageBot :: LatexLength -> ParItem -> LatexItem
+minipageBot width = latexEnvironmentPar "minipage" [optional $ rawTex "b", mandatory $ texLength width]
 
 -- fragile
-rule' :: LatexSize -> LatexSize -> LatexSize -> LatexItem
-rule' raise_len width height = latexCmdArgs "rule" [optional $ size raise_len
-                                                   ,mandatory $ size width,mandatory $ size height]
+rule :: LatexLength -> LatexLength -> LatexItem
+rule width height = latexCmdArgs "rule" [mandatory $ texLength width,mandatory $ texLength height]
 
 -- fragile
-raisebox :: LatexSize -> LatexItem -> LatexItem
+rule' :: LatexLength -> LatexLength -> LatexLength -> LatexItem
+rule' raise_len width height = latexCmdArgs "rule" [optional $ texLength raise_len
+                                                   ,mandatory $ texLength width,mandatory $ texLength height]
+
+-- fragile
+raisebox :: LatexLength -> LatexItem -> LatexItem
 raisebox raise_len txt =
-  latexCmdArgs "raisebox" [mandatory $ size raise_len,mandatory txt]
+  latexCmdArgs "raisebox" [mandatory $ texLength raise_len,mandatory txt]
 
 -- fragile
-raisebox' :: LatexSize -> LatexSize -> LatexSize -> LatexItem -> LatexItem
+raisebox' :: LatexLength -> LatexLength -> LatexLength -> LatexItem -> LatexItem
 raisebox' raise_len height depth txt =
-  latexCmdArgs "raisebox" [mandatory $ size raise_len
-                          ,optional $ size height,optional $ size depth,mandatory  txt]
+  latexCmdArgs "raisebox" [mandatory $ texLength raise_len
+                          ,optional $ texLength height,optional $ texLength depth,mandatory  txt]
 
 footnote :: LatexItem -> LatexItem
 footnote = latexCmdArg "footnote"
@@ -583,6 +498,8 @@ bibliographystyle :: LatexItem -> ParItem
 bibliographystyle = parCmdArg "bibliographystyle"
 thispagestyle :: LatexItem -> ParItem
 thispagestyle = parCmdArg "thispagestyle"
+pagestyle :: LatexItem -> ParItem
+pagestyle = parCmdArg "pagestyle"
 
 appendix :: ParItem
 appendix = parCmdArgs "appendix" []
@@ -793,7 +710,7 @@ cells :: [a] -> Row a
 cells = Cells
 
 cell :: a -> Row a
-cell = Cells . (:[])
+cell = Cells . pure
 
 hline :: Row a
 hline = Hline
@@ -827,9 +744,9 @@ article = Article
 report = Report
 letter = Letter
 
-documentclass :: Maybe LatexSize -> Maybe LatexPaper -> DocumentClass -> PreambleItem
+documentclass :: Maybe LatexLength -> Maybe LatexPaper -> DocumentClass -> PreambleItem
 documentclass msize mpaper dc =
-  preambleCmdArgs "documentclass" [optionals (maybeToList (fmap size msize)
+  preambleCmdArgs "documentclass" [optionals (maybeToList (fmap texLength msize)
                                              ++ maybeToList (fmap (rawTex . showPaper) mpaper))
                                   ,mandatory $ rawTex $ showDocumentClass dc]
 

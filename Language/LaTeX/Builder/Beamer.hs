@@ -258,7 +258,7 @@ againframe ov1 ov2 fopts lbl =
 beamertemplatenavigationsymbolsempty :: PreambleItem
 beamertemplatenavigationsymbolsempty = B.preambleCmdArgs "beamertemplatenavigationsymbolsempty" []
 
-type TexDimension = LatexSize
+type TexDimension = LatexLength
 
 data BeamerSize
   = TextMarginLeft TexDimension
@@ -286,14 +286,14 @@ data BeamerSize
 
 texBeamerSizeArg :: BeamerSize -> LatexItem
 texBeamerSizeArg bs = case bs of
-  TextMarginLeft dim -> B.rawTex "text margin left=" <> B.size dim
-  TextMarginRight dim -> B.rawTex "text margin right=" <> B.size dim
-  SidebarWidthLeft dim -> B.rawTex "sidebar width left=" <> B.size dim
-  SidebarWidthRight dim -> B.rawTex "sidebar width right=" <> B.size dim
-  DescriptionWidth dim -> B.rawTex "description width=" <> B.size dim
+  TextMarginLeft dim -> B.rawTex "text margin left=" <> B.texLength dim
+  TextMarginRight dim -> B.rawTex "text margin right=" <> B.texLength dim
+  SidebarWidthLeft dim -> B.rawTex "sidebar width left=" <> B.texLength dim
+  SidebarWidthRight dim -> B.rawTex "sidebar width right=" <> B.texLength dim
+  DescriptionWidth dim -> B.rawTex "description width=" <> B.texLength dim
   DescriptionWidthOf txt -> B.rawTex "description width of=" <> txt
-  MiniFrameSize dim -> B.rawTex "mini frame size=" <> B.size dim
-  MiniFrameOffset dim -> B.rawTex "mini frame offset=" <> B.size dim
+  MiniFrameSize dim -> B.rawTex "mini frame size=" <> B.texLength dim
+  MiniFrameOffset dim -> B.rawTex "mini frame offset=" <> B.texLength dim
 
 setbeamersize :: BeamerSize -> PreambleItem
 setbeamersize = B.preambleCmdArgs "setbeamersize" . pure . B.mandatory . texBeamerSizeArg

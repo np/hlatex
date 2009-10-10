@@ -12,7 +12,7 @@ module Language.LaTeX.Builder.Graphics
 where
 
 import Language.LaTeX.Types hiding (Loc)
-import Language.LaTeX.Builder.Internal (parCmdArgs, size, bool, coord, packageDependency,
+import Language.LaTeX.Builder.Internal (parCmdArgs, texLength, bool, coord, packageDependency,
                                         rat, rawTex, optional, mandatory)
 import Language.LaTeX.Builder.MonoidUtils ((<>))
 import Control.Arrow ((***))
@@ -78,13 +78,13 @@ showGrLoc loc = case loc of
 data IncludeGraphicsOpts = IncludeGraphicsOpts
   { scale  :: Rational
     -- ^ the number by which the figure size should be magnified over its natural size
-  , width  :: Maybe LatexSize
+  , width  :: Maybe LatexLength
     -- ^ specifies the width to which the figure should be scaled to; if height not given,
     -- it is scaled with the same factor as the width
-  , height :: Maybe LatexSize
+  , height :: Maybe LatexLength
     -- ^ specifies the height to which the figure should be scaled to; if width is not given,
     -- it is scaled with the same factor as the height
-  , totalheight :: Maybe LatexSize
+  , totalheight :: Maybe LatexLength
     -- ^ like height but specifies the height plus depth of the figure; should always be used
     -- in place of height if the figure has been otated
   , keepaspectratio :: Bool
@@ -159,9 +159,9 @@ defaultOpts = IncludeGraphicsOpts
 includeGraphicsOpts :: IncludeGraphicsOpts -> [(String, LatexItem)]
 includeGraphicsOpts o =
   catMaybes [ f "scale" scale rat
-            , f "width" width (size . fromJust)
-            , f "height" height (size . fromJust)
-            , f "totalheight" totalheight (size . fromJust)
+            , f "width" width (texLength . fromJust)
+            , f "height" height (texLength . fromJust)
+            , f "totalheight" totalheight (texLength . fromJust)
             , f "keepaspectratio" keepaspectratio bool
             , f "angle" angle rat
             , f "origin" origin (rawTex . showGrLoc)

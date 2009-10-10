@@ -86,9 +86,9 @@ pp :: LatexItm -> ShowS
 
 pp (LatexCmdArgs cmdName args) = ppCmdArgs cmdName $ map (fmap pp) args
 
-pp (LatexSize size) = ppSize size
+pp (LatexLength texLength) = ppTexLength texLength
 
-pp (LatexCoord (Coord x y)) = ppSize x <> text " " <> ppSize y
+pp (LatexCoord (Coord x y)) = ppTexLength x <> text " " <> ppTexLength y
 
 pp (LatexKeys keys) = text $ concat $ intersperse "," $ map getKey keys
 
@@ -168,26 +168,31 @@ ppRows ppCell (Hline : rows)
 ppRows ppCell (Cline c1 c2 : rows)
   = ppCmdArgNB "cline" (text $ show c1 ++ "-" ++ show c2) <> ppRows ppCell rows
 
-ppSize :: LatexSize -> ShowS
-ppSize s =
+unitName :: TexUnit -> String
+unitName u =
+  case u of
+    Cm -> "cm" 
+    Mm -> "mm" 
+    Em -> "em" 
+    Ex -> "ex" 
+    Pt -> "pt" 
+    Pc -> "pc" 
+    In -> "in"
+    Sp -> "sp"
+    Bp -> "bp"
+    Dd -> "dd"
+    Cc -> "cc"
+    Mu -> "mu"
+
+ppTexLength :: LatexLength -> ShowS
+ppTexLength s =
   case s of
-    Cm r -> showr r <> text "cm" 
-    Mm r -> showr r <> text "mm" 
-    Em r -> showr r <> text "em" 
-    Ex r -> showr r <> text "ex" 
-    Pt r -> showr r <> text "pt" 
-    Pc r -> showr r <> text "pc" 
-    In r -> showr r <> text "in"
-    Sp r -> showr r <> text "sp"
-    Bp r -> showr r <> text "bp"
-    Dd r -> showr r <> text "dd"
-    Cc r -> showr r <> text "cc"
-    Mu r -> showr r <> text "mu"
-    SizeRat r          -> showr r
-    SizeUnOp op s'     -> text op <> sp <> ppSize s'
-    SizeBinOp op s1 s2 -> parens (ppSize s1 <> sp <> text op <> sp <> ppSize s2)
-    SizeCmd cmd        -> ppCmdArgs cmd []
-    SizeCmdRatArg cmd r -> ppCmdArg cmd (showr r)
+    LengthCmd cmd          -> ppCmdArgs cmd []
+    LengthCmdRatArg  cmd r -> ppCmdArg cmd (showr r)
+    LengthScaledBy _ (LengthScaledBy _ _) ->
+      error "broken invariant: nested LengthScaledBy"
+    LengthScaledBy r l     -> showr r <> ppTexLength l
+    LengthCst munit r      -> showr r <> foldMap (text . unitName) munit
   where showr r | denominator r == 1 = shows $ numerator r
                 | otherwise          = text $ formatRealFloat FFFixed (Just 2) (fromRational r :: Double)
 

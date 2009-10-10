@@ -88,8 +88,8 @@ preambleCmdArg x y = preambleCmdArgs x [mandatory y]
 rawPreamble :: String -> PreambleItem
 rawPreamble = mapNonEmpty $ pure . RawPreamble
 
-size :: LatexSize -> LatexItem
-size = pure . LatexSize
+texLength :: LatexLength -> LatexItem
+texLength = pure . LatexLength
 
 pkgName :: String -> PackageName
 pkgName = PkgName
@@ -140,10 +140,10 @@ normSpaces :: String -> String
 normSpaces = unlines . map (L.unwords . words) . lines
 
 num :: Real a => a -> LatexItem
-num = size . SizeRat . toRational
+num = texLength . fromRational . toRational
 
 rat :: Rational -> LatexItem
-rat = size . SizeRat
+rat = texLength . fromRational
 
 space :: LatexItem
 space = rawTex "{ }"

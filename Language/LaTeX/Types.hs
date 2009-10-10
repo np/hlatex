@@ -78,7 +78,7 @@ data LatexItm
            | Environment String [Arg LatexItm] LatexItm
            | MathInline MathItm
            | LatexCoord Coord
-           | LatexSize LatexSize
+           | LatexLength LatexLength
            | LatexKeys [Key]
            | LatexSaveBin SaveBin
            | LatexParMode ParItm
@@ -130,7 +130,7 @@ instance Traversable Arg where
   sequenceA (Coordinates x y) = Coordinates <$> x <*> y
 -}
 
-data Coord = Coord LatexSize LatexSize
+data Coord = Coord LatexLength LatexLength
   deriving (Show, Eq, Typeable)
 
 newtype Percentage = Percentage { percentage :: Int } deriving (Eq,Show,Ord,Num)
@@ -201,37 +201,58 @@ instance Integral MathItm where
   -- TODO quot, rem
 -}
 
-data LatexSize = Sp Rational -- ^ Scalled point (1pt = 65536sp)
-               | Pt Rational -- ^ Point unit size (1pt = 0.351mm)
-               | Bp Rational -- ^ Big point (1in = 72bp), also PostScript point
-               | Dd Rational -- ^ Didôt point (1dd = 0.376mm)
-               | Em Rational -- ^ One em is about the width of the letter M in the current font
-               | Ex Rational -- ^ One ex is about the hoigh of the letter x in the current font
-               | Cm Rational -- ^ Centimeter unit size
-               | Mm Rational -- ^ Milimeter unit size (1mm = 2.845pt)
-               | In Rational -- ^ Inch unit size (1in = 72.27pt)
-               | Pc Rational -- ^ Picas (1pc = 12pt)
-               | Cc Rational -- ^ Cicero (1dd = 12dd = 4.531mm)
-               | Mu Rational -- ^ Math unit (18mu = 1em)
-               | SizeCmd String
-               | SizeCmdRatArg String Rational
-               | SizeBinOp String LatexSize LatexSize
-               | SizeUnOp String LatexSize
-               | SizeRat Rational
+data TexUnit
+  = Sp -- ^ Scalled point (1pt = 65536sp)
+  | Pt -- ^ Point unit size (1pt = 0.351mm)
+  | Bp -- ^ Big point (1in = 72bp), also PostScript point
+  | Dd -- ^ Didôt point (1dd = 0.376mm)
+  | Em -- ^ One em is about the width of the letter M in the current font
+  | Ex -- ^ One ex is about the hoigh of the letter x in the current font
+  | Cm -- ^ Centimeter unit size
+  | Mm -- ^ Milimeter unit size (1mm = 2.845pt)
+  | In -- ^ Inch unit size (1in = 72.27pt)
+  | Pc -- ^ Picas (1pc = 12pt)
+  | Cc -- ^ Cicero (1dd = 12dd = 4.531mm)
+  | Mu -- ^ Math unit (18mu = 1em)
+  deriving (Eq, Ord, Enum, Show, Typeable)
+
+data LatexLength = LengthScaledBy Rational LatexLength
+                 | LengthCmdRatArg String Rational
+                 | LengthCmd String
+                 | LengthCst (Maybe TexUnit) Rational
   deriving (Show, Eq, Typeable)
 
-instance Num LatexSize where
-  (+) = SizeBinOp "+"
-  (*) = SizeBinOp "*"
-  (-) = SizeBinOp "-"
-  negate = SizeUnOp "-"
-  abs = error "LatexSize.abs is undefined"
-  signum = error "LatexSize.signum is undefined"
-  fromInteger = SizeRat . (%1)
+safeLengthOp :: String -> (Rational -> Rational -> Rational) -> LatexLength -> LatexLength -> LatexLength
+safeLengthOp _ op (LengthCst Nothing     rx) (LengthCst munit ry)
+  = LengthCst munit (op rx ry)
+safeLengthOp _ op (LengthCst (Just unit) rx) (LengthCst Nothing ry)
+  = LengthCst (Just unit) (op rx ry)
+safeLengthOp op _ x y
+  = error $ "LatexLength." ++ op
+         ++ ": undefined on non constants terms (" ++ show x ++ op ++ show y ++ ")"
 
-instance Fractional LatexSize where
-  (/) = SizeBinOp "/"
-  fromRational = SizeRat
+scaleBy :: Rational -> LatexLength -> LatexLength
+scaleBy rx (LengthScaledBy ry l)   = LengthScaledBy (rx * ry) l
+scaleBy rx (LengthCst munit ry)    = LengthCst munit (rx * ry)
+scaleBy rx (LengthCmd cmd)         = LengthScaledBy rx (LengthCmd cmd)
+scaleBy rx (LengthCmdRatArg cmd r) = LengthScaledBy rx (LengthCmdRatArg cmd r)
+
+instance Num LatexLength where
+  LengthCst Nothing x * y = scaleBy x y
+  x * LengthCst Nothing y = scaleBy y x
+  x * y                   = safeLengthOp "*" (*) x y
+
+  (+) = safeLengthOp "+" (+)
+  (-) = safeLengthOp "-" (-)
+  negate x = LengthCst Nothing (-1) * x
+  abs = error "LatexLength.abs is undefined"
+  signum = error "LatexLength.signum is undefined"
+  fromInteger = LengthCst Nothing . (%1)
+
+instance Fractional LatexLength where
+  x / LengthCst Nothing ry = scaleBy (1/ry) x
+  x / y                    = safeLengthOp "/" (/) x y
+  fromRational = LengthCst Nothing
 
 -- p{wd}, and *{num}{cols} are explicitly
 -- not supported, it seems much more natural and
@@ -424,7 +445,8 @@ $(derive makePlateTypeable ''Row)
 $(derive makePlateTypeable ''RowSpec)
 $(derive makePlateTypeable ''LocSpec)
 $(derive makePlateTypeable ''Coord)
-$(derive makePlateTypeable ''LatexSize)
+$(derive makePlateTypeable ''TexUnit)
+$(derive makePlateTypeable ''LatexLength)
 $(derive makePlateTypeable ''SaveBin)
 $(derive makePlateTypeable ''PackageName)
 $(derive makePlateTypeable ''Root)
