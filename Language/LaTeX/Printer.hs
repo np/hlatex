@@ -6,6 +6,7 @@ import Data.List (intersperse)
 import Data.Ratio (numerator, denominator)
 import Data.Generics.UniplateStr (universe)
 import Data.Generics.Biplate (universeBi)
+import Data.Foldable (foldMap)
 import Data.Set (Set)
 import Data.Char
 import qualified Data.Set as Set
@@ -76,7 +77,7 @@ ppDecl :: String -> ShowS -> ShowS
 ppDecl declName declArgs = backslash <> text declName <> declArgs <> text " " -- or {}
 
 ppTexDecl :: TexDcl -> ShowS
-ppTexDecl (TexDcl declName declArgs) = ppDecl declName (mconcatMap (ppArg . fmap pp) declArgs)
+ppTexDecl (TexDcl declName declArgs) = ppDecl declName (foldMap (ppArg . fmap pp) declArgs)
 
 ppMathDecl :: MathDcl -> ShowS
 ppMathDecl (MathDcl declName) = ppDecl declName mempty
@@ -91,7 +92,7 @@ pp (LatexCoord (Coord x y)) = ppSize x <> text " " <> ppSize y
 
 pp (LatexKeys keys) = text $ concat $ intersperse "," $ map getKey keys
 
-pp (TexDecls decls) = mconcatMap ppTexDecl decls
+pp (TexDecls decls) = foldMap ppTexDecl decls
 
 pp (TexCmdNoArg cmdName) = ppCmdNoArg cmdName
 
@@ -134,7 +135,7 @@ ppParMode (ParConcat contents) = vcat $ map ppParMode contents
 ppParMode (ParNote note t) = ppNote note ppParMode t
 
 ppMath :: MathItm -> ShowS
-ppMath (MathDecls decls) = mconcatMap ppMathDecl decls
+ppMath (MathDecls decls) = foldMap ppMathDecl decls
 ppMath (MathCmdArgs cmdName args) = ppCmdArgs cmdName $ map (fmap ppMath) args
 ppMath (RawMath s) = text s
 ppMath (MathRat r) | denominator r == 1 = shows (numerator r)
@@ -224,7 +225,7 @@ showsLaTeX mroot = do
   let usedPkgs    = usedPackages preamb
       neededPkgs  = neededPackages root
       missingPkgs = Set.toList $ neededPkgs `Set.difference` usedPkgs
-      preamb'     = preamb <> mconcatMap (`Usepackage` []) missingPkgs
+      preamb'     = preamb <> foldMap (`Usepackage` []) missingPkgs
   return $ ppRoot $ Root preamb' (Document doc)
 
 showLaTeX :: LatexM Root -> Either String String
