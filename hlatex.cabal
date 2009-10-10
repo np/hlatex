@@ -51,10 +51,10 @@ executable generate_hlatex_user_guide
 
 source-repository head
   type:     darcs
-  location: http://patch-tag.com/publicrepos/hlatex
+  location: http://patch-tag.com/r/np/hlatex/pullrepo
 
 --source-repository this
 --  type:     darcs
---  location: http://patch-tag.com/publicrepos/hlatex
+--  location: http://patch-tag.com/r/np/hlatex/pullrepo
 --  tag:      0.1
 
