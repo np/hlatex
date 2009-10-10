@@ -493,16 +493,13 @@ parboxBot width txt =
   latexCmdArgs "parbox" [optional $ rawTex "b", mandatory $ size width, mandatory  txt]
 
 minipage :: LatexSize -> ParItem -> LatexItem
-minipage width txt =
-  latexCmdArgs "minipage" [mandatory $ size width, mandatory $ liftM LatexParMode txt]
+minipage width = latexEnvironmentPar "minipage" [mandatory $ size width]
 
-minipageTop :: LatexSize -> LatexItem -> LatexItem
-minipageTop width txt =
-  latexCmdArgs "minipage" [optional $ rawTex "t", mandatory $ size width, mandatory  txt]
+minipageTop :: LatexSize -> ParItem -> LatexItem
+minipageTop width = latexEnvironmentPar "minipage" [optional $ rawTex "t", mandatory $ size width]
 
-minipageBot :: LatexSize -> LatexItem -> LatexItem
-minipageBot width txt =
-  latexCmdArgs "minipage" [optional $ rawTex "b", mandatory $ size width, mandatory  txt]
+minipageBot :: LatexSize -> ParItem -> LatexItem
+minipageBot width = latexEnvironmentPar "minipage" [optional $ rawTex "b", mandatory $ size width]
 
 -- fragile
 rule :: LatexSize -> LatexSize -> LatexItem
