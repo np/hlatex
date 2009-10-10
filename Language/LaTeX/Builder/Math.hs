@@ -656,10 +656,10 @@ amsmath :: PackageName
 amsmath = PkgName "amsmath"
 
 protect :: String -> LatexItem
-protect = B.protector (mconcatMap $ mchar (B.rawTex . hchar))
+protect = foldMap (either (mchar (B.rawTex . hchar)) B.hspaces) . B.compressSpaces
 
 verb :: String -> LatexItem
-verb = B.texttt . B.protector (mconcatMap $ mchar (B.rawTex . B.ttchar))
+verb = B.texttt . foldMap (either (mchar (B.rawTex . B.ttchar)) B.hspaces) . B.compressSpaces
 
 {- NOT USED
 mchar :: Char -> String

@@ -123,22 +123,28 @@ f ('a':_) = 2
 f _ = 3
 -}
 
-protector :: (String -> LatexItem) -> String -> LatexItem
-protector _ []        = mempty
-protector f ('\n':xs) = newline <> protector f xs
-protector f (' ':xs)  = uncurry (<>) $ (hspace_ . (+1) . length *** protector f) $ break (/=' ') xs
-  where hspace_ n = mbox . hspace . Em $ 1%2 * fromIntegral n
-protector f (x:xs)    = uncurry (<>) $ (f . (x :) *** protector f) $ break (`elem` " \n") xs
+newtype Spaces = Spaces { countSpaces :: Int }
+
+hspaces :: Spaces -> LatexItem
+hspaces (Spaces n) = mbox . hspace . Em $ 1%2 * fromIntegral n
+
+compressSpaces :: [Char] -> [Either Char Spaces]
+compressSpaces [] = []
+compressSpaces (' ':xs)
+  = uncurry (:) . (Right . Spaces . (+1) . length *** compressSpaces) . span (==' ') $ xs
+compressSpaces (x:xs) = Left x : compressSpaces xs
 
 protect :: String -> LatexItem
-protect = protector hstring
+protect = foldMap (either f hspaces) . compressSpaces
+  where f '\n' = newline
+        f  x   = rawTex $ hchar x
 
 ttchar :: Char -> String
-ttchar ch | isAscii ch = if isAlphaNum ch then [ch] else "{\\char `\\" ++ [ch,'}']
-          | otherwise = [ch]
+ttchar ch | isAscii ch && not (isAlphaNum ch) = "{\\char `\\" ++ [ch,'}']
+          | otherwise                         = [ch]
 
 verb :: String -> LatexItem
-verb = texttt . protector (rawTex . (ttchar =<<))
+verb = texttt . foldMap (either (rawTex . ttchar) hspaces) . compressSpaces
 
 href :: LatexItem -> LatexItem -> LatexItem
 href x y = latexCmdArgs "href" [mandatory x,mandatory y]
