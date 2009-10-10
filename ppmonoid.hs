@@ -30,6 +30,7 @@ main = interact' h
         h ('\'':xs)            = '\'' : a h xs
         h ('[':'$':xs)         = '[' : '$' : startq h xs
         h ('\226':'\136':'\133':xs) = "(mempty)" ++ h xs
+        h ('\226':'\138':'\149':xs) = "`mappend`" ++ h xs
         h (x:xs)               = x : h xs
 
         -- haskell (nested) comments
