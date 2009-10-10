@@ -107,6 +107,9 @@ latexSaveBin = pure . LatexSaveBin
 latexEnvironment :: String -> [Arg LatexItem] -> LatexItem -> LatexItem
 latexEnvironment x ys = liftM2 (Environment x) $ mapM sequenceA ys
 
+latexEnvironmentPar :: String -> [Arg LatexItem] -> ParItem -> LatexItem
+latexEnvironmentPar x ys z = liftM2 (Environment x) (mapM sequenceA ys) (LatexParMode `liftM` z)
+
 parEnvironmentPar :: String -> [Arg LatexItem] -> ParItem -> ParItem
 parEnvironmentPar x ys = liftM2 (ParEnvironmentPar x) $ mapM sequenceA ys
 
