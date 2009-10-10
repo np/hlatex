@@ -727,10 +727,10 @@ charToMath ch
       --, ('', _Xi)
       , ('ζ', zeta)
       , ('×', times)
-      --, ('', divide)
+      , ('÷', divide)
       , ('·', cdotp)
       , ('∘', circ)
-      --, ('', oplus)
+      , ('⊕', oplus)
       --, ('', otimes)
       , ('∧', wedge)
       --, ('', bigwedge)
@@ -774,7 +774,9 @@ charToMath ch
       , ('', partial)
       , ('', nabla)
       , ('', pm)
-      , ('', emptyset)
+      -}
+      , ('ø', emptyset)
+      {-
       , ('', infty)
       , ('', aleph)
       , ('', ldots)
