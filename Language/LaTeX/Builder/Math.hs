@@ -1,6 +1,6 @@
 module Language.LaTeX.Builder.Math
 
-  (charToMath, stringToMath, protect, verb,
+  (charToMath, mstring, protect, verb,
    _Delta, _Gamma, _Lambda, _Leftarrow, _Leftrightarrow, _Omega, _Phi, _Pi, _Pr,
    _Rightarrow, _Sigma, _Theta, _Xi, acute, aleph, alpha, approx, array, at,
    backslash, bar, beta, between, bigcap, bigcup, bigvee, bigwedge, bmod, bot,
@@ -38,9 +38,11 @@ import Prelude hiding (sqrt, min, max, lcm, gcd, log, mod, tanh, cosh, tan, sinh
 import Data.List hiding (sum, and, group)
 import Data.Ratio
 import Data.Char
+import Data.Foldable (foldMap)
 import Data.Traversable (sequenceA, mapM)
 import Data.Maybe
 import Data.Monoid
+import Data.String
 import qualified Data.IntMap as IntMap
 import Control.Arrow
 import Control.Applicative
@@ -53,23 +55,33 @@ import Language.LaTeX.Builder (cell, cells, vline, hline, cline)
 import qualified Language.LaTeX.Builder as B
 import qualified Language.LaTeX.Builder.Internal as B
 
+liftMath :: (MathItm -> MathItm) -> MathItem -> MathItem
+liftMath f = MathItem . liftM f . mathItmM
+
+liftMath2 :: (MathItm -> MathItm -> MathItm) -> MathItem -> MathItem -> MathItem
+liftMath2 f (MathItem a) (MathItem b) = MathItem (liftM2 f a b)
+
 group :: MathItem -> MathItem
-group = liftM MathGroup
+group = liftMath MathGroup
+
+-- | Same as 'group'
+mathGroup :: MathItem -> MathItem
+mathGroup = liftMath MathGroup
 
 mathCmdArgs :: String -> [Arg MathItem] -> MathItem
-mathCmdArgs m1 ys = MathCmdArgs m1 <$> mapM sequenceA ys
+mathCmdArgs m1 ys = MathItem $ MathCmdArgs m1 <$> mapM (mapM mathItmM) ys
 
 mathCmdArg :: String -> MathItem -> MathItem
 mathCmdArg m1 m2 = mathCmdArgs m1 [B.mandatory m2]
 
 mathToLR :: String -> [Arg LatexItem] -> MathItem
-mathToLR cmdName args = MathToLR cmdName <$> mapM sequenceA args
+mathToLR cmdName args = MathItem $ MathToLR cmdName <$> mapM sequenceA args
 
 mathDecl :: String -> MathDecl
 mathDecl = pure . MathDcl
 
 rawDecls :: [MathDecl] -> MathItem
-rawDecls = fmap MathDecls . sequenceA
+rawDecls = MathItem . fmap MathDecls . sequenceA
 
 decls :: [MathDecl] -> MathItem -> MathItem
 decls ds itm = group (rawDecls ds <> itm)
@@ -78,22 +90,19 @@ decl :: MathDecl -> MathItem -> MathItem
 decl dcl = decls [dcl]
 
 mathCmd :: String -> MathItem
-mathCmd = pure . (`MathCmdArgs` [])
+mathCmd = MathItem . pure . (`MathCmdArgs` [])
 
 mathBinOp :: String -> MathItem -> MathItem -> MathItem
-mathBinOp = liftM2 . MathBinOp
+mathBinOp = liftMath2 . MathBinOp
 
 rawMath :: String -> MathItem
-rawMath = pure . RawMath
+rawMath = MathItem . pure . RawMath
 
 rawMathChar :: Char -> MathItem
 rawMathChar = rawMath . ('{':) . (:"}")
 
-mathGroup :: MathItem -> MathItem
-mathGroup = liftM MathGroup
-
 mrat :: Rational -> MathItem
-mrat = pure . fromRational
+mrat = fromRational
 
 sub, sup :: MathItem -> MathItem
 sub = (rawMath "_" <>) . mathGroup
@@ -113,8 +122,8 @@ phantom :: MathItem -> MathItem
 phantom = mathCmdArgs "phantom" . (:[]) . B.mandatory
 
 mleft, mright :: Char -> MathItem
-mleft m1  = rawMath "\\left"  <> (RawMath <$> parenChar m1)
-mright m1 = rawMath "\\right" <> (RawMath <$> parenChar m1)
+mleft m1  = rawMath "\\left"  <> (MathItem $ RawMath <$> parenChar m1)
+mright m1 = rawMath "\\right" <> (MathItem $ RawMath <$> parenChar m1)
 
 between :: Char -> Char -> MathItem -> MathItem
 between opening closing m1 = mleft opening <> m1 <> mright closing
@@ -128,13 +137,14 @@ parenChar :: Char -> LatexM String
 parenChar m1 | m1 `elem` "([.])" = return [m1]
              | m1 == '{'         = return "\\{"
              | m1 == '}'         = return "\\}"
-             | otherwise        = throwError $ "invalid parenthesis-like: " ++ show m1
+             | otherwise         = throwError $ "invalid parenthesis-like: " ++ show m1
 
 text :: LatexItem -> MathItem
 text arg = mathToLR "text" [B.packageDependency amsmath, B.mandatory arg]
 
 array :: [RowSpec MathItem] -> [Row MathItem] -> MathItem
-array = B.tabularLike MathArray
+array spec items = MathItem $ B.tabularLike MathArray (map (fmap mathItmM) spec)
+                                                      (map (fmap mathItmM) items)
 
 {- This chunk was extracted from Language.LaTeX.Builder -}
 lbrace :: MathItem
@@ -668,8 +678,11 @@ mchar xchar ch = maybe (xchar ch) B.math m'
   where m' | isAscii ch && isAlphaNum ch = Nothing
            | otherwise                   = charToMath ch
 
-stringToMath :: String -> Maybe MathItem
-stringToMath = fmap mconcat . mapM charToMath
+mstring :: String -> LatexItem
+mstring = foldMap $ mchar (B.rawTex . hchar)
+
+instance IsString MathItem where
+  fromString = text . mstring
 
 charToMath :: Char -> Maybe MathItem
 charToMath ch

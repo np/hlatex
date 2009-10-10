@@ -50,6 +50,7 @@ import Data.Maybe
 import Data.Ratio
 import Data.Monoid
 import Data.Char
+import Data.Foldable (foldMap)
 import Data.Traversable (sequenceA, mapM)
 import Data.String (IsString(..))
 import Control.Applicative hiding (optional)
@@ -86,10 +87,10 @@ infixr 0 !$?
 (!$?) f m = tell $ f $ execWriter m
 
 math :: MathItem -> LatexItem
-math = liftM MathInline
+math = liftM MathInline . mathItmM
 
 displaymath :: MathItem -> ParItem
-displaymath = liftM DisplayMath
+displaymath = liftM DisplayMath . mathItmM
 
 decls :: [TexDecl] -> LatexItem -> LatexItem
 decls ds x = group (rawDecls ds <> x)

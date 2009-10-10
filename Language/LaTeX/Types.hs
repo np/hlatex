@@ -357,7 +357,8 @@ type TexDecl   = LatexM TexDcl
 type LatexItem = LatexM LatexItm
 type ParItem   = LatexM ParItm
 type MathDecl  = LatexM MathDcl
-type MathItem  = LatexM MathItm
+newtype MathItem  = MathItem { mathItmM :: LatexM MathItm }
+  deriving (Monoid, Eq, Show, Num, Fractional, Typeable)
 type ListItem  = LatexM ListItm
 type PreambleItem = LatexM PreambleItm
 
