@@ -208,10 +208,11 @@ omega :: MathItem
 omega = mathCmd "omega"
 _Omega :: MathItem
 _Omega = mathCmd "Omega"
-{-
+-- | In LaTeX math mode omicron is just 'o',
+--   it is exported as omicron here as well just
+--   for convinience.
 omicron :: MathItem
-omicron = mathCmd "omicron"
--}
+omicron = mathCmd "o"
 phi :: MathItem
 phi = mathCmd "phi"
 varphi :: MathItem
