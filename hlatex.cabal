@@ -20,6 +20,7 @@ library
     exposed-modules:
                  Language.LaTeX,
                  Language.LaTeX.Types,
+                 Language.LaTeX.Length,
                  Language.LaTeX.Builder,
                  Language.LaTeX.Builder.Internal,
                  Language.LaTeX.Builder.MonoidUtils,
