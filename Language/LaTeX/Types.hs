@@ -18,10 +18,9 @@ import Control.Monad.Trans ()
 import Control.Monad.Error
 import Data.DeriveTH
 
-data Root = Root PreambleItm Document
-  deriving (Show, Eq, Typeable)
-
-data Document = Document ParItm
+data Document = Document { documentClass     :: DocumentClass
+                         , documentPreamble  :: PreambleItm
+                         , documentBody      :: ParItm }
   deriving (Show, Eq, Typeable)
 
 type LineNumber = Int
