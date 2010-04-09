@@ -34,12 +34,12 @@ myViewOpts = ViewOpts { basedir   = ""
 
 testViewOpts = myViewOpts { basedir = "tests" }
 
-quickView :: ViewOpts -> FilePath -> LatexM Root -> IO ()
-quickView vo basename root =
+quickView :: ViewOpts -> FilePath -> LatexM Document -> IO ()
+quickView vo basename doc =
      do when (showoutput vo) $ putStrLn s
         writeFile (basedir vo </> ltx) s
         exitWith =<< system cmd
-  where s = encodeString . either error id $ showLaTeX root
+  where s = encodeString . either error id $ showLaTeX doc
         pdf = basename <.> "pdf"
         ltx = basename <.> "ltx"
         cmd = unwords ["cd", basedir vo, "&&", pdflatex vo, ltx, "&&", pdfviewer vo, pdf]

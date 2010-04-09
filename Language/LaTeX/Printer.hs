@@ -215,23 +215,44 @@ ppNote note ppElt elt =  nl' <> mconcat (map ((<>nl') . text) . lines . showNote
 showLoc :: Loc -> String
 showLoc (Loc fp line char) = unwords [fp, ":", show line, ":", show char]
 
-ppRoot :: Root -> ShowS
-ppRoot (Root preamb (Document doc)) = ppPreamble preamb $$ ppEnv "document" [] (ppParMode doc)
+showPaper :: LatexPaper -> String
+showPaper A4paper = "a4paper"
+
+showDocClassKind :: DocumentClassKind -> String
+showDocClassKind Article = "article"
+showDocClassKind Book    = "book"
+showDocClassKind Report  = "report"
+showDocClassKind Letter  = "letter"
+showDocClassKind (OtherDocumentClassKind x) = x
+
+preambOfDocClass :: DocumentClass -> PreambleItm
+preambOfDocClass (DocumentClass kind mpaper msize args) =
+  PreambleCmdArgs "documentclass" $
+    args ++ [Optionals (maybeToList (LatexLength <$> msize) ++
+                        maybeToList (RawTex . showPaper <$> mpaper))
+            ,Mandatory . RawTex $ showDocClassKind kind
+            ]
+
+ppDocument :: Document -> ShowS
+ppDocument (Document docClass preamb doc) =
+  ppPreamble (preambOfDocClass docClass <> preamb) $$
+  ppEnv "document" [] (ppParMode doc)
 
 usedPackages :: PreambleItm -> Set PackageName
 usedPackages x = Set.fromList [ pkg | Usepackage pkg _ <- universe x ]
 
-neededPackages :: Root -> Set PackageName
+neededPackages :: Document -> Set PackageName
 neededPackages x = Set.fromList [ pkg | pkg@(PkgName _) <- universeBi x ]
 
-showsLaTeX :: LatexM Root -> Either String ShowS
-showsLaTeX mroot = do
-  root@(Root preamb (Document doc)) <- runLatexM mroot
-  let usedPkgs    = usedPackages preamb
-      neededPkgs  = neededPackages root
+showsLaTeX :: LatexM Document -> Either String ShowS
+showsLaTeX mdoc = do
+  doc <- runLatexM mdoc
+  let preamb      = documentPreamble doc
+      usedPkgs    = usedPackages preamb
+      neededPkgs  = neededPackages doc
       missingPkgs = Set.toList $ neededPkgs `Set.difference` usedPkgs
       preamb'     = preamb <> foldMap (`Usepackage` []) missingPkgs
-  return $ ppRoot $ Root preamb' (Document doc)
+  return . ppDocument $ doc { documentPreamble = preamb' }
 
-showLaTeX :: LatexM Root -> Either String String
+showLaTeX :: LatexM Document -> Either String String
 showLaTeX = fmap ($"") . showsLaTeX

@@ -26,7 +26,7 @@ normalmarginpar, normalsize, num, o, oe, overbar, overdot, pagebreak,
 pageref, pagestyle, para, paragraph, paragraph', paragraphNoTOC, parbox, parboxBot,
 parboxTop, part, part', partNoTOC,
 person, phantom, pounds, protect, quotation, quote, raisebox, raisebox',
-rat, ref, report, reversemarginpar, ring, rm, rmfamily, root, rq,
+rat, ref, report, reversemarginpar, ring, rm, rmfamily, rq,
 rtext, rule, rule', samepage, savebox, sbox, sc, scriptsize, scshape, section,
 section', sectionNoTOC, sep, setlength, sf, sffamily, sl, sloppy, sloppypar,
 slshape, small, smallskip, ss, subparagraph,
@@ -98,11 +98,8 @@ decls ds x = group (rawDecls ds <> x)
 decl :: TexDecl -> LatexItem -> LatexItem
 decl d = decls [d]
 
-root :: PreambleItem -> LatexM Document -> LatexM Root
-root = liftM2 Root
-
-document :: ParItem -> LatexM Document
-document = liftM Document
+document :: LatexM DocumentClass -> PreambleItem -> ParItem -> LatexM Document
+document = liftM3 Document
 
 dash1, dash2, dash3, nbsp :: LatexItem
 dash1 = rawTex "{-}"
@@ -738,17 +735,17 @@ instance HaveR (RowSpec a) where r = Rr
 a4paper :: LatexPaper
 a4paper = A4paper
 
-book, article, report, letter :: DocumentClass
+book, article, report, letter :: DocumentClassKind
 book = Book
 article = Article
 report = Report
 letter = Letter
 
-documentclass :: Maybe LatexLength -> Maybe LatexPaper -> DocumentClass -> PreambleItem
-documentclass msize mpaper dc =
-  preambleCmdArgs "documentclass" [optionals (maybeToList (fmap texLength msize)
-                                             ++ maybeToList (fmap (rawTex . showPaper) mpaper))
-                                  ,mandatory $ rawTex $ showDocumentClass dc]
+documentclass ::  DocumentClassKind -> Maybe LatexLength ->
+                  Maybe LatexPaper -> [Arg LatexItem] ->
+                  LatexM DocumentClass
+documentclass dc msize mpaper =
+  fmap (DocumentClass dc mpaper msize) . mapM sequenceA
 
 {-
 $(

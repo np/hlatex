@@ -18,8 +18,8 @@ pkg :: PackageName
 pkg = B.pkgName "beamer"
 -}
 
-documentclass :: DocumentClass
-documentclass =  OtherDocumentClass "beamer"
+documentclasskind :: DocumentClassKind
+documentclasskind =  OtherDocumentClassKind "beamer"
 
 type TargetName = String
 type Label = String
