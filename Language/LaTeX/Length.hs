@@ -20,7 +20,7 @@ module Language.LaTeX.Length
 
 import Language.LaTeX.Types
 
-inch, pt, cm, mm, ex, pc, sp, bp, dd, cc, mu :: Rational -> LatexLength
+inch, pt, em, cm, mm, ex, pc, sp, bp, dd, cc, mu :: Rational -> LatexLength
 pt = withUnit Pt
 em = withUnit Em
 cm = withUnit Cm
@@ -37,6 +37,7 @@ cc = withUnit Cc
 mu = withUnit Mu
 
 -- | Internal function to make LatexLength commands
+lengthCmd :: String -> LatexLength
 lengthCmd = LengthCmd
 
 -- | Internal function to make LatexLength commands

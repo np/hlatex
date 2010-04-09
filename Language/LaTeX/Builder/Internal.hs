@@ -2,12 +2,9 @@ module Language.LaTeX.Builder.Internal where
 
 import Prelude hiding (sqrt, min, max, lcm, gcd, log, mod, tanh, cosh, tan, sinh,
                        sin, cos, succ, sum, pi, mapM)
-import Data.List hiding (sum, and, group)
 import qualified Data.List as L
 import Data.Maybe
-import Data.Ratio
 import Data.Monoid
-import Data.Char
 import Data.Traversable (sequenceA, mapM)
 import Control.Applicative hiding (optional)
 import Control.Monad hiding (mapM)

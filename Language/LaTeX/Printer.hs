@@ -4,13 +4,13 @@ import Data.Monoid
 import Data.Maybe
 import Data.List (intersperse)
 import Data.Ratio (numerator, denominator)
-import Data.Generics.UniplateStr (universe)
-import Data.Generics.Biplate (universeBi)
+import Data.Generics.Uniplate.Data (universe, universeBi)
 import Data.Foldable (foldMap)
 import Data.Set (Set)
 import Data.Char
 import qualified Data.Set as Set
 import GHC.Float (formatRealFloat, FFFormat(FFFixed))
+import Control.Applicative
 
 import Language.LaTeX.Types
 import Language.LaTeX.Builder.MonoidUtils

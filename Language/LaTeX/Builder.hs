@@ -45,12 +45,11 @@ import Prelude hiding (sqrt, min, max, lcm, gcd, log, mod, tanh, cosh, tan, sinh
                        sin, cos, succ, sum, pi, mapM, unwords)
 import Data.List hiding (sum, and, group, unwords)
 import qualified Data.List as L
-import Data.Maybe
 import Data.Ratio
 import Data.Monoid
 import Data.Char
 import Data.Foldable (foldMap)
-import Data.Traversable (sequenceA, mapM)
+import Data.Traversable
 import Data.String (IsString(..))
 import Control.Applicative hiding (optional)
 import Control.Monad hiding (mapM)

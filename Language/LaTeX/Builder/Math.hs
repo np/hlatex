@@ -15,7 +15,7 @@ module Language.LaTeX.Builder.Math
    mathToLR, mathbb, mathbf,
    mathcal, mathfrak, mathtt, max, min, mit, mleft, mediumspace,
    negthinspace, mod, models, mrat, mright, msup, thickspace,
-   thinspace, mu, nabla, ne, neg, notin, nu, oint, omega, oplus, otimes,
+   thinspace, mu, nabla, ne, neg, notin, nu, oint, omega, omicron, oplus, otimes,
    overbrace, overline, parenChar, parens, partial, phi, pi, pm, pmod, prec,
    prod, propto, psi, quad, rangle, rawMath, rawMathChar, rbrace, rceiling,
    rfloor, rho, rightarrow, scriptscriptstyle, scriptstyle, sec, sigma, sin, sinh,
@@ -35,13 +35,9 @@ module Language.LaTeX.Builder.Math
 
 import Prelude hiding (sqrt, min, max, lcm, gcd, log, mod, tanh, cosh, tan, sinh,
                        sin, cos, succ, sum, pi, mapM)
-import Data.List hiding (sum, and, group)
-import Data.Ratio
 import Data.Char
 import Data.Foldable (foldMap)
 import Data.Traversable (sequenceA, mapM)
-import Data.Maybe
-import Data.Monoid
 import Data.String
 import qualified Data.IntMap as IntMap
 import Control.Arrow
@@ -56,10 +52,10 @@ import qualified Language.LaTeX.Builder as B
 import qualified Language.LaTeX.Builder.Internal as B
 
 liftMath :: (MathItm -> MathItm) -> MathItem -> MathItem
-liftMath f = MathItem . liftM f . mathItmM
+liftMath fun = MathItem . liftM fun . mathItmM
 
 liftMath2 :: (MathItm -> MathItm -> MathItm) -> MathItem -> MathItem -> MathItem
-liftMath2 f (MathItem a) (MathItem b) = MathItem (liftM2 f a b)
+liftMath2 fun (MathItem aa) (MathItem bb) = MathItem (liftM2 fun aa bb)
 
 group :: MathItem -> MathItem
 group = liftMath MathGroup
@@ -709,7 +705,7 @@ charToMath ch
       , ('ν', nu)
       , ('ω', omega)
       , ('Ω', _Omega)
-      --, ('ο', omicron)
+      , ('ο', omicron)
       , ('φ', phi)
       --, ('', varphi)
       , ('Φ', _Phi)
