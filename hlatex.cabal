@@ -44,10 +44,10 @@ executable ppmonoid
 
 executable generate_hlatex_user_guide
     Build-depends: base>=3.0, containers>=0.1,
-                   transformers, monads-fd, uniplate>=1.2
+                   transformers, monads-fd, base-unicode-symbols
     main-is: doc/user_guide.hs
     ghc-options: -Wall
-    Buildable: False
+    -- Buildable: False
 
 source-repository head
   type:     darcs
