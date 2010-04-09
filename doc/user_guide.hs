@@ -1,11 +1,16 @@
-{-# LANGUAGE QuasiQuotes, OverloadedStrings, NoMonomorphismRestriction #-}
-{-# OPTIONS_GHC -fno-warn-missing-signatures -F -pgmF ../../../pphlatex/pphlatex #-}
+{-# LANGUAGE QuasiQuotes, OverloadedStrings, NoMonomorphismRestriction, UnicodeSyntax #-}
+{-# OPTIONS_GHC -fno-warn-missing-signatures -F -pgmF frquotes #-}
 import Language.LaTeX
+import qualified Language.LaTeX.Length as L
 import qualified Language.LaTeX.Builder as B
 import qualified Language.LaTeX.Builder.Color as C
 import qualified Language.LaTeX.Builder.Math as M
 import Language.LaTeX.Builder.QQ hiding (tex)
 import Control.Monad.Writer
+import Data.Monoid.Unicode
+
+ø :: Monoid m => m
+ø = (Data.Monoid.Unicode.∅)
 
 latex = B._LaTeX
 tex = B._TeX
@@ -31,19 +36,20 @@ em = B.emph
 
 todo = p . C.textcolor C.red
 
-main = quickView testViewOpts "user_guide" root
+main = quickView myViewOpts { basedir = "examples"
+                            , pdflatex = "pdflatex"
+                            , pdfviewer = "evince" }
+                 "user_guide" doc
 
-root = B.root preamb body
+doc = B.document dc preamb body
+  where dc = B.documentclass B.book (Just (L.pt 11)) (Just B.a4paper) []
 
-preamb = B.documentclass (Just (B.pt 11)) (Just B.a4paper) B.book
-     -- <> B.usepackage [B.optional "francais"] (B.pkgName "babel")
+preamb = ø
+     -- ⊕ B.usepackage [B.optional "francais"] (B.pkgName "babel")
 
-body = B.document $? do
+body = execWriter $ do
   put B.tableofcontents
-  doc
 
-doc :: ParItemW
-doc = do
   section «Introduction»
 
   p «{hlatex} is a library to generate {latex} documents using the {haskell}
@@ -144,7 +150,7 @@ doc = do
   p «A monoid is a very simple algebraic structure. To be a monoid one needs a
     set---that will be represented with a {haskell} type---; an associative
     composition operator---called {hcode "mappend"} in {haskell} and abbreviated by
-    the {hcode "<>"} infix operator here; and a neutral element---called
+    the {hcode "⊕"} infix operator here; and a neutral element---called
     {hcode "mempty"} and abbreviated using unicode empty set symbol {B.math M.emptyset}.
     The neutral element is a left and right unit for the composition operator.»
 
@@ -181,8 +187,10 @@ doc = do
     semantics of this function is obvious for characters like `a' or `X', what
     the result for blanks, special characters and unicode characters.»
 
+{-
   p «The semantics is clear, {hcode "hstring"} converts each character to a
     {}»
+  -}
 
   todo «note that {hcode "hstring \"\""} reduces to {hcode "mempty"}»
 
@@ -192,14 +200,12 @@ doc = do
 
   subsection «Activating the extensions»
 
-  let pragmaOpts = "{-# OPTIONS_GHC -F -pgmF pphlatex #-}"
-      pragmaLang = "{-# LANGUAGE QuasiQuotes #-}"
+  let pragmaOpts = "{-# OPTIONS_GHC -F -pgmF frquotes #-}"
+      pragmaLang = "{-# LANGUAGE QuasiQuotes, UnicodeSyntax #-}"
 
   p «Using the following {ghc} pragma {hcode pragmaOpts}, and since this
     extension relies on quasi-quoting one also needs this pragma
     {hcode pragmaLang}.»
-
-  p «Extensions contained in {pphlatex} are twofold:»
 
   subsection «French Quotes Extension»
 
@@ -210,17 +216,18 @@ doc = do
   let (frO, frC, brO, brC) = ("«", "»", "{", "}")
   p «Currently the French Quotes extension only desugar to litteral strings
     and monoid compositions. French Quotes are introduced using `{frO}' and
-    closed using `{frQ}'. Interpolation (injection of {haskell} code inside the
+    closed using `{frC}'. Interpolation (injection of {haskell} code inside the
     quotes) is done using braces (`{brO}' and `{brC}'). These interpolated holes
     can contains an {haskell} expression including nested French Quotes,
     string, comments, braces, etc. The French Quotes characters can be used
     inside French Quotes but must be balanced.»
 
-  subsection «Monoid Syntax Extension»
+  subsection «Unicode Syntax Extension»
 
-  p «This syntax extension just replaces occurences of `ø' and `⊕' in {haskell}
-     code by {hcode "(mempty)"} and {hcode "`mappend`"} respectively. For example
-     {hcode "ø ⊕ x ⊕ ø"} is desugared to {hcode "(mempty) `mappend` (mempty)"}.»
+  p «This syntax extension allows to use `ø' and `⊕' in {haskell}
+     code instead {hcode "mempty"} and {hcode "`mappend`"} respectively.
+     For example one can write {hcode "ø ⊕ x ⊕ ø"} instead of
+     {hcode "mempty `mappend` x `mappend` mempty"}.»
   -- TODO
 
   section «Sectioning»
@@ -248,7 +255,7 @@ doc = do
 
   p «In {hlatex} all declarations are explicitely scoped.
     In other words the effects of declarations do not pass through concatenation
-    ({hcode "<>"}) of {latex} pieces.
+    ({hcode "⊕"}) of {latex} pieces.
     They are represented in {hlatex} with types {hcode "TexDecl"} and
     {hcode "MathDecl"} for the math mode.
     The unsafe injection from declarations to pieces of {latex} is still
@@ -275,16 +282,18 @@ doc = do
 
   -- p (math "1" ⊕ "+" ⊕ "2")
 
+  {-
   (&) fct arg = fct ⊕ M.parens arg 
   f arg = M.f & arg
 
   f M.x
   M.«1 + f({arg}) + Σ^i_(0..n)»
+  -}
 
   subsection «No plain chars»
   todo "=> (M.a, M.b...), in fact yes as unicode support"
   todo "still low level (sum has only one arg)"
-  todo "still the same meaning for <> Ligatures"
+  todo "still the same meaning for ⊕ Ligatures"
   todo "num class"
 
   section «Verbatim mode»
@@ -298,7 +307,7 @@ doc = do
 
   p «In {haskell} this task is much simpler, indeed we do have literal strings.
     There is no need to change some existing meaning.  We just need a function
-    from {hcode "String"} to {hcode "LatexItem"}».
+    from {hcode "String"} to {hcode "LatexItem"}.»
   subsection «The protect function»
   todo «special characters
      Ligatures
