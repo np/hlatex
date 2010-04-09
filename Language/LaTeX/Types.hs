@@ -38,11 +38,19 @@ data Note = TextNote String
           | LocNote Loc
    deriving (Show, Eq, Typeable, Data)
 
-data DocumentClass = Article
-                   | Book
-                   | Report
-                   | Letter
-                   | OtherDocumentClass String
+data DocumentClassKind  = Article
+                        | Book
+                        | Report
+                        | Letter
+                        | OtherDocumentClassKind String
+  deriving (Show, Eq, Typeable, Data)
+
+data DocumentClass
+  = DocumentClass  {  docClassKind      :: DocumentClassKind
+                   ,  docClassPaper     :: Maybe LatexPaper
+                   ,  docClassFontSize  :: Maybe LatexLength
+                   ,  docClassOptions   :: [Arg LatexItm]
+                   }
   deriving (Show, Eq, Typeable, Data)
 
 data PreambleItm = PreambleCmd String
@@ -386,16 +394,6 @@ type ParItemW      = Writer ParItem ()
 type MathDeclW     = Writer MathDecl ()
 type MathItemW     = Writer MathItem ()
 type PreambleItemW = Writer PreambleItem ()
-
-showPaper :: LatexPaper -> String
-showPaper A4paper = "a4paper"
-
-showDocumentClass :: DocumentClass -> String
-showDocumentClass Article = "article"
-showDocumentClass Book    = "book"
-showDocumentClass Report  = "report"
-showDocumentClass Letter  = "letter"
-showDocumentClass (OtherDocumentClass x) = x
 
 -- TODO: Maybe one should handle quotes in a less LaTeX
 -- way: provide a replacement for ``...'' and escape `'"
