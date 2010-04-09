@@ -7,7 +7,6 @@ module Language.LaTeX.Types where
 import Prelude hiding (and, foldr, foldl, foldr1, foldl1, elem, concatMap, concat)
 import Data.Monoid (Monoid(..))
 import Data.List (intersperse)
-import Data.Char
 import Data.Ratio (Ratio, (%), numerator, denominator)
 import Data.Traversable
 import Data.Foldable
@@ -18,10 +17,6 @@ import Control.Monad.Writer (Writer)
 import Control.Monad.Trans ()
 import Control.Monad.Error
 import Data.DeriveTH
-import Data.Derive.Functor
-import Data.Derive.Foldable
-import Data.Derive.Traversable
-import Data.Derive.PlateTypeable
 
 data Root = Root PreambleItm Document
   deriving (Show, Eq, Typeable)
