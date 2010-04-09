@@ -1,27 +1,28 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving, TemplateHaskell, DeriveDataTypeable #-}
 
 -- Those extensions are required by the Uniplate instances.
-{-# LANGUAGE FlexibleInstances, UndecidableInstances, MultiParamTypeClasses #-}
+--{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
 module Language.LaTeX.Types where
 
 import Prelude hiding (and, foldr, foldl, foldr1, foldl1, elem, concatMap, concat)
 import Data.Monoid (Monoid(..))
 import Data.List (intersperse)
-import Data.Ratio (Ratio, (%), numerator, denominator)
+import Data.Ratio ((%))
 import Data.Traversable
 import Data.Foldable
 import Data.String (IsString(..))
-import Data.Generics.PlateTypeable
+-- import Data.Generics.PlateTypeable
+import Data.Data
+import Data.DeriveTH
 import Control.Applicative
 import Control.Monad.Writer (Writer)
 import Control.Monad.Trans ()
 import Control.Monad.Error
-import Data.DeriveTH
 
 data Document = Document { documentClass     :: DocumentClass
                          , documentPreamble  :: PreambleItm
                          , documentBody      :: ParItm }
-  deriving (Show, Eq, Typeable)
+  deriving (Show, Eq, Typeable, Data)
 
 type LineNumber = Int
 type CharNumber = Int
@@ -30,19 +31,19 @@ data Loc = Loc { locFile :: FilePath
                , locLine :: LineNumber
                , locChar :: CharNumber
                }
-   deriving (Show, Eq, Typeable)
+   deriving (Show, Eq, Typeable, Data)
 
 data Note = TextNote String
           | IntNote Int
           | LocNote Loc
-   deriving (Show, Eq, Typeable)
+   deriving (Show, Eq, Typeable, Data)
 
 data DocumentClass = Article
                    | Book
                    | Report
                    | Letter
                    | OtherDocumentClass String
-  deriving (Show, Eq, Typeable)
+  deriving (Show, Eq, Typeable, Data)
 
 data PreambleItm = PreambleCmd String
               | PreambleCmdArgs String [Arg LatexItm]
@@ -50,7 +51,7 @@ data PreambleItm = PreambleCmd String
               | Usepackage PackageName [Arg LatexItm]
               | RawPreamble String
               | PreambleNote Note PreambleItm
-  deriving (Show, Eq, Typeable)
+  deriving (Show, Eq, Typeable, Data)
 
 instance Monoid PreambleItm where
   mempty  = PreambleConcat []
@@ -62,7 +63,7 @@ instance Monoid PreambleItm where
 data TexDcl = TexDcl { texDeclName :: String
                      , texDeclArgs :: [Arg LatexItm]
                      }
-  deriving (Show, Eq, Typeable)
+  deriving (Show, Eq, Typeable, Data)
 
 data LatexItm
            = LatexCmdArgs String [Arg LatexItm]
@@ -80,7 +81,7 @@ data LatexItm
            | TexGroup LatexItm
            | LatexConcat [LatexItm]
            | LatexNote Note LatexItm
-  deriving (Show, Eq, Typeable)
+  deriving (Show, Eq, Typeable, Data)
 
 instance Monoid LatexItm where
   mempty  = LatexConcat []
@@ -102,7 +103,7 @@ data Arg a = NoArg
            | Coordinates a a
            | RawArg String
            | PackageDependency PackageName
-  deriving (Show, Eq, Typeable)
+  deriving (Show, Eq, Typeable, Data)
 
 {-
 instance Functor Arg where
@@ -125,7 +126,7 @@ instance Traversable Arg where
 -}
 
 data Coord = Coord LatexLength LatexLength
-  deriving (Show, Eq, Typeable)
+  deriving (Show, Eq, Typeable, Data)
 
 newtype Percentage = Percentage { percentage :: Int } deriving (Eq,Show,Ord,Num)
 
@@ -141,7 +142,7 @@ data ParItm  = Para LatexItm -- Here LatexItm does not mean LR mode
              | ParGroup ParItm -- check validity of this
              | ParConcat [ParItm]
              | ParNote Note ParItm
-  deriving (Show, Eq, Typeable)
+  deriving (Show, Eq, Typeable, Data)
 
 instance Monoid ParItm where
   mempty  = ParConcat []
@@ -151,7 +152,7 @@ instance Monoid ParItm where
   x            `mappend` y            = ParConcat [x, y]
 
 newtype MathDcl = MathDcl String
-  deriving (Show, Eq, Typeable)
+  deriving (Show, Eq, Typeable, Data)
 
 data MathItm   = MathDecls [MathDcl]
                | MathCmdArgs String [Arg MathItm]
@@ -164,7 +165,7 @@ data MathItm   = MathDecls [MathDcl]
                | MathBinOp String MathItm MathItm
                | MathUnOp String MathItm
                | MathNote Note MathItm
-  deriving (Show, Eq, Typeable)
+  deriving (Show, Eq, Typeable, Data)
 
 instance Monoid MathItm where
   mempty  = MathConcat []
@@ -208,13 +209,13 @@ data TexUnit
   | Pc -- ^ Picas (1pc = 12pt)
   | Cc -- ^ Cicero (1dd = 12dd = 4.531mm)
   | Mu -- ^ Math unit (18mu = 1em)
-  deriving (Eq, Ord, Enum, Show, Typeable)
+  deriving (Eq, Ord, Enum, Show, Typeable, Data)
 
 data LatexLength = LengthScaledBy Rational LatexLength
                  | LengthCmdRatArg String Rational
                  | LengthCmd String
                  | LengthCst (Maybe TexUnit) Rational
-  deriving (Show, Eq, Typeable)
+  deriving (Show, Eq, Typeable, Data)
 
 safeLengthOp :: String -> (Rational -> Rational -> Rational) -> LatexLength -> LatexLength -> LatexLength
 safeLengthOp _ op (LengthCst Nothing     rx) (LengthCst munit ry)
@@ -257,7 +258,7 @@ data RowSpec a = Rc --- ^ Centered
                | Rr --- ^ Right
                | Rvline --- ^ A vertical line
                | Rtext a --- ^ A fixed text column (@-expression in LaTeX parlance)
-  deriving (Show, Eq, Typeable)
+  deriving (Show, Eq, Typeable, Data)
 
 {-
 instance Functor RowSpec where
@@ -287,7 +288,7 @@ data LocSpec = Lh --- ^ Here
              | Lb --- ^ Bottom
              | Lp --- ^ Page of floats: on a sperate page containing no text,
                   ---   only figures and tables.
-  deriving (Show, Eq, Typeable)
+  deriving (Show, Eq, Typeable, Data)
 
 locSpecChar :: LocSpec -> Char
 locSpecChar Lh = 'h'
@@ -308,12 +309,13 @@ charPos FlushRight = 'r'
 charPos Stretch    = 's'
 
 data LatexPaper = A4paper
+  deriving (Show, Eq, Typeable, Data)
 
 {- NOTE: their is no handling of the \multicolumn command at the moment -}
 data Row cell = Cells [cell]
               | Hline
               | Cline Int Int
-  deriving (Show, Eq, Typeable)
+  deriving (Show, Eq, Typeable, Data)
 
 {-
 instance Functor Row where
@@ -335,13 +337,13 @@ instance Traversable Row where
 data ListItm = ListItm { itemOptions :: [Arg LatexItm], itemContents :: ParItm }
 
 newtype PackageName = PkgName { getPkgName :: String }
-  deriving (Ord, Eq, Show, Typeable)
+  deriving (Ord, Eq, Show, Typeable, Data)
 
 newtype Key = Key { getKey :: String }
-  deriving (Eq, Show, Typeable)
+  deriving (Eq, Show, Typeable, Data)
 
 newtype SaveBin = UnsafeMakeSaveBin { unsafeGetSaveBin :: Int }
-  deriving (Eq, Show, Typeable)
+  deriving (Eq, Show, Typeable, Data)
 
 data LatexState = LS { freshSaveBin :: SaveBin }
 
@@ -359,7 +361,8 @@ instance (Error a, Eq a, Show a, Fractional b) => Fractional (Either a b) where
 
 newtype LatexM a = LatexM { runLatexM :: Either String a } 
   deriving (Functor, Applicative, Monad, MonadPlus,
-            MonadError String, Show, Eq, Num, Fractional)
+            MonadError String, Show, Eq, Num, Fractional,
+            Typeable, Data)
 
 instance Monoid a => Monoid (LatexM a) where
   mempty = pure mempty
@@ -373,7 +376,7 @@ type LatexItem = LatexM LatexItm
 type ParItem   = LatexM ParItm
 type MathDecl  = LatexM MathDcl
 newtype MathItem  = MathItem { mathItmM :: LatexM MathItm }
-  deriving (Monoid, Eq, Show, Num, Fractional, Typeable)
+  deriving (Monoid, Eq, Show, Num, Fractional, Typeable, Data)
 type ListItem  = LatexM ListItm
 type PreambleItem = LatexM PreambleItm
 
@@ -411,8 +414,8 @@ hchar x | x `elem` "#&{}$%"  = ['\\',x]
         | x `elem` "]["      = ['{', x, '}'] -- to avoid mess up optional args
         | otherwise          = [x]
 
-instance (Integral a, Typeable a, Typeable b, PlateAll a b) => PlateAll (Ratio a) b where
-  plateAll r = plate (%) |+ numerator r |+ denominator r
+-- instance (Integral a, Typeable a, Typeable b, PlateAll a b) => PlateAll (Ratio a) b where
+--   plateAll r = plate (%) |+ numerator r |+ denominator r
 
 
 $(derive makeFunctor     ''Arg)
@@ -425,6 +428,7 @@ $(derive makeFunctor     ''Row)
 $(derive makeFoldable    ''Row)
 $(derive makeTraversable ''Row)
 
+{-
 $(derive makeUniplateTypeable ''SaveBin)
 $(derive makeUniplateTypeable ''PackageName)
 $(derive makeUniplateTypeable ''Loc)
@@ -436,6 +440,7 @@ $(derive makeUniplateTypeable ''RowSpec)
 $(derive makeUniplateTypeable ''LocSpec)
 $(derive makeUniplateTypeable ''LatexLength)
 $(derive makeUniplateTypeable ''Coord)
+$(derive makeUniplateTypeable ''DocumentClassKind)
 
 $(derive makeUniplateTypeable ''TexDcl)
 $(derive makeUniplateTypeable ''MathItm)
@@ -446,3 +451,4 @@ $(derive makeUniplateTypeable ''LatexItm)
 $(derive makeUniplateTypeable ''DocumentClass)
 $(derive makeUniplateTypeable ''PreambleItm)
 $(derive makeUniplateTypeable ''Document)
+-}
