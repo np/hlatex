@@ -32,16 +32,6 @@ library
                  Language.LaTeX.Printer
     ghc-options: -Wall
 
-executable pphlatex
-    Build-depends: base>=3.0
-    main-is:       pphlatex.hs
-    ghc-options:   -Wall
-
-executable ppmonoid
-    Build-depends: base>=3.0
-    main-is:       ppmonoid.hs
-    ghc-options:   -Wall
-
 executable generate_hlatex_user_guide
     Build-depends: base>=3.0, containers>=0.1,
                    transformers, monads-fd, base-unicode-symbols
