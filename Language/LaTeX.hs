@@ -19,7 +19,8 @@ import Control.Monad.Writer (Writer, tell)
 import System.Cmd (system)
 import System.FilePath
 import System.Exit
-import Codec.Binary.UTF8.String (encodeString)
+import qualified System.IO.UTF8 as U
+-- import Codec.Binary.UTF8.String (encodeString)
 
 data ViewOpts = ViewOpts { basedir   :: FilePath
                          , pdflatex  :: String
@@ -34,12 +35,21 @@ myViewOpts = ViewOpts { basedir   = ""
 
 testViewOpts = myViewOpts { basedir = "tests" }
 
+{-
+-- | The computation 'writeBinaryFile' @file str@ function writes the string @str@,
+-- to the file @file@.
+writeBinaryFile :: FilePath -> String -> IO ()
+writeBinaryFile f txt = withBinaryFile f WriteMode (\ hdl -> hPutStr hdl txt)
+-}
+
 quickView :: ViewOpts -> FilePath -> LatexM Document -> IO ()
 quickView vo basename doc =
      do when (showoutput vo) $ putStrLn s
-        writeFile (basedir vo </> ltx) s
+        -- writeBinaryFile (basedir vo </> ltx) s
+        U.writeFile (basedir vo </> ltx) s
         exitWith =<< system cmd
-  where s = encodeString . either error id $ showLaTeX doc
+  -- where s = encodeString . either error id $ showLaTeX doc
+  where s = either error id $ showLaTeX doc
         pdf = basename <.> "pdf"
         ltx = basename <.> "ltx"
         cmd = unwords ["cd", basedir vo, "&&", pdflatex vo, ltx, "&&", pdfviewer vo, pdf]
