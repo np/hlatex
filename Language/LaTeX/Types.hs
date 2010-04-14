@@ -19,7 +19,7 @@ import Control.Monad.Writer (Writer)
 import Control.Monad.Trans ()
 import Control.Monad.Error
 
-data Document = Document { documentClass     :: DocumentClass
+data Document = Document { documentClass     :: DocumentClss
                          , documentPreamble  :: PreambleItm
                          , documentBody      :: ParItm }
   deriving (Show, Eq, Typeable, Data)
@@ -45,12 +45,10 @@ data DocumentClassKind  = Article
                         | OtherDocumentClassKind String
   deriving (Show, Eq, Typeable, Data)
 
-data DocumentClass
-  = DocumentClass  {  docClassKind      :: DocumentClassKind
-                   ,  docClassPaper     :: Maybe LatexPaper
-                   ,  docClassFontSize  :: Maybe LatexLength
-                   ,  docClassOptions   :: [Arg LatexItm]
-                   }
+data DocumentClss
+  = DocClass  {  docClassKind     :: DocumentClassKind
+              ,  docClassOptions  :: [LatexItm]
+              }
   deriving (Show, Eq, Typeable, Data)
 
 data PreambleItm = PreambleCmd String
@@ -316,7 +314,8 @@ charPos FlushLeft  = 'l'
 charPos FlushRight = 'r'
 charPos Stretch    = 's'
 
-data LatexPaper = A4paper
+-- TODO: add more paper sizes
+data LatexPaperSize = A4paper | OtherPaperSize String
   deriving (Show, Eq, Typeable, Data)
 
 {- NOTE: their is no handling of the \multicolumn command at the moment -}
@@ -387,6 +386,7 @@ newtype MathItem  = MathItem { mathItmM :: LatexM MathItm }
   deriving (Monoid, Eq, Show, Num, Fractional, Typeable, Data)
 type ListItem  = LatexM ListItm
 type PreambleItem = LatexM PreambleItm
+type DocumentClass = LatexM DocumentClss
 
 type TexDeclW      = Writer TexDecl ()
 type LatexItemW    = Writer LatexItem ()
