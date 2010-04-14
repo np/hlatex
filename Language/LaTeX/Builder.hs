@@ -48,6 +48,7 @@ import qualified Data.List as L
 import Data.Ratio
 import Data.Monoid
 import Data.Char
+import Data.Maybe
 import Data.Foldable (foldMap)
 import Data.Traversable
 import Data.String (IsString(..))
@@ -97,7 +98,7 @@ decls ds x = group (rawDecls ds <> x)
 decl :: TexDecl -> LatexItem -> LatexItem
 decl d = decls [d]
 
-document :: LatexM DocumentClass -> PreambleItem -> ParItem -> LatexM Document
+document :: DocumentClass -> PreambleItem -> ParItem -> LatexM Document
 document = liftM3 Document
 
 dash1, dash2, dash3, nbsp :: LatexItem
@@ -731,20 +732,41 @@ instance HaveR (RowSpec a) where r = Rr
 
 -- eqnarraystar = 
 
-a4paper :: LatexPaper
+a4paper :: LatexPaperSize
 a4paper = A4paper
 
-book, article, report, letter :: DocumentClassKind
-book = Book
-article = Article
-report = Report
-letter = Letter
+showPaper :: LatexPaperSize -> String
+showPaper A4paper = "a4paper"
+showPaper (OtherPaperSize s) = s
 
-documentclass ::  DocumentClassKind -> Maybe LatexLength ->
-                  Maybe LatexPaper -> [Arg LatexItem] ->
-                  LatexM DocumentClass
-documentclass dc msize mpaper =
-  fmap (DocumentClass dc mpaper msize) . mapM sequenceA
+documentclass ::  DocumentClassKind -> [LatexItem] ->
+                  DocumentClass
+documentclass dc = (DocClass dc <$>) . sequenceA
+
+latexPaper :: LatexPaperSize -> LatexItem
+latexPaper = rawTex . showPaper
+
+article ::  Maybe LatexLength -> Maybe LatexPaperSize ->
+            [LatexItem] -> DocumentClass
+article msize mpaper args =
+  documentclass Article $  maybeToList (latexPaper <$> mpaper) ++
+                           maybeToList (texLength <$> msize) ++
+                           args
+
+-- TODO improve options
+letter :: [LatexItem] -> DocumentClass
+letter = documentclass Letter
+
+book ::  Maybe LatexLength -> Maybe LatexPaperSize ->
+         [LatexItem] -> DocumentClass
+book msize mpaper args =
+  documentclass Book $  maybeToList (latexPaper <$> mpaper) ++
+                        maybeToList (texLength <$> msize) ++
+                        args
+
+-- TODO improve options
+report :: [LatexItem] -> DocumentClass
+report = documentclass Report
 
 {-
 $(
