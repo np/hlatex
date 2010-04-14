@@ -24,8 +24,8 @@ minipage, minipageBot, minipageTop, nbsp, negthinspace, newline,
 newline', newpage, nocite, noindent, nolinebreak, nopagebreak, normalfont,
 normalmarginpar, normalsize, num, o, oe, overbar, overdot, pagebreak,
 pageref, pagestyle, para, paragraph, paragraph', paragraphNoTOC, parbox, parboxBot,
-parboxTop, part, part', partNoTOC,
-person, phantom, pounds, protect, quotation, quote, raisebox, raisebox',
+parboxTop, part, part', partNoTOC, person, phantom, pounds,
+protect, protector, quotation, quote, raisebox, raisebox',
 rat, ref, report, reversemarginpar, ring, rm, rmfamily, rq,
 rtext, rule, rule', samepage, savebox, sbox, sc, scriptsize, scshape, section,
 section', sectionNoTOC, sep, setlength, sf, sffamily, sl, sloppy, sloppypar,
@@ -131,17 +131,20 @@ compressSpaces (' ':xs)
   = uncurry (:) . (Right . Spaces . (+1) . length *** compressSpaces) . span (==' ') $ xs
 compressSpaces (x:xs) = Left x : compressSpaces xs
 
+protector :: (Char -> LatexItem) -> String -> LatexItem
+protector xchar = foldMap (either nlxchar hspaces) . compressSpaces
+  where nlxchar '\n' = newline
+        nlxchar ch   = xchar ch
+
 protect :: String -> LatexItem
-protect = foldMap (either f hspaces) . compressSpaces
-  where f '\n' = newline
-        f  x   = rawTex $ hchar x
+protect = protector $ rawTex . hchar
 
 ttchar :: Char -> String
 ttchar ch | isAscii ch && not (isAlphaNum ch) = "{\\char `\\" ++ [ch,'}']
           | otherwise                         = [ch]
 
 verb :: String -> LatexItem
-verb = texttt . foldMap (either (rawTex . ttchar) hspaces) . compressSpaces
+verb = texttt . protector ttchar
 
 href :: LatexItem -> LatexItem -> LatexItem
 href x y = latexCmdArgs "href" [mandatory x,mandatory y]

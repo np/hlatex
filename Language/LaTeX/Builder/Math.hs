@@ -652,11 +652,14 @@ mathBinOps = [(+),(-),(*),bmod]
 amsmath :: PackageName
 amsmath = PkgName "amsmath"
 
+protector :: (Char -> LatexItem) -> String -> LatexItem
+protector = B.protector . mchar
+
 protect :: String -> LatexItem
-protect = foldMap (either (mchar (B.rawTex . hchar)) B.hspaces) . B.compressSpaces
+protect = protector $ B.rawTex . hchar
 
 verb :: String -> LatexItem
-verb = B.texttt . foldMap (either (mchar (B.rawTex . B.ttchar)) B.hspaces) . B.compressSpaces
+verb = protector B.ttchar
 
 {- NOT USED
 mchar :: Char -> String
