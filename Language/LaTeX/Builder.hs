@@ -123,7 +123,7 @@ f _ = 3
 newtype Spaces = Spaces { countSpaces :: Int }
 
 hspaces :: Spaces -> LatexItem
-hspaces (Spaces n) = mbox . hspace . L.em $ 1%2 * fromIntegral n
+hspaces = mbox . hspace . L.em . (1%2 *) . fromIntegral . countSpaces
 
 compressSpaces :: [Char] -> [Either Char Spaces]
 compressSpaces [] = []
