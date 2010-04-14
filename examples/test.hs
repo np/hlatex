@@ -7,22 +7,24 @@ import qualified Language.LaTeX.Builder.Math as M
 import qualified Language.LaTeX.Builder.Graphics as G
 import qualified Language.LaTeX.Builder.Rotating as R
 import qualified Language.LaTeX.Builder.Color as C
+import qualified Language.LaTeX.Length as L
 
 import Data.Ratio ((%))
 import Data.Char
 import Data.List.Split
 import Data.List (intersperse)
 
-main = quickView testViewOpts "test" root
+main = quickView testViewOpts "test" doc
 
 paraNoindent = B.para . (B.noindent <>)
 
-root = B.root preamb body
+doc = B.document dc preamb body
+  where
+    dc = B.book (Just (L.pt 11)) (Just B.a4paper) []
+    preamb = mempty
+          -- B.usepackage [B.optional "francais"] (B.pkgName "babel")
 
-preamb = B.documentclass (Just (B.pt 11)) (Just B.a4paper) B.book
-     -- <> B.usepackage [B.optional "francais"] (B.pkgName "babel")
-
-body = B.document $? do
+body = id $? do
   tell B.tableofcontents
   B.part !$ "The prologue"
 
@@ -88,6 +90,7 @@ body = B.document $? do
   let letters = splitEvery 10 $ filter isPrint $ map chr [0..255]
   paraNoindent !$ (B.texttt $ mconcat $ intersperse B.newline $ map B.protect letters)
   paraNoindent !$ (mconcat $ intersperse B.newline $ map B.hstring letters)
+  paraNoindent !$ (mconcat $ intersperse B.newline $ map B.verb letters)
 
   B.section !$ "Let's try the Writer monad to write documents"
 
@@ -119,7 +122,7 @@ body = B.document $? do
      (M.array [B.r, B.rtext M.vdots, B.l, B.rtext M.alpha, B.c]
                (map B.cells [[M.x,M.y,M.z],[1,2,3],[M._R, M._C, M._N]]))
 
-  G.includegraphics (\r-> r{G.angle=45, G.scale=1%2}) !$ "yi.pdf"
+  -- G.includegraphics (\r-> r{G.angle=45, G.scale=1%2}) !$ "yi.pdf"
 
   B.para !$ (B.noindent<>B.decl B._Large ("Not shelfful"<>B.newline<>"but shelf"<>B.sep<>"ful"))
 
