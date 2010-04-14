@@ -41,8 +41,7 @@ main = quickView myViewOpts { basedir = "examples"
                             , pdfviewer = "evince" }
                  "user_guide" doc
 
-doc = B.document dc preamb body
-  where dc = B.documentclass B.book (Just (L.pt 11)) (Just B.a4paper) []
+doc = B.document (B.book (Just (L.pt 11)) (Just B.a4paper) []) preamb body
 
 preamb = ø
      -- ⊕ B.usepackage [B.optional "francais"] (B.pkgName "babel")
