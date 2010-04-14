@@ -1,7 +1,6 @@
 module Language.LaTeX.Printer where
 
 import Data.Monoid
-import Data.Maybe
 import Data.List (intersperse)
 import Data.Ratio (numerator, denominator)
 import Data.Generics.Uniplate.Data (universe, universeBi)
@@ -215,9 +214,6 @@ ppNote note ppElt elt =  nl' <> mconcat (map ((<>nl') . text) . lines . showNote
 showLoc :: Loc -> String
 showLoc (Loc fp line char) = unwords [fp, ":", show line, ":", show char]
 
-showPaper :: LatexPaper -> String
-showPaper A4paper = "a4paper"
-
 showDocClassKind :: DocumentClassKind -> String
 showDocClassKind Article = "article"
 showDocClassKind Book    = "book"
@@ -225,13 +221,10 @@ showDocClassKind Report  = "report"
 showDocClassKind Letter  = "letter"
 showDocClassKind (OtherDocumentClassKind x) = x
 
-preambOfDocClass :: DocumentClass -> PreambleItm
-preambOfDocClass (DocumentClass kind mpaper msize args) =
-  PreambleCmdArgs "documentclass" $
-    args ++ [Optionals (maybeToList (LatexLength <$> msize) ++
-                        maybeToList (RawTex . showPaper <$> mpaper))
-            ,Mandatory . RawTex $ showDocClassKind kind
-            ]
+preambOfDocClass :: DocumentClss -> PreambleItm
+preambOfDocClass (DocClass kind opts) =
+  PreambleCmdArgs "documentclass"
+    [Optionals opts, Mandatory . RawTex $ showDocClassKind kind]
 
 ppDocument :: Document -> ShowS
 ppDocument (Document docClass preamb doc) =
