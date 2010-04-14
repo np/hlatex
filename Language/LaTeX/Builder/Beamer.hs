@@ -18,8 +18,28 @@ pkg :: PackageName
 pkg = B.pkgName "beamer"
 -}
 
+data DocClassOption = Compress
+                    | T
+                    | Red
+                    | OtherDocClassOption String
+
+compress, t, red :: DocClassOption
+compress = Compress
+t = T
+red = Red
+
+showDocClassOption :: DocClassOption -> String
+showDocClassOption Compress                 = "compress"
+showDocClassOption T                        = "t"
+showDocClassOption Red                      = "red"
+showDocClassOption (OtherDocClassOption s)  = s
+
 documentclasskind :: DocumentClassKind
 documentclasskind =  OtherDocumentClassKind "beamer"
+
+documentclass :: [DocClassOption] -> DocumentClass
+documentclass =  B.documentclass documentclasskind
+              . map B.rawTex . map showDocClassOption
 
 type TargetName = String
 type Label = String
