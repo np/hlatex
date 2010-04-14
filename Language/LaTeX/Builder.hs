@@ -139,9 +139,13 @@ protector xchar = foldMap (either nlxchar hspaces) . compressSpaces
 protect :: String -> LatexItem
 protect = protector $ rawTex . hchar
 
-ttchar :: Char -> String
-ttchar ch | isAscii ch && not (isAlphaNum ch) = "{\\char `\\" ++ [ch,'}']
-          | otherwise                         = [ch]
+ttchar :: Char -> LatexItem
+ttchar ch | isAscii ch &&
+            isPrint ch &&
+            not (isAlphaNum ch)  = rawTex $ "{\\char `\\" ++ ch : "}"
+          | isAscii ch &&
+            not (isPrint ch)     = verb . show $ ch
+          | otherwise            = rawTex [ch]
 
 verb :: String -> LatexItem
 verb = texttt . protector ttchar
