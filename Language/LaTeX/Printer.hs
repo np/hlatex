@@ -9,7 +9,6 @@ import Data.Set (Set)
 import Data.Char
 import qualified Data.Set as Set
 import GHC.Float (formatRealFloat, FFFormat(FFFixed))
-import Control.Applicative
 
 import Language.LaTeX.Types
 import Language.LaTeX.Builder.MonoidUtils
@@ -199,8 +198,8 @@ ppPreamble :: PreambleItm -> ShowS
 ppPreamble (PreambleCmd s) = backslash <> text s
 ppPreamble (PreambleCmdArgs cmdName args) = ppCmdArgs cmdName $ map (fmap pp) args
 ppPreamble (PreambleConcat ps) = vcat $ map ppPreamble ps
-ppPreamble (Usepackage pkg args)
-  = ppCmdArgs "usepackage" (map (fmap pp) args ++ [Mandatory (text $ getPkgName pkg)])
+ppPreamble (Usepackage pkg opts)
+  = ppCmdArgs "usepackage" [Optionals (map pp opts), Mandatory (text $ getPkgName pkg)]
 ppPreamble (RawPreamble raw) = text raw
 ppPreamble (PreambleNote note p) = ppNote note ppPreamble p
 

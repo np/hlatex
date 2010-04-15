@@ -54,7 +54,7 @@ data DocumentClss
 data PreambleItm = PreambleCmd String
               | PreambleCmdArgs String [Arg LatexItm]
               | PreambleConcat [PreambleItm]
-              | Usepackage PackageName [Arg LatexItm]
+              | Usepackage PackageName [LatexItm]
               | RawPreamble String
               | PreambleNote Note PreambleItm
   deriving (Show, Eq, Typeable, Data)

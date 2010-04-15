@@ -35,8 +35,8 @@ coordinates = Coordinates
 optionals :: [a] -> Arg a
 optionals = Optionals
 
-usepackage :: [Arg LatexItem] -> PackageName -> PreambleItem
-usepackage args pkg = Usepackage pkg <$> mapM sequenceA args
+usepackage :: [LatexItem] -> PackageName -> PreambleItem
+usepackage opts pkg = Usepackage pkg <$> sequenceA opts
 
 -- Note that @rawArg ""@ reduces to mempty.
 rawArg :: String -> Arg a
