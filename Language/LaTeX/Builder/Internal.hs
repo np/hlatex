@@ -155,9 +155,9 @@ unsafeNewsavebox n =
 -- sectioning
 
 -- Sectioning commands arguments are 'moving'.
-sectioning :: String -> ((LatexItem -> ParItem),
-                         (LatexItem -> ParItem),
-                         (Maybe LatexItem -> LatexItem -> ParItem))
+sectioning :: String -> (LatexItem -> ParItem,
+                         LatexItem -> ParItem,
+                         Maybe LatexItem -> LatexItem -> ParItem)
 sectioning name = (sect, sectNoTOC, sect')
   where sect = sect' Nothing
         sectNoTOC arg = parCmdArgs (name ++ "*") [mandatory arg]
@@ -189,5 +189,5 @@ checkRows specs = mapM checkRow
         isCol Rr = True
         isCol Rvline = False
         isCol (Rtext _) = False
-        err msg x op y = throwError $ L.unwords ["tabular:", msg, "(" ++ show x, op, show y ++ ")"] 
+        err msg x op y = throwError $ L.unwords ["tabular:", msg, '(' : show x, op, show y ++ ")"]
 
