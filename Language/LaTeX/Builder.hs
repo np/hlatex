@@ -125,13 +125,15 @@ newtype Spaces = Spaces { countSpaces :: Int }
 hspaces :: Spaces -> LatexItem
 hspaces = mbox . hspace . L.em . (1%2 *) . fromIntegral . countSpaces
 
-compressSpaces :: [Char] -> [Either Char Spaces]
+compressSpaces :: String -> [Either Char Spaces]
 compressSpaces [] = []
 compressSpaces (' ':xs)
   = uncurry (:) . (Right . Spaces . (+1) . length *** compressSpaces) . span (==' ') $ xs
 compressSpaces (x:xs) = Left x : compressSpaces xs
 
-protector :: (Char -> LatexItem) -> String -> LatexItem
+type XChar = Char -> LatexItem
+
+protector :: XChar -> String -> LatexItem
 protector xchar = foldMap (either nlxchar hspaces) . compressSpaces
   where nlxchar '\n' = newline
         nlxchar ch   = xchar ch
@@ -139,7 +141,7 @@ protector xchar = foldMap (either nlxchar hspaces) . compressSpaces
 protect :: String -> LatexItem
 protect = protector $ rawTex . hchar
 
-ttchar :: Char -> LatexItem
+ttchar :: XChar
 ttchar ch | isAscii ch &&
             isPrint ch &&
             not (isAlphaNum ch)  = rawTex $ "{\\char `\\" ++ ch : "}"
@@ -517,7 +519,7 @@ item :: ParItem -> ListItem
 item = liftM $ ListItm []
 
 item' :: LatexItem -> ParItem -> ListItem
-item' a b = liftM2 ListItm (pure . optional <$> a) b
+item' a = liftM2 ListItm (pure . optional <$> a)
 
 itemize :: [ListItem] -> ParItem
 itemize = listLikeEnv "itemize" []
