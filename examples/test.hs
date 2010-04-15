@@ -76,35 +76,35 @@ body = id $? do
 
   B.displaymath !$ M.between '(' '[' mat33
 
-  B.displaymath !$ (M.array [B.c,B.c,B.c]
+  B.displaymath !$ M.array [B.c,B.c,B.c]
        [B.cells [M.text "f x = "
                 ,M.between '{' '.' (M.array [B.l] (map B.cell [1, 0]))
                 ,M.array [B.r] (map (B.cell . M.text) ["if x is positive", "otherwise"])
                 ]
-       ])
+       ]
 
   B.displaymath !$ M.sqrt' M.alpha M.beta
 
   tell B.newpage
 
   let letters = splitEvery 10 $ filter isPrint $ map chr [0..255]
-  paraNoindent !$ (B.texttt $ mconcat $ intersperse B.newline $ map B.protect letters)
-  paraNoindent !$ (mconcat $ intersperse B.newline $ map B.hstring letters)
-  paraNoindent !$ (mconcat $ intersperse B.newline $ map B.verb letters)
+  paraNoindent !$ B.texttt . mconcat . intersperse B.newline $ map B.protect letters
+  paraNoindent !$ mconcat . intersperse B.newline $ map B.hstring letters
+  paraNoindent !$ mconcat . intersperse B.newline $ map B.verb letters
 
   B.section !$ "Let's try the Writer monad to write documents"
 
   B.subsection !$ "execWriter, tell and (!$?)"
   B.description !$
     let doNotation = B.texttt "do" <> " notation" in
-    [ B.item' "execWriter" $ B.para $
+    [ B.item' "execWriter" . B.para $
         "This function runs the writing computation and returns       \
         \the accumulated value. Typically when you want to use        \
         \the "<>doNotation<>", you can start using execWriter."
-    , B.item' "tell" $ B.para $
+    , B.item' "tell" . B.para $
         "This function accumulate the given value, this is commonly used \
         \inside the "<>doNotation<>"."
-    , B.item' "(!$?)" $ B.para $
+    , B.item' "(!$?)" . B.para $
         "This function combines "<>B.texttt "execWriter"<>" and "<>B.texttt "tell"<>
         " to be easily used when building documents with the "<>doNotation<>"."
     ]
@@ -116,11 +116,11 @@ body = id $? do
   B.section !$ "Exotic tabular features"
 
   B.tabular [B.r, B.rtext "@", B.l, B.rtext (B.math M.alpha), B.c] !$
-               (map B.cells [["x","y","z"],["foo", "bar", "baz"],["a", "b", "c"]])
+               map B.cells [["x","y","z"],["foo", "bar", "baz"],["a", "b", "c"]]
 
   B.displaymath !$
-     (M.array [B.r, B.rtext M.vdots, B.l, B.rtext M.alpha, B.c]
-               (map B.cells [[M.x,M.y,M.z],[1,2,3],[M._R, M._C, M._N]]))
+     M.array [B.r, B.rtext M.vdots, B.l, B.rtext M.alpha, B.c]
+             (map B.cells [[M.x,M.y,M.z],[1,2,3],[M._R, M._C, M._N]])
 
   -- G.includegraphics (\r-> r{G.angle=45, G.scale=1%2}) !$ "yi.pdf"
 
@@ -160,7 +160,7 @@ body = id $? do
     B.overbar !$ "f"
     B.overdot !$ "c"
     B.underbar !$ B.ae
-    tell $ B.math $ mconcat
+    tell . B.math $ mconcat
       [ M.acute M.alpha
       , M.breve M.beta
       , M.check M.delta
@@ -169,7 +169,7 @@ body = id $? do
       , M.vec M.iota
       ]
 
-  tell $ B.para $ B.unwords
+  tell . B.para $ B.unwords
     [ B._LaTeX
     , B._TeX
     , B.copyright
