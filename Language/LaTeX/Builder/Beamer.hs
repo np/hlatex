@@ -39,7 +39,7 @@ documentclasskind =  OtherDocumentClassKind "beamer"
 
 documentclass :: [DocClassOption] -> DocumentClass
 documentclass =  B.documentclass documentclasskind
-              . map B.rawTex . map showDocClassOption
+              . map (B.rawTex . showDocClassOption)
 
 type TargetName = String
 type Label = String
@@ -124,7 +124,7 @@ block :: LatexItem -> ParItem -> ParItem
 block title = B.parEnvironmentPar "block" [B.mandatory title]
 
 slide :: LatexItem -> ParItem -> ParItem
-slide tit body = frame [] [] [] tit mempty body
+slide tit = frame [] [] [] tit mempty
 
 slideO :: LatexItem -> Overlays -> ParItem -> ParItem
 slideO tit ovs body = frameO ovs (frametitle tit <> body)
@@ -324,19 +324,19 @@ appendix = B.parCmdArgs "appendix" []
 -- \setbeamercolor*{titlelike}{parent=structure}
 -- setbeamercolorStar =
 
-data Footline = Footline { author_percent :: Percentage
-                         , title_percent  :: Percentage
-                         , date_percent   :: Maybe Percentage
-                         , show_total_frames :: Bool }
+data Footline = Footline { authorPercent    :: Percentage
+                         , titlePercent     :: Percentage
+                         , datePercent      :: Maybe Percentage
+                         , showTotalFrames  :: Bool }
 
 defaultFootline :: Footline
-defaultFootline = Footline { author_percent = 34
-                           , title_percent  = 36
-                           , date_percent   = Nothing
-                           , show_total_frames = True }
+defaultFootline = Footline { authorPercent    = 34
+                           , titlePercent     = 36
+                           , datePercent      = Nothing
+                           , showTotalFrames  = True }
 
 footline :: Footline -> PreambleItem
-footline Footline{author_percent=authorp,title_percent=titlep,date_percent=maydatep,show_total_frames=stf} =
+footline Footline{authorPercent=authorp,titlePercent=titlep,datePercent=maydatep,showTotalFrames=stf} =
   let datep = fromMaybe (100 - authorp - titlep) maydatep
       f (Percentage p) = show p
       maytotalframes = if stf then [$str| / \inserttotalframenumber|] else ""
