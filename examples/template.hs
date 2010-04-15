@@ -20,5 +20,5 @@ root = B.root preamb body
 
 preamb = B.documentclass (Just (B.pt 11)) (Just B.a4paper) B.book
 
-body = B.document <! do
+body = B.document <!
   tell B.tableofcontents
