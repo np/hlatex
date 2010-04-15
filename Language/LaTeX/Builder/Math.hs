@@ -652,7 +652,7 @@ mathBinOps = [(+),(-),(*),bmod]
 amsmath :: PackageName
 amsmath = PkgName "amsmath"
 
-protector :: (Char -> LatexItem) -> String -> LatexItem
+protector :: XChar -> String -> LatexItem
 protector = B.protector . mchar
 
 protect :: String -> LatexItem
@@ -662,7 +662,7 @@ verb :: String -> LatexItem
 verb = protector B.ttchar
 
 {- NOT USED
-mchar :: Char -> String
+mchar :: XChar
 mchar '\\' = "\\textbackslash{}"
 mchar '~'  = "\\text{\\~{}}"
 mchar '^'  = "\\^{}"
@@ -673,7 +673,7 @@ mchar x | x `elem` "#&{}$%"  = ['\\',x]
         | otherwise          = [x]
 -}
 
-mchar :: (Char -> LatexItem) -> (Char -> LatexItem)
+mchar :: XChar -> XChar
 mchar xchar ch = maybe (xchar ch) B.math m'
   where m' | isAscii ch && isAlphaNum ch = Nothing
            | otherwise                   = charToMath ch
