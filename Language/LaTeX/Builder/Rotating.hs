@@ -7,4 +7,4 @@ pkg :: PackageName
 pkg = B.pkgName "rotating"
 
 turn :: Int -> LatexItem -> LatexItem
-turn i x = B.latexEnvironment "turn" [B.packageDependency pkg, B.mandatory (B.num i)] x
+turn i = B.latexEnvironment "turn" [B.packageDependency pkg, B.mandatory (B.num i)]
