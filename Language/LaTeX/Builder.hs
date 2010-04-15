@@ -152,6 +152,7 @@ verb = texttt . protector ttchar
 
 href :: LatexItem -> LatexItem -> LatexItem
 href x y = latexCmdArgs "href" [mandatory x,mandatory y]
+
 person :: String -> String -> LatexItem
 person name email = href (hstring ("mailto:"++email)) (hstring name)
 
