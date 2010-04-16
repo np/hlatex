@@ -1,7 +1,7 @@
 module Language.LaTeX.Builder
   ( (!$), (!$?), ($?), HaveC(..), HaveL(..), HaveR(..),
 Spaces(..), _AA, _AE, _H, _Huge, _L, _LARGE, _LaTeX,
-_Large, _O, _OE, _P, _S, _TeX, _l, a4paper, aa,
+_Large, _O, _OE, _P, _S, _TeX, _l, XChar, a4paper, aa,
 acute, addvspace, ae, allTexDecls, appendix,
 article, author, authors,
 bf, bfseries, bigskip,

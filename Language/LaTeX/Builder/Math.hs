@@ -47,7 +47,7 @@ import Control.Monad.Error (throwError)
 
 import Language.LaTeX.Types
 import Language.LaTeX.Builder.MonoidUtils
-import Language.LaTeX.Builder (cell, cells, vline, hline, cline)
+import Language.LaTeX.Builder (XChar, cell, cells, vline, hline, cline)
 import qualified Language.LaTeX.Builder as B
 import qualified Language.LaTeX.Builder.Internal as B
 
