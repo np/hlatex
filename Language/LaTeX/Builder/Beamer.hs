@@ -38,8 +38,8 @@ documentclasskind :: DocumentClassKind
 documentclasskind =  OtherDocumentClassKind "beamer"
 
 documentclass :: [DocClassOption] -> DocumentClass
-documentclass =  B.documentclass documentclasskind
-              . map (BI.rawTex . showDocClassOption)
+documentclass  = B.documentclass documentclasskind
+               . map (BI.rawTex . showDocClassOption)
 
 type TargetName = String
 type Label = String
@@ -66,29 +66,30 @@ type Overlays = [Overlay]
 type BeamerOpt = (String, String)
 
 texFrameOpt :: FrameOpt -> BeamerOpt
-texFrameOpt (Label lbl) = ("label",lbl)
-texFrameOpt Fragile     = ("fragile","")
-texFrameOpt (OtherOption a b) = (a,b)
+texFrameOpt (Label lbl)        = ("label",lbl)
+texFrameOpt Fragile            = ("fragile","")
+texFrameOpt (OtherOption a b)  = (a,b)
 
 texFrameOpts :: [FrameOpt] -> [Arg LatexItem]
 texFrameOpts = beamerOpts . map texFrameOpt
 
 showOvInt :: OverlayInt -> ShowS
-showOvInt (OvInt i)          = shows i
-showOvInt OvPlus             = ('+':)
-showOvInt OvDot              = ('.':)
-showOvInt (OvPlusOffset off) = ('+':) . ('(':) . shows off . (')':)
+showOvInt (OvInt i)           = shows i
+showOvInt OvPlus              = ('+':)
+showOvInt OvDot               = ('.':)
+showOvInt (OvPlusOffset off)  = ('+':) . ('(':) . shows off . (')':)
 
 showOverlay :: Overlay -> ShowS
-showOverlay (OvSingle i)   = showOvInt i
-showOverlay (OvFromTo i j) = showOvInt i . ('-':) . showOvInt j
-showOverlay (OvFrom i)     = showOvInt i . ('-':)
+showOverlay (OvSingle i)    = showOvInt i
+showOverlay (OvFromTo i j)  = showOvInt i . ('-':) . showOvInt j
+showOverlay (OvFrom i)      = showOvInt i . ('-':)
 
 showOverlays :: Overlays -> Maybe String
-showOverlays []  = Nothing
-showOverlays ovs = Just . ('<':) . (++">") . showsOv ovs $ []
-   where showsOv :: Overlays -> ShowS
-         showsOv = mconcat . intersperse (',':) . map showOverlay
+showOverlays []   = Nothing
+showOverlays ovs  = Just . ('<':) . (++">") . showsOv ovs $ []
+   where
+     showsOv :: Overlays -> ShowS
+     showsOv = mconcat . intersperse (',':) . map showOverlay
 
 texOverlaysOpt :: Overlays -> Maybe LatexItem
 texOverlaysOpt = fmap BI.rawTex . showOverlays
@@ -104,14 +105,14 @@ frame :: Overlays -> Overlays -> [FrameOpt] -> LatexItem -> LatexItem -> ParItem
 frame ov mov fopts title subtitle =
   {- recent beamer versions
   BI.parEnvironmentPar "frame" $ [ texOverlaysArg ov
-                                , maybe BI.noArg BI.optional $ texOverlaysOpt mov
-                                ] ++ texFrameOpts fopts ++
-                                [ BI.mandatory title
-                                , BI.mandatory subtitle ]
+                                 , maybe BI.noArg BI.optional $ texOverlaysOpt mov
+                                 ] ++ texFrameOpts fopts ++
+                                 [ BI.mandatory title
+                                 , BI.mandatory subtitle ]
   -}
   BI.parEnvironmentPar "frame" ([ texOverlaysArg ov
-                               , maybe BI.noArg BI.optional $ texOverlaysOpt mov
-                               ] ++ texFrameOpts fopts) .
+                                , maybe BI.noArg BI.optional $ texOverlaysOpt mov
+                                ] ++ texFrameOpts fopts) .
      (mapNonEmpty frametitle title<>) . (mapNonEmpty framesubtitle subtitle<>)
 
 frameO :: Overlays -> ParItem  -> ParItem
@@ -149,8 +150,8 @@ ovSingle = OvSingle
 
 -- | Lift a strictly positive 'Int' to an 'OverlayInt'
 ovInt :: Int -> OverlayInt
-ovInt i | i > 0     = OvInt i
-        | otherwise = error "ovInt: strictly positive Int expected"
+ovInt i | i > 0      = OvInt i
+        | otherwise  = error "ovInt: strictly positive Int expected"
 
 {- | The '+' incremental overlay specification (like in @<+->@).
 
@@ -204,10 +205,11 @@ alt ov arg1 arg2 = BI.latexCmdArgs "alt" [texOverlaysArg ov, BI.mandatory arg1, 
 
 temporal :: Overlays -> LatexItem -> LatexItem -> LatexItem -> LatexItem
 temporal ov arg1 arg2 arg3
-  = BI.latexCmdArgs "temporal" [ texOverlaysArg ov
-                              , BI.mandatory arg1
-                              , BI.mandatory arg2
-                              , BI.mandatory arg3 ]
+  = BI.latexCmdArgs "temporal"  [  texOverlaysArg ov
+                                ,  BI.mandatory arg1
+                                ,  BI.mandatory arg2
+                                ,  BI.mandatory arg3
+                                ]
 
 visibleenv :: Overlays -> ParItem -> ParItem
 visibleenv ov = BI.parEnvironmentPar "visibleenv" [texOverlaysArg ov]
@@ -229,14 +231,14 @@ altenv :: Overlays   -- ^ overlay specification
        -> ParItem    -- ^ environment contents
        -> ParItem
 altenv ov b e ab ae =
-  BI.parEnvironmentPar "altenv" [ texOverlaysArg ov
-                               , BI.mandatory b, BI.mandatory e
-                               , BI.mandatory ab, BI.mandatory ae
-                               ]
+  BI.parEnvironmentPar "altenv"  [  texOverlaysArg ov
+                                 ,  BI.mandatory b, BI.mandatory e
+                                 ,  BI.mandatory ab, BI.mandatory ae
+                                 ]
 
 beamerOpts :: [BeamerOpt] -> [Arg LatexItem]
-beamerOpts [] = []
-beamerOpts os = [BI.optional . BI.rawTex . intercalate "," . map f $ os]
+beamerOpts []  = []
+beamerOpts os  = [BI.optional . BI.rawTex . intercalate "," . map f $ os]
   where f (x,y) = x ++ "=" ++ y
 
 beamerPreambleCmdArgs :: String -> [BeamerOpt] -> LatexItem -> PreambleItem
@@ -245,11 +247,11 @@ beamerPreambleCmdArgs name opts arg = BI.preambleCmdArgs name (beamerOpts opts +
 usetheme, usefonttheme, useinnertheme, useoutertheme,
   usecolortheme :: [BeamerOpt] -> LatexItem -> PreambleItem
 
-usetheme      = beamerPreambleCmdArgs "usetheme"
-usefonttheme  = beamerPreambleCmdArgs "usefonttheme"
-useinnertheme = beamerPreambleCmdArgs "useinnertheme"
-useoutertheme = beamerPreambleCmdArgs "useoutertheme"
-usecolortheme = beamerPreambleCmdArgs "usecolortheme"
+usetheme       = beamerPreambleCmdArgs "usetheme"
+usefonttheme   = beamerPreambleCmdArgs "usefonttheme"
+useinnertheme  = beamerPreambleCmdArgs "useinnertheme"
+useoutertheme  = beamerPreambleCmdArgs "useoutertheme"
+usecolortheme  = beamerPreambleCmdArgs "usecolortheme"
 
 {- | Draws a button with the given button text .
 
@@ -298,18 +300,18 @@ beamerreturnbutton = BI.latexCmdArg "beamerreturnbutton"
 -}
 hyperlink :: Overlays -> TargetName -> LatexItem -> Overlays -> LatexItem
 hyperlink ov1 target linkText ov2 =
-  BI.latexCmdArgs "hyperlink" [ texOverlaysArg ov1
-                             , BI.mandatory (BI.rawTex target)
-                             , BI.mandatory linkText
-                             , texOverlaysArg ov2
-                             ]
+  BI.latexCmdArgs "hyperlink"  [  texOverlaysArg ov1
+                               ,  BI.mandatory (BI.rawTex target)
+                               ,  BI.mandatory linkText
+                               ,  texOverlaysArg ov2
+                               ]
 
 againframe :: Overlays -> Overlays -> [FrameOpt] -> Label -> ParItem
 againframe ov1 ov2 fopts lbl =
-  BI.parCmdArgs "againframe" . concat $ [ texOverlaysArg ov1
-                                       , texOverlaysArg ov2
-                                       ]
-                                       : texFrameOpts fopts : [[BI.mandatory (BI.rawTex lbl)]]
+  BI.parCmdArgs "againframe" . concat $  [  texOverlaysArg ov1
+                                         ,  texOverlaysArg ov2
+                                         ]
+                                         : texFrameOpts fopts : [[BI.mandatory (BI.rawTex lbl)]]
 
 
 -- | Disable those litte icons at the bottom right of your presentation.
