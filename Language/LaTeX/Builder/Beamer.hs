@@ -5,7 +5,7 @@ where
 
 import Language.LaTeX.Builder.MonoidUtils
 import Language.LaTeX.Types
-import qualified Language.LaTeX.Builder.Internal as B
+import qualified Language.LaTeX.Builder.Internal as BI
 import qualified Language.LaTeX.Builder as B
 import Language.LaTeX.Builder.QQ
 import Control.Applicative
@@ -39,7 +39,7 @@ documentclasskind =  OtherDocumentClassKind "beamer"
 
 documentclass :: [DocClassOption] -> DocumentClass
 documentclass =  B.documentclass documentclasskind
-              . map (B.rawTex . showDocClassOption)
+              . map (BI.rawTex . showDocClassOption)
 
 type TargetName = String
 type Label = String
@@ -91,10 +91,10 @@ showOverlays ovs = Just . ('<':) . (++">") . showsOv ovs $ []
          showsOv = mconcat . intersperse (',':) . map showOverlay
 
 texOverlaysOpt :: Overlays -> Maybe LatexItem
-texOverlaysOpt = fmap B.rawTex . showOverlays
+texOverlaysOpt = fmap BI.rawTex . showOverlays
 
 texOverlaysArg :: Overlays -> Arg LatexItem
-texOverlaysArg = maybe B.noArg B.rawArg . showOverlays
+texOverlaysArg = maybe BI.noArg BI.rawArg . showOverlays
 
 label :: Label -> FrameOpt
 label = Label
@@ -103,25 +103,25 @@ label = Label
 frame :: Overlays -> Overlays -> [FrameOpt] -> LatexItem -> LatexItem -> ParItem  -> ParItem
 frame ov mov fopts title subtitle =
   {- recent beamer versions
-  B.parEnvironmentPar "frame" $ [ texOverlaysArg ov
-                                , maybe B.noArg B.optional $ texOverlaysOpt mov
+  BI.parEnvironmentPar "frame" $ [ texOverlaysArg ov
+                                , maybe BI.noArg BI.optional $ texOverlaysOpt mov
                                 ] ++ texFrameOpts fopts ++
-                                [ B.mandatory title
-                                , B.mandatory subtitle ]
+                                [ BI.mandatory title
+                                , BI.mandatory subtitle ]
   -}
-  B.parEnvironmentPar "frame" ([ texOverlaysArg ov
-                               , maybe B.noArg B.optional $ texOverlaysOpt mov
+  BI.parEnvironmentPar "frame" ([ texOverlaysArg ov
+                               , maybe BI.noArg BI.optional $ texOverlaysOpt mov
                                ] ++ texFrameOpts fopts) .
      (mapNonEmpty frametitle title<>) . (mapNonEmpty framesubtitle subtitle<>)
 
 frameO :: Overlays -> ParItem  -> ParItem
-frameO overlays = B.parEnvironmentPar "frame" [maybe B.noArg B.optional $ texOverlaysOpt overlays]
+frameO overlays = BI.parEnvironmentPar "frame" [maybe BI.noArg BI.optional $ texOverlaysOpt overlays]
 
 example :: ParItem -> ParItem
-example = B.parEnvironmentPar "example" []
+example = BI.parEnvironmentPar "example" []
 
 block :: LatexItem -> ParItem -> ParItem
-block title = B.parEnvironmentPar "block" [B.mandatory title]
+block title = BI.parEnvironmentPar "block" [BI.mandatory title]
 
 slide :: LatexItem -> ParItem -> ParItem
 slide tit = frame [] [] [] tit mempty
@@ -130,10 +130,10 @@ slideO :: LatexItem -> Overlays -> ParItem -> ParItem
 slideO tit ovs body = frameO ovs (frametitle tit <> body)
 
 frametitle :: LatexItem -> ParItem
-frametitle = B.parCmdArg "frametitle"
+frametitle = BI.parCmdArg "frametitle"
 
 framesubtitle :: LatexItem -> ParItem
-framesubtitle = B.parCmdArg "framesubtitle"
+framesubtitle = BI.parCmdArg "framesubtitle"
 
 -- | All overlays counting from the given argument (like in @<1->@).
 ovFrom :: OverlayInt -> Overlay
@@ -173,7 +173,7 @@ ovInts :: [Int] -> Overlays
 ovInts = map (ovSingle . ovInt)
 
 alert :: LatexItem -> LatexItem
-alert = B.latexCmdArg "alert"
+alert = BI.latexCmdArg "alert"
 
 -- A shortcut for @itemize' . texOverlaysOpt@
 itemize :: Overlays -> [ListItem] -> ParItem
@@ -188,38 +188,38 @@ description = B.description' . texOverlaysOpt
 -- AtBeginSubsection, AtBeginSection
 
 only :: Overlays -> LatexItem -> LatexItem
-only ov arg = B.latexCmdArgs "only" [texOverlaysArg ov, B.mandatory arg]
+only ov arg = BI.latexCmdArgs "only" [texOverlaysArg ov, BI.mandatory arg]
 
 uncover :: Overlays -> LatexItem -> LatexItem
-uncover ov arg = B.latexCmdArgs "uncover" [texOverlaysArg ov, B.mandatory arg]
+uncover ov arg = BI.latexCmdArgs "uncover" [texOverlaysArg ov, BI.mandatory arg]
 
 visible :: Overlays -> LatexItem -> LatexItem
-visible ov arg = B.latexCmdArgs "visible" [texOverlaysArg ov, B.mandatory arg]
+visible ov arg = BI.latexCmdArgs "visible" [texOverlaysArg ov, BI.mandatory arg]
 
 invisible :: Overlays -> LatexItem -> LatexItem
-invisible ov arg = B.latexCmdArgs "invisible" [texOverlaysArg ov, B.mandatory arg]
+invisible ov arg = BI.latexCmdArgs "invisible" [texOverlaysArg ov, BI.mandatory arg]
 
 alt :: Overlays -> LatexItem -> LatexItem -> LatexItem
-alt ov arg1 arg2 = B.latexCmdArgs "alt" [texOverlaysArg ov, B.mandatory arg1, B.mandatory arg2]
+alt ov arg1 arg2 = BI.latexCmdArgs "alt" [texOverlaysArg ov, BI.mandatory arg1, BI.mandatory arg2]
 
 temporal :: Overlays -> LatexItem -> LatexItem -> LatexItem -> LatexItem
 temporal ov arg1 arg2 arg3
-  = B.latexCmdArgs "temporal" [ texOverlaysArg ov
-                              , B.mandatory arg1
-                              , B.mandatory arg2
-                              , B.mandatory arg3 ]
+  = BI.latexCmdArgs "temporal" [ texOverlaysArg ov
+                              , BI.mandatory arg1
+                              , BI.mandatory arg2
+                              , BI.mandatory arg3 ]
 
 visibleenv :: Overlays -> ParItem -> ParItem
-visibleenv ov = B.parEnvironmentPar "visibleenv" [texOverlaysArg ov]
+visibleenv ov = BI.parEnvironmentPar "visibleenv" [texOverlaysArg ov]
 
 invisibleenv :: Overlays -> ParItem -> ParItem
-invisibleenv ov = B.parEnvironmentPar "invisibleenv" [texOverlaysArg ov]
+invisibleenv ov = BI.parEnvironmentPar "invisibleenv" [texOverlaysArg ov]
 
 uncoverenv :: Overlays -> ParItem -> ParItem
-uncoverenv ov = B.parEnvironmentPar "uncoverenv" [texOverlaysArg ov]
+uncoverenv ov = BI.parEnvironmentPar "uncoverenv" [texOverlaysArg ov]
 
 onlyenv :: Overlays -> ParItem -> ParItem
-onlyenv ov = B.parEnvironmentPar "onlyenv" [texOverlaysArg ov]
+onlyenv ov = BI.parEnvironmentPar "onlyenv" [texOverlaysArg ov]
 
 altenv :: Overlays   -- ^ overlay specification
        -> LatexItem  -- ^ begin text
@@ -229,18 +229,18 @@ altenv :: Overlays   -- ^ overlay specification
        -> ParItem    -- ^ environment contents
        -> ParItem
 altenv ov b e ab ae =
-  B.parEnvironmentPar "altenv" [ texOverlaysArg ov
-                               , B.mandatory b, B.mandatory e
-                               , B.mandatory ab, B.mandatory ae
+  BI.parEnvironmentPar "altenv" [ texOverlaysArg ov
+                               , BI.mandatory b, BI.mandatory e
+                               , BI.mandatory ab, BI.mandatory ae
                                ]
 
 beamerOpts :: [BeamerOpt] -> [Arg LatexItem]
 beamerOpts [] = []
-beamerOpts os = [B.optional . B.rawTex . intercalate "," . map f $ os]
+beamerOpts os = [BI.optional . BI.rawTex . intercalate "," . map f $ os]
   where f (x,y) = x ++ "=" ++ y
 
 beamerPreambleCmdArgs :: String -> [BeamerOpt] -> LatexItem -> PreambleItem
-beamerPreambleCmdArgs name opts arg = B.preambleCmdArgs name (beamerOpts opts ++ [B.mandatory arg])
+beamerPreambleCmdArgs name opts arg = BI.preambleCmdArgs name (beamerOpts opts ++ [BI.mandatory arg])
 
 usetheme, usefonttheme, useinnertheme, useoutertheme,
   usecolortheme :: [BeamerOpt] -> LatexItem -> PreambleItem
@@ -258,7 +258,7 @@ usecolortheme = beamerPreambleCmdArgs "usecolortheme"
   p97 beamer userguide
 -}
 beamerbutton :: LatexItem -> LatexItem
-beamerbutton = B.latexCmdArg "beamerbutton"
+beamerbutton = BI.latexCmdArg "beamerbutton"
 
 {- | Draws a button with the given button text. Before the text, a small symbol (usually a
      right-pointing arrow) is inserted that indicates that pressing this button will jump
@@ -269,7 +269,7 @@ beamerbutton = B.latexCmdArg "beamerbutton"
   p98 beamer userguide
 -}
 beamergotobutton :: LatexItem -> LatexItem
-beamergotobutton = B.latexCmdArg "beamergotobutton"
+beamergotobutton = BI.latexCmdArg "beamergotobutton"
 
 {- | The symbol drawn for this button is usually a double right arrow. Use this button if
      pressing it will skip over a well-defined part of your talk.
@@ -277,7 +277,7 @@ beamergotobutton = B.latexCmdArg "beamergotobutton"
   p98 beamer userguide
 -}
 beamerskipbutton :: LatexItem -> LatexItem
-beamerskipbutton = B.latexCmdArg "beamerskipbutton"
+beamerskipbutton = BI.latexCmdArg "beamerskipbutton"
 
 {- | The symbol drawn for this button is usually a left-pointing arrow. Use this button
      if pressing it will return from a detour.
@@ -285,7 +285,7 @@ beamerskipbutton = B.latexCmdArg "beamerskipbutton"
   p98 beamer userguide
 -}
 beamerreturnbutton :: LatexItem -> LatexItem
-beamerreturnbutton = B.latexCmdArg "beamerreturnbutton"
+beamerreturnbutton = BI.latexCmdArg "beamerreturnbutton"
 
 {- |
   Only one overlay specification may be given. The link text is typeset in the
@@ -298,23 +298,23 @@ beamerreturnbutton = B.latexCmdArg "beamerreturnbutton"
 -}
 hyperlink :: Overlays -> TargetName -> LatexItem -> Overlays -> LatexItem
 hyperlink ov1 target linkText ov2 =
-  B.latexCmdArgs "hyperlink" [ texOverlaysArg ov1
-                             , B.mandatory (B.rawTex target)
-                             , B.mandatory linkText
+  BI.latexCmdArgs "hyperlink" [ texOverlaysArg ov1
+                             , BI.mandatory (BI.rawTex target)
+                             , BI.mandatory linkText
                              , texOverlaysArg ov2
                              ]
 
 againframe :: Overlays -> Overlays -> [FrameOpt] -> Label -> ParItem
 againframe ov1 ov2 fopts lbl =
-  B.parCmdArgs "againframe" . concat $ [ texOverlaysArg ov1
+  BI.parCmdArgs "againframe" . concat $ [ texOverlaysArg ov1
                                        , texOverlaysArg ov2
                                        ]
-                                       : texFrameOpts fopts : [[B.mandatory (B.rawTex lbl)]]
+                                       : texFrameOpts fopts : [[BI.mandatory (BI.rawTex lbl)]]
 
 
 -- | Disable those litte icons at the bottom right of your presentation.
 beamertemplatenavigationsymbolsempty :: PreambleItem
-beamertemplatenavigationsymbolsempty = B.preambleCmdArgs "beamertemplatenavigationsymbolsempty" []
+beamertemplatenavigationsymbolsempty = BI.preambleCmdArgs "beamertemplatenavigationsymbolsempty" []
 
 type TexDimension = LatexLength
 
@@ -344,20 +344,20 @@ data BeamerSize
 
 texBeamerSizeArg :: BeamerSize -> LatexItem
 texBeamerSizeArg bs = case bs of
-  TextMarginLeft dim -> B.rawTex "text margin left=" <> B.texLength dim
-  TextMarginRight dim -> B.rawTex "text margin right=" <> B.texLength dim
-  SidebarWidthLeft dim -> B.rawTex "sidebar width left=" <> B.texLength dim
-  SidebarWidthRight dim -> B.rawTex "sidebar width right=" <> B.texLength dim
-  DescriptionWidth dim -> B.rawTex "description width=" <> B.texLength dim
-  DescriptionWidthOf txt -> B.rawTex "description width of=" <> txt
-  MiniFrameSize dim -> B.rawTex "mini frame size=" <> B.texLength dim
-  MiniFrameOffset dim -> B.rawTex "mini frame offset=" <> B.texLength dim
+  TextMarginLeft dim -> BI.rawTex "text margin left=" <> BI.texLength dim
+  TextMarginRight dim -> BI.rawTex "text margin right=" <> BI.texLength dim
+  SidebarWidthLeft dim -> BI.rawTex "sidebar width left=" <> BI.texLength dim
+  SidebarWidthRight dim -> BI.rawTex "sidebar width right=" <> BI.texLength dim
+  DescriptionWidth dim -> BI.rawTex "description width=" <> BI.texLength dim
+  DescriptionWidthOf txt -> BI.rawTex "description width of=" <> txt
+  MiniFrameSize dim -> BI.rawTex "mini frame size=" <> BI.texLength dim
+  MiniFrameOffset dim -> BI.rawTex "mini frame offset=" <> BI.texLength dim
 
 setbeamersize :: BeamerSize -> PreambleItem
-setbeamersize = B.preambleCmdArgs "setbeamersize" . pure . B.mandatory . texBeamerSizeArg
+setbeamersize = BI.preambleCmdArgs "setbeamersize" . pure . BI.mandatory . texBeamerSizeArg
 
 appendix :: ParItem
-appendix = B.parCmdArgs "appendix" []
+appendix = BI.parCmdArgs "appendix" []
 
 -- \setbeamercolor*{titlelike}{parent=structure}
 -- setbeamercolorStar =
@@ -379,7 +379,7 @@ footline Footline{authorPercent=authorp,titlePercent=titlep,datePercent=maydatep
       f (Percentage p) = show p
       maytotalframes = if stf then [$str| / \inserttotalframenumber|] else ""
   in
-  B.rawPreamble $
+  BI.rawPreamble $
   [$str|
         \defbeamertemplate*{footline}{infolines theme without institution}
         {
