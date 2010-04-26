@@ -190,11 +190,49 @@ description = B.description' . texOverlaysOpt
 only :: Overlays -> LatexItem -> LatexItem
 only ov arg = B.latexCmdArgs "only" [texOverlaysArg ov, B.mandatory arg]
 
+uncover :: Overlays -> LatexItem -> LatexItem
+uncover ov arg = B.latexCmdArgs "uncover" [texOverlaysArg ov, B.mandatory arg]
+
 visible :: Overlays -> LatexItem -> LatexItem
 visible ov arg = B.latexCmdArgs "visible" [texOverlaysArg ov, B.mandatory arg]
 
+invisible :: Overlays -> LatexItem -> LatexItem
+invisible ov arg = B.latexCmdArgs "invisible" [texOverlaysArg ov, B.mandatory arg]
+
 alt :: Overlays -> LatexItem -> LatexItem -> LatexItem
 alt ov arg1 arg2 = B.latexCmdArgs "alt" [texOverlaysArg ov, B.mandatory arg1, B.mandatory arg2]
+
+temporal :: Overlays -> LatexItem -> LatexItem -> LatexItem -> LatexItem
+temporal ov arg1 arg2 arg3
+  = B.latexCmdArgs "temporal" [ texOverlaysArg ov
+                              , B.mandatory arg1
+                              , B.mandatory arg2
+                              , B.mandatory arg3 ]
+
+visibleenv :: Overlays -> ParItem -> ParItem
+visibleenv ov = B.parEnvironmentPar "visibleenv" [texOverlaysArg ov]
+
+invisibleenv :: Overlays -> ParItem -> ParItem
+invisibleenv ov = B.parEnvironmentPar "invisibleenv" [texOverlaysArg ov]
+
+uncoverenv :: Overlays -> ParItem -> ParItem
+uncoverenv ov = B.parEnvironmentPar "uncoverenv" [texOverlaysArg ov]
+
+onlyenv :: Overlays -> ParItem -> ParItem
+onlyenv ov = B.parEnvironmentPar "onlyenv" [texOverlaysArg ov]
+
+altenv :: Overlays   -- ^ overlay specification
+       -> LatexItem  -- ^ begin text
+       -> LatexItem  -- ^ end   text
+       -> LatexItem  -- ^ alternate begin text
+       -> LatexItem  -- ^ alternate end text
+       -> ParItem    -- ^ environment contents
+       -> ParItem
+altenv ov b e ab ae =
+  B.parEnvironmentPar "altenv" [ texOverlaysArg ov
+                               , B.mandatory b, B.mandatory e
+                               , B.mandatory ab, B.mandatory ae
+                               ]
 
 beamerOpts :: [BeamerOpt] -> [Arg LatexItem]
 beamerOpts [] = []
