@@ -188,6 +188,12 @@ description = B.description' . texOverlaysOpt
 
 -- AtBeginSubsection, AtBeginSection
 
+pause :: LatexItem
+pause = BI.texCmdNoArg "pause"
+
+pause' :: Maybe Int -> LatexItem
+pause' = BI.latexCmdArgs "pause" . maybeToList . fmap (BI.optional . BI.rawTex . show)
+
 only :: Overlays -> LatexItem -> LatexItem
 only ov arg = BI.latexCmdArgs "only" [texOverlaysArg ov, BI.mandatory arg]
 
