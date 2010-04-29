@@ -100,7 +100,7 @@ instance IsString LatexItm where
   fromString s
     | null s    = mempty
     | otherwise = f s
-    where f = RawTex . concatMap hchar . concat . intersperse "\n" . filter (not . null) . lines
+    where f = RawTex . concatMap rawhchar . concat . intersperse "\n" . filter (not . null) . lines
 
 data Arg a = NoArg
            | Optional a
@@ -399,18 +399,18 @@ type PreambleItemW = Writer PreambleItem ()
 -- way: provide a replacement for ``...'' and escape `'"
 --
 -- Don't confuse this function with ttchar
-hchar :: Char -> String
-hchar '\\' = "\\textbackslash{}"
-hchar '~'  = "\\~{}"
-hchar '<'  = "\\textless{}"
-hchar '>'  = "\\textgreater{}"
-hchar '^'  = "\\^{}"
-hchar '|'  = "\\textbar{}"
-hchar ':'  = "$:$" -- or maybe "{:}"
-hchar '_'  = "\\_"
-hchar x | x `elem` "#&{}$%"  = ['\\',x]
-        | x `elem` "]["      = ['{', x, '}'] -- to avoid mess up optional args
-        | otherwise          = [x]
+rawhchar :: Char -> String
+rawhchar '\\'  = "\\textbackslash{}"
+rawhchar '~'   = "\\~{}"
+rawhchar '<'   = "\\textless{}"
+rawhchar '>'   = "\\textgreater{}"
+rawhchar '^'   = "\\^{}"
+rawhchar '|'   = "\\textbar{}"
+rawhchar ':'   = "$:$" -- or maybe "{:}"
+rawhchar '_'   = "\\_"
+rawhchar x  | x `elem` "#&{}$%"  = ['\\',x]
+            | x `elem` "]["      = ['{', x, '}'] -- to avoid mess up optional args
+            | otherwise          = [x]
 
 -- instance (Integral a, Typeable a, Typeable b, PlateAll a b) => PlateAll (Ratio a) b where
 --   plateAll r = plate (%) |+ numerator r |+ denominator r

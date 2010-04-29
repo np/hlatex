@@ -13,7 +13,7 @@ dash2, dash3, date, ddag, decl, decls, description, description', displaymath,
 document, documentclass, dot, dotfill, em, emph, enumerate,
 enumerate', fbox, figure, figureStar,
 flushleft, footnote,
-footnotesize, framebox, fussy, grave, group, hat,
+footnotesize, framebox, fussy, grave, group, hat, hchar,
 hfill, hline, hr, href, hrulefill, space, hspace, hspaceStar, hspaces,
 hstring, huge, hyphen, hyphenation, i, institute, it, item,
 item', itemize, itemize', itshape, j, label,
@@ -139,7 +139,10 @@ protector xchar = foldMap (either nlxchar hspaces) . compressSpaces
         nlxchar ch   = xchar ch
 
 protect :: String -> LatexItem
-protect = protector $ rawTex . hchar
+protect = protector hchar
+
+hchar :: XChar
+hchar = rawTex . rawhchar
 
 ttchar :: XChar
 ttchar ch | isAscii ch &&

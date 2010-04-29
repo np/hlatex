@@ -656,7 +656,7 @@ protector :: XChar -> String -> LatexItem
 protector = B.protector . mchar
 
 protect :: String -> LatexItem
-protect = protector $ B.rawTex . hchar
+protect = protector B.hchar
 
 verb :: String -> LatexItem
 verb = protector B.ttchar
@@ -679,7 +679,7 @@ mchar xchar ch = maybe (xchar ch) B.math m'
            | otherwise                   = charToMath ch
 
 mstring :: String -> LatexItem
-mstring = foldMap $ mchar (B.rawTex . hchar)
+mstring = foldMap $ mchar B.hchar
 
 instance IsString MathItem where
   fromString = text . mstring
