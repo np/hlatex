@@ -12,6 +12,9 @@ description:     ...
 stability:       Provisional
 build-type:      Simple
 
+flag build_doc
+    Default: True
+
 library
     build-depends:
                  base>=3.0&&<5, containers>=0.1, process, filepath,
@@ -38,7 +41,8 @@ executable generate_hlatex_user_guide
                    transformers, monads-fd, base-unicode-symbols
     main-is: doc/user_guide.hs
     ghc-options: -Wall
-    -- Buildable: False
+  if !flag(build_doc)
+    Buildable: False
 
 source-repository head
   type:     darcs
