@@ -1,6 +1,6 @@
 module Language.LaTeX.Builder.Math
 
-  (charToMath, mstring, protect, verb,
+  (charToMath, mchar, mstring, protect, protector, verb,
    _Delta, _Gamma, _Lambda, _Leftarrow, _Leftrightarrow, _Omega, _Phi, _Pi, _Pr,
    _Rightarrow, _Sigma, _Theta, _Xi, acute, aleph, alpha, approx, array, at,
    backslash, bar, beta, between, bigcap, bigcup, bigvee, bigwedge, bmod, bot,
