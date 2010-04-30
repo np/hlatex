@@ -121,6 +121,9 @@ frameO overlays = BI.parEnvironmentPar "frame" [maybe BI.noArg BI.optional $ tex
 example :: ParItem -> ParItem
 example = BI.parEnvironmentPar "example" []
 
+theorem :: ParItem -> ParItem
+theorem = BI.parEnvironmentPar "theorem" []
+
 block :: LatexItem -> ParItem -> ParItem
 block title = BI.parEnvironmentPar "block" [BI.mandatory title]
 
