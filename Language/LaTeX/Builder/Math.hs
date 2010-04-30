@@ -1,5 +1,6 @@
 module Language.LaTeX.Builder.Math
-
+  
+  -- NOTE: do not forget to update allMathItems, allMathDecls
   (charToMath, mchar, mstring, protect, protector, verb,
    _Delta, _Gamma, _Lambda, _Leftarrow, _Leftrightarrow, _Omega, _Phi, _Pi, _Pr,
    _Rightarrow, _Sigma, _Theta, _Xi, acute, aleph, alpha, approx, array, at,
@@ -10,7 +11,8 @@ module Language.LaTeX.Builder.Math
    gamma, gcd, ge, geq, grave, group, hat, iff, imath, implies, in_, inf,
    infty, int, iota, jmath, kappa, lambda, langle, lbrace, lceiling, lcm,
    ldots, ldotp, le, leftarrow, leftrightarrow, leq, lfloor, lim, liminf, limsup, ln,
-   log, mathBinOp, mathBinOps, mathCmd, mathCmdArg, mathCmdArgs, mathCmdsArg,
+   log, mathBinOp, longleftarrow, longrightarrow, longleftrightarrow,
+   mathBinOps, mathCmd, mathCmdArg, mathCmdArgs, mathCmdsArg,
    mathDecl, mathGroup, allMathItems, allMathDecls, rawDecls, decl, decls,
    mathToLR, mathbb, mathbf,
    mathcal, mathfrak, mathtt, max, min, mit, mleft, mediumspace,
@@ -425,12 +427,18 @@ _Downarrow :: MathItem
 _Downarrow = mathCmd "Downarrow"
 rightarrow :: MathItem
 rightarrow = mathCmd "rightarrow"
+longrightarrow :: MathItem
+longrightarrow = mathCmd "longrightarrow"
 to :: MathItem
 to = mathCmd "to"
 leftarrow :: MathItem
 leftarrow = mathCmd "leftarrow"
+longleftarrow :: MathItem
+longleftarrow = mathCmd "longleftarrow"
 leftrightarrow :: MathItem
 leftrightarrow = mathCmd "leftrightarrow"
+longleftrightarrow :: MathItem
+longleftrightarrow = mathCmd "longleftrightarrow"
 _Rightarrow :: MathItem
 _Rightarrow = mathCmd "Rightarrow"
 _Leftarrow :: MathItem
@@ -629,6 +637,7 @@ allMathItems =
    rfloor, lceiling, rceiling, sin, cos, tan, csc, sec, cot, sinh, cosh, tanh, log, ln,
    det, dim, lim, mod, gcd, lcm, liminf, inf, limsup, max, min, _Pr, uparrow, downarrow,
    rightarrow, to, leftarrow, leftrightarrow, _Rightarrow, _Leftarrow, _Leftrightarrow
+  ,longrightarrow,longrightarrow,longleftrightarrow
   ,vartriangleright, cdotp, ldotp, _Downarrow, _Uparrow
   -- maually added
   ,eq,neq
@@ -758,7 +767,6 @@ charToMath ch
       , ('≈', approx)
       --, ('', propto)
       , ('¬', neg)
-      , ('⇒', implies)
       --, ('', iff)
       , ('∀', forall_)
       , ('∃', exists)
@@ -799,8 +807,10 @@ succ
       --, ('', to)
       , ('←', leftarrow)
       , ('↔', leftrightarrow)
-      , ('⟶', _Rightarrow)
-      , ('⟵', _Leftarrow)
-      --, ('', _Leftrightarrow)
+      , ('⇒', _Rightarrow)
+      , ('⇐', _Leftarrow)
+      , ('⇔', _Leftrightarrow)
+      , ('⟶', longrightarrow)
+      , ('⟵', longleftarrow)
       , ('▹', vartriangleright)
       ]
