@@ -157,6 +157,10 @@ instance Monoid ParItm where
   x            `mappend` ParConcat ys = ParConcat (x : ys)
   x            `mappend` y            = ParConcat [x, y]
 
+uncatParItm :: ParItm -> [ParItm]
+uncatParItm (ParConcat pars) = pars
+uncatParItm par              = [par]
+
 newtype MathDcl = MathDcl String
   deriving (Show, Eq, Typeable, Data)
 
