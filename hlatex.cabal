@@ -33,7 +33,8 @@ library
                  Language.LaTeX.Builder.Rotating,
                  Language.LaTeX.Builder.QQ,
                  Language.LaTeX.Builder.Beamer,
-                 Language.LaTeX.Printer
+                 Language.LaTeX.Printer,
+                 Language.LaTeX.Slicer
     ghc-options: -Wall
 
 executable generate_hlatex_user_guide
