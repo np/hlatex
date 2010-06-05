@@ -16,9 +16,9 @@ import Data.String
 import Language.LaTeX.Types
 import qualified Language.LaTeX.Builder.Internal as BI
 
-data BabelOpt = BabelOpt { babelOpt :: Arg LatexItem }
+newtype BabelOpt = BabelOpt { babelOpt :: LatexItem }
 
-data Lang = Lang { langName :: String }
+newtype Lang = Lang { langName :: String }
   deriving (Show, Eq)
 
 francais, french :: Lang
@@ -28,12 +28,12 @@ french   = Lang "french"
 customLang :: String -> Lang
 customLang = Lang
 
-customBabelOpt :: Arg LatexItem -> BabelOpt
+customBabelOpt :: LatexItem -> BabelOpt
 customBabelOpt = BabelOpt
 
 pkg :: PackageName
 pkg = BI.pkgName "babel"
 
 useBabel :: Lang -> [BabelOpt] -> PreambleItem
-useBabel lang opts = BI.usepackage (BI.optional (fromString (langName lang))
+useBabel lang opts = BI.usepackage (fromString (langName lang)
                                    : map babelOpt opts) pkg
