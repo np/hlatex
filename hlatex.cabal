@@ -33,6 +33,7 @@ library
                  Language.LaTeX.Builder.Rotating,
                  Language.LaTeX.Builder.QQ,
                  Language.LaTeX.Builder.Beamer,
+                 Language.LaTeX.Builder.Babel,
                  Language.LaTeX.Printer,
                  Language.LaTeX.Slicer
     ghc-options: -Wall
