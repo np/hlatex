@@ -7,6 +7,7 @@ module Language.LaTeX
   ,quickView
   ,myViewOpts
   ,testViewOpts
+  ,showLaTeX
   )
 where
 import Data.Monoid (Monoid(..))
