@@ -65,7 +65,9 @@ texAddrs = foldMap tex8Addrs . chunk 20 -- . prolongateByMod def 2
     -- def = Addr "" "" "" "" Nothing
     wi = L.linewidth / 2
     tex8Addrs addrs =
-      B.tabular [B.l, B.l] (map (B.cells . tex2Addrs) (chunk 2 addrs))
+      B.tabular [B.l, B.l] (
+          intersperse (B.cells ["",""]) .
+          map (B.cells . tex2Addrs) $ chunk 2 addrs)
       ⊕
       B.newpage
 
