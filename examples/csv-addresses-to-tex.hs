@@ -18,17 +18,20 @@ import Data.String
 import Data.Maybe
 import Data.Foldable (foldMap)
 import Data.Monoid.Unicode
-import Control.Applicative
-import Control.Monad
 import Text.CSV (parseCSV, CSV, Record, Field)
 import System.Environment
 import qualified Safe
-import qualified System.IO.UTF8 as UTF8
+import System.IO (stdout,hSetEncoding,utf8)
 
-main = run =<< getArgs
+mainArgs [] = do hSetEncoding stdout utf8
+                 putStr . fromAddrs =<< getContents
+  where fromAddrs = either error id           . showLaTeX    -- show
+                                              . body         -- LaTeX it
+                  . fromMaybe []              . addrFromCSV  -- load records
+                  . either (error . show) id  . parseCSV "-" -- parse CSV
+mainArgs _ = error "Usage: csv-addresses-to-pdf"
 
-run args = do addrs <- loadAddrs args
-              quickView testViewOpts "letter-addresses" $ body addrs
+main = mainArgs =<< getArgs
 
 -- paraNoindent = B.para . (B.noindent ⊕)
 
@@ -42,16 +45,19 @@ data Addr = Addr { name    :: String
                  , country :: Maybe String
                  }
 
-texLines = mconcat . intersperse B.newline
+texLines = mconcat . intersperse B.newline . filter (/= mempty)
 
 texAddr :: Addr -> ParItem
 texAddr Addr{..} =
   B.para (texLines
    [fromString name
    ,fromString street
-   ,fromString zipcode ⊕ B.space ⊕ fromString city
+   ,zc
    ,foldMap fromString country])
   ⊕ B.vspace (L.em 0.6)
+  where zc = if null zipcode then fromString city
+             else if null city then fromString zipcode
+             else fromString zipcode ⊕ B.space ⊕ fromString city
 
 texAddrs :: [Addr] -> ParItem
 texAddrs = foldMap tex8Addrs . chunk 20 -- . prolongateByMod def 2
@@ -102,11 +108,6 @@ addrLoaderFromCSV header =
               where prer = pre r
         return build
   where sel = csvSelector header
-
-loadAddrs :: [FilePath] -> IO [Addr]
-loadAddrs = fmap (fromMaybe [] . fmap concat . sequence) .  mapM f
-  where f fp = (addrFromCSV =<<) . e2m . parseCSV fp <$> UTF8.readFile fp
-        e2m = either (const Nothing) Just
 
 body addrs = B.document dc preamb (B.pagestyle "empty" ⊕ texAddrs addrs)
   where dc = B.article (Just (L.pt 12)) (Just B.a4paper) []
