@@ -8,10 +8,10 @@ import qualified Language.LaTeX.Builder.Internal as BI
 -- import qualified Language.LaTeX.Builder.Math as M
 -- import qualified Language.LaTeX.Builder.Graphics as G
 -- import qualified Language.LaTeX.Builder.Rotating as R
--- import qualified Language.LaTeX.Builder.Color as C
+import qualified Language.LaTeX.Builder.Color as C
 
 -- import Data.Ratio ((%))
--- import Data.Char
+import Data.Char
 import Data.List.Split
 import Data.List
 import Data.String
@@ -50,14 +50,15 @@ texLines = mconcat . intersperse B.newline . filter (/= mempty)
 texAddr :: Addr -> ParItem
 texAddr Addr{..} =
   B.para (texLines
-   [fromString name
-   ,fromString street
-   ,zc
+   [ck "Nom" name
+   ,ck "Adresse" street
+   ,ck "Code Postal" zipcode ⊕ B.space ⊕ ck "Ville" city
    ,foldMap fromString country])
   ⊕ B.vspace (L.em 0.6)
-  where zc = if null zipcode then fromString city
-             else if null city then fromString zipcode
-             else fromString zipcode ⊕ B.space ⊕ fromString city
+  where ck nam x
+         | all isSpace x = C.textcolor C.red (fromString nam)
+         | otherwise     = fromString x
+
 
 texAddrs :: [Addr] -> ParItem
 texAddrs = foldMap texAddrPage . chunk 20 -- . prolongateByMod def 2
