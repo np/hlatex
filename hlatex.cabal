@@ -39,7 +39,7 @@ library
     ghc-options: -Wall
 
 executable generate_hlatex_user_guide
-    Build-depends: base>=3.0, containers>=0.1,
+    Build-depends: base>=3.0, containers>=0.1, frquotes,
                    transformers, monads-fd, base-unicode-symbols
     main-is: doc/user_guide.hs
     ghc-options: -Wall
