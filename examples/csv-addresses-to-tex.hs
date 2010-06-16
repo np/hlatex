@@ -60,19 +60,21 @@ texAddr Addr{..} =
              else fromString zipcode ⊕ B.space ⊕ fromString city
 
 texAddrs :: [Addr] -> ParItem
-texAddrs = foldMap tex8Addrs . chunk 20 -- . prolongateByMod def 2
+texAddrs = foldMap texAddrPage . chunk 20 -- . prolongateByMod def 2
   where
     -- def = Addr "" "" "" "" Nothing
-    wi = L.linewidth / 2
-    tex8Addrs addrs =
-      B.tabular [B.l, B.l] (
-          intersperse (B.cells ["",""]) .
-          map (B.cells . tex2Addrs) $ chunk 2 addrs)
+    cols = (2 :: Int)
+    wi = L.linewidth / fromIntegral cols
+    texAddrPage addrs =
+      B.tabular (replicate cols B.l) (
+          intersperse (B.cells (replicate cols "")) .
+          map (B.cells . texAddrRow) $ chunk cols addrs)
       ⊕
       B.newpage
 
-    tex2Addrs [a] = [B.minipage wi . texAddr $ a, mempty]
-    tex2Addrs a   = map (B.minipage wi . texAddr) a
+    texAddrRow a =
+      take cols (map (B.minipage wi . texAddr) a
+                 ++ repeat mempty)
 
 {-
 -- think more about this
