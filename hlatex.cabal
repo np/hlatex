@@ -18,7 +18,7 @@ flag build_doc
 library
     build-depends:
                  base>=3.0&&<5, containers>=0.1, process, filepath,
-                 template-haskell, transformers>=0.2.0, monads-fd>=0.1.0,
+                 template-haskell, transformers>=0.2.1&&<1, monads-fd>=0.1.0,
                  uniplate==1.4.*, derive, utf8-string
     exposed-modules:
                  Language.LaTeX,
