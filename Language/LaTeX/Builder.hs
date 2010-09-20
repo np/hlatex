@@ -29,7 +29,7 @@ protect, protector, quotation, quote, raisebox, raisebox',
 rat, ref, report, reversemarginpar, ring, rm, rmfamily, rq,
 rtext, rule, rule', samepage, savebox, sbox, sc, scriptsize, scshape, section,
 section', sectionNoTOC, sep, setlength, sf, sffamily, sl, sloppy, sloppypar,
-slshape, small, smallskip, ss, subparagraph,
+slshape, small, smallskip, spaceProtector, ss, subparagraph,
 subparagraph', subparagraphNoTOC, subsection, subsection', subsectionNoTOC,
 subsubsection, subsubsection', subsubsectionNoTOC, subtitle, table,
 tableStar, tableofcontents, tabular, textbf, textdegree,
@@ -133,13 +133,19 @@ compressSpaces (x:xs) = Left x : compressSpaces xs
 
 type XChar = Char -> LatexItem
 
+spaceProtector :: XChar -> String -> LatexItem
+spaceProtector xchar = foldMap (either xchar hspaces) . compressSpaces
+
 protector :: XChar -> String -> LatexItem
-protector xchar = foldMap (either nlxchar hspaces) . compressSpaces
-  where nlxchar '\n' = newline
-        nlxchar ch   = xchar ch
+protector = spaceProtector . nlchar
 
 protect :: String -> LatexItem
 protect = protector hchar
+
+-- Turns @'\n'@ into 'newline' and others with the given translator.
+nlchar :: XChar -> XChar
+nlchar _      '\n'  = newline
+nlchar xchar  ch    = xchar ch
 
 hchar :: XChar
 hchar = rawTex . rawhchar
