@@ -37,7 +37,7 @@ textit, textmd, textnormal, textrm, textsc, textsf,
 textsl, texttt, textup, thinspace, thispagestyle, tieafter, tilde,
 tiny, title, titlepage, tt, ttchar, ttfamily, uml,
 underbar, unwords, upshape, usebox, verb, verse, vfill, vline,
-vspace, vspaceStar,
+vphantom, vspace, vspaceStar,
   )
   where
 
@@ -396,6 +396,9 @@ framebox width pos txt = latexCmdArgs "framebox" [optional $ texLength width
 
 phantom :: LatexItem -> LatexItem
 phantom = latexCmdArg "phantom"
+
+vphantom :: LatexItem -> LatexItem
+vphantom = latexCmdArg "vphantom"
 
 -- robust
 sbox :: SaveBin -> LatexItem -> LatexItem
