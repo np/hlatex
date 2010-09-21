@@ -21,7 +21,6 @@ pkg = B.pkgName "beamer"
 data DocClassOption = Compress
                     | T
                     | Red
-                    | OtherDocClassOption String
 
 compress, t, red :: DocClassOption
 compress = Compress
@@ -29,17 +28,18 @@ t = T
 red = Red
 
 showDocClassOption :: DocClassOption -> String
-showDocClassOption Compress                 = "compress"
-showDocClassOption T                        = "t"
-showDocClassOption Red                      = "red"
-showDocClassOption (OtherDocClassOption s)  = s
+showDocClassOption Compress  = "compress"
+showDocClassOption T         = "t"
+showDocClassOption Red       = "red"
 
 documentclasskind :: DocumentClassKind
 documentclasskind =  OtherDocumentClassKind "beamer"
 
-documentclass :: [DocClassOption] -> DocumentClass
-documentclass  = B.documentclass documentclasskind
-               . map (BI.rawTex . showDocClassOption)
+beamer :: Maybe LatexLength -> [DocClassOption] -> [LatexItem] -> DocumentClass
+beamer msize opts
+  = B.documentclass documentclasskind
+  . (maybeToList (BI.texLength <$> msize) ++)
+  . (map (BI.rawTex . showDocClassOption) opts ++)
 
 type TargetName = String
 type Label = String
