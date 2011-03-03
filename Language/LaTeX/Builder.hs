@@ -41,6 +41,8 @@ vphantom, vspace, vspaceStar,
   )
   where
 
+
+
 import Prelude hiding (sqrt, min, max, lcm, gcd, log, mod, tanh, cosh, tan, sinh,
                        sin, cos, succ, sum, pi, mapM, unwords)
 import Data.List hiding (sum, and, group, unwords)
@@ -199,6 +201,7 @@ normalmarginpar = texDecl "normalmarginpar"
 -- Spaces
 
 -- robust
+-- http://www.personal.ceu.hu/tex/spacebox.htm#hspace
 hspace :: LatexLength -> LatexItem
 hspace = latexCmdArg "hspace" . texLength
 
@@ -209,19 +212,26 @@ hspaceStar = latexCmdArg "hspace*" . texLength
 -- fragile
 -- the says that's a command however putting braces around disable
 -- its effect. We expose it as a ParItem since this is its main usage.
+-- http://www.personal.ceu.hu/tex/spacebox.htm#vspace
 vspace :: LatexLength -> ParItem
 vspace = parCmdArg "vspace" . texLength
 
 -- fragile
+-- http://www.personal.ceu.hu/tex/spacebox.htm#vspace
 vspaceStar :: LatexLength -> ParItem
 vspaceStar = parCmdArg "vspace*" . texLength
 
+-- http://www.personal.ceu.hu/tex/spacebox.htm#vfill
 vfill :: ParItem
 vfill = parCmdArgs "vfill" [] -- = vspace fill
+
+-- http://www.personal.ceu.hu/tex/spacebox.htm#hfill
 hfill :: LatexItem
 hfill = texCmdNoArg "hfill" -- = hspace fill
+
 dotfill :: LatexItem
 dotfill = texCmdNoArg "dotfill"
+
 hrulefill :: LatexItem
 hrulefill = texCmdNoArg "hrulefill"
 
@@ -236,17 +246,21 @@ corrspace :: LatexItem
 corrspace = texCmdNoArg "/"
 
 -- fragile
+-- http://www.personal.ceu.hu/tex/spacebox.htm#bskip
 bigskip :: ParItem
 bigskip = parCmdArgs "bigskip" [] -- = vspace bigskipamount
 
 -- fragile
+-- http://www.personal.ceu.hu/tex/spacebox.htm#bskip
 medskip :: ParItem
 medskip = parCmdArgs "medskip" [] -- = vspace medskipamount
 
 -- fragile
+-- http://www.personal.ceu.hu/tex/spacebox.htm#bskip
 smallskip :: ParItem
 smallskip = parCmdArgs "smallskip" [] -- = vspace smallskipamount
 
+-- http://www.personal.ceu.hu/tex/spacebox.htm#addvspace
 addvspace :: LatexLength -> ParItem
 addvspace = parCmdArg "addvspace" . texLength
 
@@ -304,6 +318,8 @@ textnormal = latexCmdArg "textnormal"
 -- Line and page breaking
 
 -- fragile
+-- http://www.personal.ceu.hu/tex/breaking.htm#linebreak
+-- http://www.personal.ceu.hu/tex/breaking.htm#nolinebreak
 linebreak, nolinebreak :: Int -> TexDecl
 linebreak = texDeclOpt "linebreak" . num
 nolinebreak = texDeclOpt "nolinebreak" . num
@@ -378,6 +394,7 @@ mbox :: LatexItem -> LatexItem
 mbox = latexCmdArg "mbox"
 
 -- fragile
+-- http://www.personal.ceu.hu/tex/spacebox.htm#makebox
 makebox :: LatexLength -> Pos -> LatexItem -> LatexItem
 makebox width pos txt =
   latexCmdArgs "makebox" [optional $ texLength width
@@ -389,6 +406,7 @@ fbox :: LatexItem -> LatexItem
 fbox = latexCmdArg "fbox"
 
 -- fragile
+-- http://www.personal.ceu.hu/tex/spacebox.htm#framebox
 framebox :: LatexLength -> Pos -> LatexItem -> LatexItem
 framebox width pos txt = latexCmdArgs "framebox" [optional $ texLength width
                                                  ,optional $ rawTex [charPos pos]
@@ -419,6 +437,7 @@ usebox :: SaveBin -> LatexItem
 usebox bin = latexCmdArgs "usebox" [mandatory $ latexSaveBin bin]
 
 -- fragile
+-- http://www.personal.ceu.hu/tex/spacebox.htm#parbox
 parbox :: LatexLength -> LatexItem -> LatexItem
 parbox width txt =
   latexCmdArgs "parbox" [mandatory $ texLength width, mandatory  txt]
@@ -443,6 +462,7 @@ minipageBot :: LatexLength -> ParItem -> LatexItem
 minipageBot width = latexEnvironmentPar "minipage" [optional $ rawTex "b", mandatory $ texLength width]
 
 -- fragile
+-- http://www.personal.ceu.hu/tex/spacebox.htm#rule
 rule :: LatexLength -> LatexLength -> LatexItem
 rule width height = latexCmdArgs "rule" [mandatory $ texLength width,mandatory $ texLength height]
 
@@ -452,6 +472,7 @@ rule' raise_len width height = latexCmdArgs "rule" [optional $ texLength raise_l
                                                    ,mandatory $ texLength width,mandatory $ texLength height]
 
 -- fragile
+-- http://www.personal.ceu.hu/tex/spacebox.htm#raisebox
 raisebox :: LatexLength -> LatexItem -> LatexItem
 raisebox raise_len txt =
   latexCmdArgs "raisebox" [mandatory $ texLength raise_len,mandatory txt]

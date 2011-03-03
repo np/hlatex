@@ -146,6 +146,7 @@ space :: LatexItem
 space = rawTex "{ }"
 
 -- TODO: make a safe version using a monad
+-- http://www.personal.ceu.hu/tex/spacebox.htm#newsavebox
 -- fragile
 unsafeNewsavebox :: Int -> (SaveBin, LatexItem)
 unsafeNewsavebox n =
