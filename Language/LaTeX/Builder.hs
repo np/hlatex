@@ -778,16 +778,9 @@ instance HaveR (RowSpec a) where r = Rr
 a4paper :: LatexPaperSize
 a4paper = A4paper
 
-showPaper :: LatexPaperSize -> String
-showPaper A4paper = "a4paper"
-showPaper (OtherPaperSize s) = s
-
 documentclass ::  DocumentClassKind -> [LatexItem] ->
                   DocumentClass
 documentclass dc = (DocClass dc <$>) . sequenceA
-
-latexPaper :: LatexPaperSize -> LatexItem
-latexPaper = rawTex . showPaper
 
 article ::  Maybe LatexLength -> Maybe LatexPaperSize ->
             [LatexItem] -> DocumentClass

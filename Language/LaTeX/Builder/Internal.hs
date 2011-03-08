@@ -94,6 +94,13 @@ pkgName = PkgName
 packageDependency :: PackageName -> Arg a
 packageDependency = PackageDependency
 
+showPaper :: LatexPaperSize -> String
+showPaper A4paper = "a4paper"
+showPaper (OtherPaperSize s) = s
+
+latexPaper :: LatexPaperSize -> LatexItem
+latexPaper = rawTex . showPaper
+
 bool :: Bool -> LatexItem
 bool True  = rawTex "true"
 bool False = rawTex "false"
