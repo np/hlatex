@@ -556,6 +556,8 @@ item' a = liftM2 ListItm (pure . optional <$> a)
 
 itemize :: [ListItem] -> ParItem
 itemize = listLikeEnv "itemize" []
+
+-- enumerate counters are enumi, enumii, enumiii, enumiv
 enumerate :: [ListItem] -> ParItem
 enumerate = listLikeEnv "enumerate" []
 description :: [ListItem] -> ParItem
