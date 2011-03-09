@@ -39,6 +39,7 @@ vcat = mconcat . intersperse (nl <> nl)
 
 ppArg :: Arg ShowS -> ShowS
 ppArg NoArg             = id
+ppArg StarArg           = text "*"
 ppArg (Mandatory x)     = braces x
 ppArg (Optional  x)     = brackets x
 ppArg (Optionals xs)    = brackets $ mconcat $ intersperse (text ",") xs

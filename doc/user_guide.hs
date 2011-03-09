@@ -20,6 +20,7 @@ frquotes = B.texttt "frquotes"
 ltxcode = B.texttt . B.protect
 hcode = B.texttt . B.protect
 ltxenv = B.texttt . B.protect
+ascii = B.textsc "ASCII"
 
 put :: ParItem -> ParItemW
 put = tell
@@ -229,11 +230,11 @@ body = execWriter $ do
 
   p «In {latex} sectioning is done by inserting separators commands. In {hlatex}
     all these commands are exported in a straightforward way. Most of these commands
-    appears in three variants, for instance {ltxcode "\\section"} can be produced
+    appears in two variants, for instance {ltxcode "\\section"} can be produced
     by {hcode "section"} and just waits for a {hcode "LatexItem"} as title,
-    for {ltxcode "\\section*"} just use {hcode "sectionNoTOC"}, and finally
-    {hcode "section'"} waits for an extra optional argument that represents the
-    text to be used in the table of contents.»
+    and {hcode "section'"} waits for two extra arguments the first is either
+    {hcode "ø"} ({hcode "mempty"} in {ascii}) or {hcode "(★)"} ({hcode "star"} in {ascii})
+    and the second is optional and represents the text to be used in the table of contents.»
 
   section «List like environment»
   todo "how to put a paritem between items"

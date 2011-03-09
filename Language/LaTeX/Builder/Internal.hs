@@ -25,6 +25,13 @@ import Language.LaTeX.Builder.MonoidUtils
 noArg :: Arg a
 noArg = NoArg
 
+starArg :: Arg a
+starArg = StarArg
+
+starToArg :: Star -> Arg a
+starToArg Star   = starArg
+starToArg NoStar = noArg
+
 mandatory, optional :: a -> Arg a
 mandatory = Mandatory
 optional = Optional
@@ -152,6 +159,10 @@ rat = texLength . fromRational
 space :: LatexItem
 space = rawTex "{ }"
 
+starize :: String -> Star -> String
+starize s NoStar = s
+starize s Star   = s ++ "*"
+
 -- TODO: make a safe version using a monad
 -- http://www.personal.ceu.hu/tex/spacebox.htm#newsavebox
 -- fragile
@@ -164,13 +175,11 @@ unsafeNewsavebox n =
 
 -- Sectioning commands arguments are 'moving'.
 sectioning :: String -> (LatexItem -> ParItem,
-                         LatexItem -> ParItem,
-                         Maybe LatexItem -> LatexItem -> ParItem)
-sectioning name = (sect, sectNoTOC, sect')
-  where sect = sect' Nothing
-        sectNoTOC arg = parCmdArgs (name ++ "*") [mandatory arg]
-        sect' opt arg = parCmdArgs name
-                                   (maybeToList (fmap optional opt) ++ [mandatory arg])
+                         Star -> Maybe LatexItem -> LatexItem -> ParItem)
+sectioning name = (sect, sect')
+  where sect = sect' ø Nothing
+        sect' s opt arg = parCmdArgs (starize name s)
+                                     (maybeToList (fmap optional opt) ++ [mandatory arg])
 
 -- The array and tablular Environments
 

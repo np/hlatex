@@ -7,14 +7,14 @@ article, author, authors,
 bf, bfseries, bigskip,
 bibliography, bibliographystyle, book, boxedminipage,
 caption, caption', cedil, cell, cells, center, chapter, chapter',
-chapterNoTOC, check, circ, cite, cite', cleardoublepage, clearpage, cline,
+check, circ, cite, cite', cleardoublepage, clearpage, cline,
 compressSpaces, copyright, corrspace, dag, dash1,
 dash2, dash3, date, ddag, decl, decls, description, description', displaymath,
 document, documentclass, dot, dotfill, em, emph, enumerate,
-enumerate', fbox, figure, figureStar,
+enumerate', fbox, figure, figure',
 flushleft, footnote,
 footnotesize, framebox, fussy, grave, group, hat, hchar,
-hfill, hline, hr, href, hrulefill, space, hspace, hspaceStar, hspaces,
+hfill, hline, hr, href, hrulefill, space, hspace, hspace', hspaces,
 hstring, huge, hyphen, hyphenation, i, institute, it, item,
 item', itemize, itemize', itshape, j, label,
 large, ldots, letter, linebreak,
@@ -23,21 +23,21 @@ math, mbox, mdseries, medskip,
 minipage, minipageBot, minipageTop, nbsp, negthinspace, newline,
 newline', newpage, nocite, noindent, nolinebreak, nopagebreak, normalfont,
 normalmarginpar, normalsize, num, o, oe, overbar, overdot, pagebreak,
-pageref, pagestyle, para, paragraph, paragraph', paragraphNoTOC, parbox, parboxBot,
-parboxTop, part, part', partNoTOC, person, phantom, pounds,
+pageref, pagestyle, para, paragraph, paragraph', parbox, parboxBot,
+parboxTop, part, part', person, phantom, pounds,
 protect, protector, quotation, quote, raisebox, raisebox',
 rat, ref, report, reversemarginpar, ring, rm, rmfamily, rq,
 rtext, rule, rule', samepage, savebox, sbox, sc, scriptsize, scshape, section,
-section', sectionNoTOC, sep, setlength, sf, sffamily, sl, sloppy, sloppypar,
+section', sep, setlength, sf, sffamily, sl, sloppy, sloppypar,
 slshape, small, smallskip, spaceProtector, ss, subparagraph,
-subparagraph', subparagraphNoTOC, subsection, subsection', subsectionNoTOC,
-subsubsection, subsubsection', subsubsectionNoTOC, subtitle, table,
-tableStar, tableofcontents, tabular, textbf, textdegree,
+subparagraph', subsection, subsection',
+subsubsection, subsubsection', subtitle, table,
+table', tableofcontents, tabular, textbf, textdegree,
 textit, textmd, textnormal, textrm, textsc, textsf,
 textsl, texttt, textup, thinspace, thispagestyle, tieafter, tilde,
 tiny, title, titlepage, tt, ttchar, ttfamily, uml,
 underbar, unwords, upshape, usebox, verb, verse, vfill, vline,
-vphantom, vspace, vspaceStar,
+vphantom, vspace, vspace', (★),
   )
   where
 
@@ -70,6 +70,9 @@ import Language.LaTeX.Builder.MonoidUtils
 import Prelude (writeFile, id, Monad(..), fst)
 import Language.Haskell.TH
 -}
+
+(★) :: Star
+(★) = Star
 
 group :: LatexItem -> LatexItem
 group = liftM TexGroup
@@ -202,24 +205,25 @@ normalmarginpar = texDecl "normalmarginpar"
 
 -- robust
 -- http://www.personal.ceu.hu/tex/spacebox.htm#hspace
-hspace :: LatexLength -> LatexItem
-hspace = latexCmdArg "hspace" . texLength
+hspace' :: Star -> LatexLength -> LatexItem
+hspace' s = latexCmdArg (starize "hspace" s) . texLength
 
 -- robust
-hspaceStar :: LatexLength -> LatexItem
-hspaceStar = latexCmdArg "hspace*" . texLength
+-- http://www.personal.ceu.hu/tex/spacebox.htm#hspace
+hspace :: LatexLength -> LatexItem
+hspace = hspace' ø
 
 -- fragile
--- the says that's a command however putting braces around disable
+-- they says that's a command however putting braces around disable
 -- its effect. We expose it as a ParItem since this is its main usage.
 -- http://www.personal.ceu.hu/tex/spacebox.htm#vspace
-vspace :: LatexLength -> ParItem
-vspace = parCmdArg "vspace" . texLength
+vspace' :: Star -> LatexLength -> ParItem
+vspace' s = parCmdArg (starize "vspace" s) . texLength
 
 -- fragile
 -- http://www.personal.ceu.hu/tex/spacebox.htm#vspace
-vspaceStar :: LatexLength -> ParItem
-vspaceStar = parCmdArg "vspace*" . texLength
+vspace :: LatexLength -> ParItem
+vspace = vspace' ø
 
 -- http://www.personal.ceu.hu/tex/spacebox.htm#vfill
 vfill :: ParItem
@@ -513,19 +517,18 @@ nocite = latexCmdArg "nocite" . latexKeys
 
 -- sectioning
 
-part, chapter, section, subsection,  subsubsection, paragraph, subparagraph,
-  partNoTOC, chapterNoTOC, sectionNoTOC, subsectionNoTOC, subsubsectionNoTOC,
-  paragraphNoTOC, subparagraphNoTOC :: LatexItem -> ParItem
+part, chapter, section, subsection,  subsubsection, paragraph,
+  subparagraph :: LatexItem -> ParItem
 part', chapter', section', subsection', subsubsection', paragraph',
-  subparagraph' :: Maybe LatexItem -> LatexItem -> ParItem
+  subparagraph' :: Star -> Maybe LatexItem -> LatexItem -> ParItem
 
-(part,          partNoTOC,          part')          = sectioning "part"
-(chapter,       chapterNoTOC,       chapter')       = sectioning "chapter"
-(section,       sectionNoTOC,       section')       = sectioning "section"
-(subsection,    subsectionNoTOC,    subsection')    = sectioning "subsection"
-(subsubsection, subsubsectionNoTOC, subsubsection') = sectioning "subsubsection"
-(paragraph,     paragraphNoTOC,     paragraph')     = sectioning "paragraph"
-(subparagraph , subparagraphNoTOC,  subparagraph')  = sectioning "subparagraph"
+(part,          part')          = sectioning "part"
+(chapter,       chapter')       = sectioning "chapter"
+(section,       section')       = sectioning "section"
+(subsection,    subsection')    = sectioning "subsection"
+(subsubsection, subsubsection') = sectioning "subsubsection"
+(paragraph,     paragraph')     = sectioning "paragraph"
+(subparagraph , subparagraph')  = sectioning "subparagraph"
 
 -- | Don't confuse 'paragraph' with 'para', 'para' is to make a paragraph,
 -- 'paragraph' is to group a set of paragraphs.
@@ -570,11 +573,12 @@ enumerate' = listLikeEnv "enumerate" . pure . maybe noArg optional
 description' :: Maybe LatexItem -> [ListItem] -> ParItem
 description' = listLikeEnv "description" . pure . maybe noArg optional
 
-figure, figureStar, table, tableStar :: [LocSpec] -> ParItem -> ParItem
-figure = figureLike "figure"
-figureStar = figureLike "figure*"
-table = figureLike "table"
-tableStar = figureLike "table*"
+figure, table :: [LocSpec] -> ParItem -> ParItem
+figure', table' :: Star -> [LocSpec] -> ParItem -> ParItem
+figure' = figureLike . starize "figure"
+table'  = figureLike . starize "table"
+figure = figure' ø
+table = table' ø
 
 -- Accents
 

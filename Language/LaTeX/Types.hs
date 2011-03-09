@@ -71,6 +71,11 @@ data TexDcl = TexDcl { texDeclName :: String
                      }
   deriving (Show, Eq, Typeable, Data)
 
+-- This is the subset of tex strings that fits in the LR mode.
+-- The distinction between the paragraph and the LR mode is always
+-- made explicit using the Para constructor.
+--
+-- Modes: http://www.personal.ceu.hu/tex/modes.htm
 data LatexItm
            = LatexCmdArgs String [Arg LatexItm]
            | TexDecls [TexDcl]
@@ -103,6 +108,7 @@ instance IsString LatexItm where
     where f = RawTex . concatMap rawhchar . concat . intersperse "\n" . filter (not . null) . lines
 
 data Arg a = NoArg
+           | StarArg
            | Optional a
            | Optionals [a]
            | Mandatory a
@@ -110,6 +116,14 @@ data Arg a = NoArg
            | RawArg String
            | PackageDependency PackageName
   deriving (Show, Eq, Typeable, Data)
+
+data Star = Star | NoStar
+  deriving (Show, Eq, Typeable, Data)
+
+instance Monoid Star where
+  mempty = NoStar
+  NoStar `mappend` x      = x
+  x      `mappend` _      = x
 
 {-
 instance Functor Arg where

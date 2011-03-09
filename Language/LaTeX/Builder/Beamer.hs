@@ -371,7 +371,6 @@ appendix :: ParItem
 appendix = BI.parCmdArgs "appendix" []
 
 -- \setbeamercolor*{titlelike}{parent=structure}
--- setbeamercolorStar =
 
 data Footline = Footline { authorPercent    :: Percentage
                          , titlePercent     :: Percentage
