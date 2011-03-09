@@ -78,7 +78,7 @@ ppTexDecl :: TexDcl -> ShowS
 ppTexDecl (TexDcl declName declArgs) = ppDecl declName (foldMap (ppArg . fmap pp) declArgs)
 
 ppMathDecl :: MathDcl -> ShowS
-ppMathDecl (MathDcl declName) = ppDecl declName mempty
+ppMathDecl (MathDcl declName) = ppDecl declName ø
 
 pp :: LatexItm -> ShowS
 
@@ -157,10 +157,10 @@ ppRowSpec (Rtext x) = text "@" <> braces x
 
 ppRows :: (a -> ShowS) -> [Row a] -> ShowS
 ppRows _ []
-  = mempty
+  = ø
 ppRows ppCell (Cells cells : rows)
   = (mconcat . intersperse (text " & ") . map ppCell $ cells)
- <> (if null rows then mempty else backslash <> backslash $$ ppRows ppCell rows)
+ <> (if null rows then ø else backslash <> backslash $$ ppRows ppCell rows)
 ppRows ppCell (Hline : rows)
   = backslash <> text "hline " <> ppRows ppCell rows
 ppRows ppCell (Cline c1 c2 : rows)

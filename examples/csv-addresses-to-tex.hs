@@ -45,7 +45,7 @@ data Addr = Addr { name    :: String
                  , country :: Maybe String
                  }
 
-texLines = mconcat . intersperse B.newline . filter (/= mempty)
+texLines = mconcat . intersperse B.newline . filter (/= ø)
 
 texAddr :: Addr -> ParItem
 texAddr Addr{..} =
@@ -75,7 +75,7 @@ texAddrs = foldMap texAddrPage . chunk 20 -- . prolongateByMod def 2
 
     texAddrRow a =
       take cols (map (B.minipage wi . texAddr) a
-                 ++ repeat mempty)
+                 ++ repeat ø)
 
 {-
 -- think more about this
@@ -90,7 +90,7 @@ prolongateByMod x modu = foldl'Append (const . succ) 0 f
 
 type HeaderRecord = Record
 csvSelector :: HeaderRecord -> Field -> Maybe (Record -> Field)
-csvSelector header field = flip (Safe.atDef mempty) `fmap` findIndex (==field) header
+csvSelector header field = flip (Safe.atDef ø) `fmap` findIndex (==field) header
 
 addrFromCSV :: CSV -> Maybe [Addr]
 addrFromCSV [] = Nothing

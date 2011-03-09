@@ -114,7 +114,7 @@ nbsp = rawTex "{~}"
 -- | 'sep' is like '{}' in LaTeX, it allows to force letters to be treaten separately,
 -- for instance to separate the two 'f's in shelfful.
 sep :: LatexItem
-sep = group mempty
+sep = group ø
 
 {- GHC bug with OverloadedStrings
 f "" = 1
@@ -729,7 +729,7 @@ _S :: LatexItem
 _S = texCmdNoArg "S"
 
 textdegree :: LatexItem
-textdegree = latexCmdArgs "textdegree" [packageDependency (pkgName "textcomp"), mandatory mempty]
+textdegree = latexCmdArgs "textdegree" [packageDependency (pkgName "textcomp"), mandatory ø]
 
 -- check options
 titlepage, flushleft, center, boxedminipage, quotation, verse :: ParItem -> ParItem

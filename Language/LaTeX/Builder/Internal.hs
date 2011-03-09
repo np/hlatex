@@ -38,7 +38,7 @@ optionals = Optionals
 usepackage :: [LatexItem] -> PackageName -> PreambleItem
 usepackage opts pkg = Usepackage pkg <$> sequenceA opts
 
--- Note that @rawArg ""@ reduces to mempty.
+-- Note that @rawArg ""@ reduces to ø.
 rawArg :: String -> Arg a
 rawArg s | null s    = NoArg
          | otherwise = RawArg s

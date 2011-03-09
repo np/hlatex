@@ -7,10 +7,6 @@ import qualified Language.LaTeX.Builder.Color as C
 import qualified Language.LaTeX.Builder.Math as M
 import Language.LaTeX.Builder.QQ hiding (tex)
 import Control.Monad.Writer
-import Data.Monoid.Unicode
-
-ø :: Monoid m => m
-ø = (Data.Monoid.Unicode.∅)
 
 latex = B._LaTeX
 tex = B._TeX
@@ -150,7 +146,7 @@ body = execWriter $ do
     set---that will be represented with a {haskell} type---; an associative
     composition operator---called {hcode "mappend"} in {haskell} and abbreviated by
     the {hcode "⊕"} infix operator here; and a neutral element---called
-    {hcode "mempty"} and abbreviated using unicode empty set symbol {B.math M.emptyset}.
+    {hcode "mempty"} and abbreviated using unicode empty set symbol {{-TODO use ø-}B.math M.emptyset}.
     The neutral element is a left and right unit for the composition operator.»
 
   p «In computer systems a lot of structures are monoid instances. Like lists
@@ -191,7 +187,7 @@ body = execWriter $ do
     {}»
   -}
 
-  todo «note that {hcode "hstring \"\""} reduces to {hcode "mempty"}»
+  todo «note that {hcode "hstring \"\""} reduces to {hcode "ø"}»
 
   subsection «The IsString class»
 

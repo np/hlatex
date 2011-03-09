@@ -12,9 +12,6 @@ import Control.Applicative
 -- function for example.
 import Data.String
 
--- Getting ⊕ (ø is defined below)
-import Data.Monoid.Unicode ((⊕))
-
 -- Most of these are imported qualified, then
 -- most used combinators are locally defined
 -- (near the bottom of the file)
@@ -70,9 +67,6 @@ body = slice . execWriter $ do
 todo :: a -> a
 todo = id
 {-# DEPRECATED todo "You have something to do here" #-}
-
-ø :: Monoid m => m
-ø = mempty
 
 main = quickView myViewOpts{basedir="out",showoutput=False,pdfviewer="evince"} "slides" doc
 

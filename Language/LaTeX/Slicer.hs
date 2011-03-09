@@ -7,10 +7,11 @@ import Data.Maybe
 import Data.List (find)
 import Control.Monad.Writer
 import Language.LaTeX.Types
+import Language.LaTeX.Builder.MonoidUtils
 import qualified Data.Generics.Uniplate.Data as U
 
 marknote :: ParItm
-marknote = ParNote (TextNote "slicemark") mempty
+marknote = ParNote (TextNote "slicemark") ø
 
 mark :: ParItemW
 mark = tell $ return marknote

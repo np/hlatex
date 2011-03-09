@@ -21,7 +21,7 @@ paraNoindent = B.para . (B.noindent <>)
 doc = B.document dc preamb body
   where
     dc = B.book (Just (L.pt 11)) (Just B.a4paper) []
-    preamb = mempty
+    preamb = ø
           -- B.usepackage [B.optional "francais"] (B.pkgName "babel")
 
 body = id $? do
@@ -56,7 +56,7 @@ body = id $? do
   B.tabular [B.c,B.l,B.r] !$
        [ B.cells $ map B.math [M.alpha + 3 * M.beta, M.eq, 2 * 21]
        , B.hline, B.hline
-       , B.cells [mempty, B.math M.eq, B.math 42]
+       , B.cells [ø, B.math M.eq, B.math 42]
        , B.cline 2 3
        ]
 

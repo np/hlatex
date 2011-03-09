@@ -28,9 +28,6 @@ todo :: a -> a
 todo = id
 {-# DEPRECATED todo "You have something to do here" #-}
 
-ø :: Monoid m => m
-ø = mempty
-
 usepackages = mconcat . map (BI.usepackage [] . BI.pkgName)
 
 vcenter x = B.vfill ⊕ x ⊕ B.vfill

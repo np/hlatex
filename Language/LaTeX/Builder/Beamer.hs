@@ -128,7 +128,7 @@ block :: LatexItem -> ParItem -> ParItem
 block title = BI.parEnvironmentPar "block" [BI.mandatory title]
 
 slide :: LatexItem -> ParItem -> ParItem
-slide tit = frame [] [] [] tit mempty
+slide tit = frame [] [] [] tit ø
 
 slideO :: LatexItem -> Overlays -> ParItem -> ParItem
 slideO tit ovs body = frameO ovs (frametitle tit <> body)

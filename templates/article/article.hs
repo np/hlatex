@@ -12,9 +12,6 @@ import Control.Applicative
 -- function for example.
 import Data.String
 
--- Getting ⊕ (ø is defined below)
-import Data.Monoid.Unicode ((⊕))
-
 import Language.LaTeX
 import qualified Language.LaTeX.Builder as B
 import qualified Language.LaTeX.Builder.Math as M
@@ -47,7 +44,7 @@ body = slice . execWriter $ do
 
   section «Bla»
 
-  p [$tex|Here is some raw \LaTeX code, use it with care.|]
+  p [$tex|Here is some raw \LaTeX{} code, use it with care.|]
 
   subsection «Foo»
 
