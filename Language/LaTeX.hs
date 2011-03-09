@@ -19,6 +19,7 @@ import Control.Monad (when)
 import Control.Monad.Writer (Writer, tell)
 import System.Cmd (system)
 import System.FilePath
+import System.Directory (createDirectoryIfMissing)
 import System.Exit
 import qualified System.IO.UTF8 as U
 -- import Codec.Binary.UTF8.String (encodeString)
@@ -45,7 +46,8 @@ writeBinaryFile f txt = withBinaryFile f WriteMode (\ hdl -> hPutStr hdl txt)
 
 quickView :: ViewOpts -> FilePath -> LatexM Document -> IO ()
 quickView vo basename doc =
-     do when (showoutput vo) $ putStrLn s
+     do createDirectoryIfMissing False (basedir vo)
+        when (showoutput vo) $ putStrLn s
         -- writeBinaryFile (basedir vo </> ltx) s
         U.writeFile (basedir vo </> ltx) s
         exitWith =<< system cmd
