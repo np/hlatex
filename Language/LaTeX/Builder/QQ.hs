@@ -1,5 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
-module Language.LaTeX.Builder.QQ (frTop, frAntiq, frQQ, tex, qp, str, istr, qm) where
+module Language.LaTeX.Builder.QQ (frTop, frAntiq, frQQ, tex, qp, str, istr, qm, mkQQ) where
 
 import Data.List
 import Data.Char
@@ -28,8 +28,10 @@ istr = QuasiQuoter (TH.stringE . stripIdent) (error "istr: not available in patt
         dropBar ('|':xs) = xs
         dropBar _        = error "istr: syntax error '|' expected after spaces"
 
-tex = QuasiQuoter (TH.appE (TH.varE 'rawTex) . TH.stringE) (error "tex: not available in patterns")
+mkQQ :: String -> TH.Name -> QuasiQuoter
+mkQQ qqName qqFun =
+  QuasiQuoter (TH.appE (TH.varE qqFun) . TH.stringE) (error $ qqName ++ ": not available in patterns")
 
-qm = QuasiQuoter (TH.appE (TH.varE 'mstring) . TH.stringE) (error "qm: not available in patterns")
-
-qp = QuasiQuoter (TH.appE (TH.varE 'rawPreamble) . TH.stringE) (error "qm: not available in patterns")
+tex = mkQQ "tex" 'rawTex
+qm  = mkQQ "qm"  'mstring
+qp  = mkQQ "qp"  'rawPreamble
