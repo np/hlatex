@@ -934,6 +934,9 @@ title = preambleCmdArg "title"
 subtitle = preambleCmdArg "subtitle"
 date = preambleCmdArg "date"
 author = preambleCmdArg "author"
+-- Institute is defined in beamer but not in article.
+-- Should we move these definitions into sub modules?
+-- For instance Language.LaTeX.Article.date
 institute = preambleCmdArg "institute"
 
 authors :: [LatexItem] -> PreambleItem
