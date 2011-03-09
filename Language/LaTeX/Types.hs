@@ -15,6 +15,7 @@ import Data.String (IsString(..))
 import Data.Data
 import Data.DeriveTH
 import Control.Applicative
+import Control.Arrow (second)
 import Control.Monad.Writer (Writer)
 import Control.Monad.Trans ()
 import Control.Monad.Error
@@ -240,6 +241,12 @@ data LatexLength = LengthScaledBy Rational LatexLength
                  | LengthCmd String
                  | LengthCst (Maybe TexUnit) Rational
   deriving (Show, Eq, Typeable, Data)
+
+lengthCst :: LatexLength -> Maybe (Maybe TexUnit, Rational)
+lengthCst (LengthScaledBy rat len) = second (rat *) <$> lengthCst len
+lengthCst (LengthCmdRatArg _ _)    = Nothing
+lengthCst (LengthCmd _)            = Nothing
+lengthCst (LengthCst mtu rat)      = Just (mtu, rat)
 
 safeLengthOp :: String -> (Rational -> Rational -> Rational) -> LatexLength -> LatexLength -> LatexLength
 safeLengthOp _ op (LengthCst Nothing     rx) (LengthCst munit ry)

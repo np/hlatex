@@ -28,7 +28,7 @@ parboxTop, part, part', person, phantom, pounds,
 protect, protector, quotation, quote, raisebox, raisebox',
 rat, ref, report, reversemarginpar, ring, rm, rmfamily, rq,
 rtext, rule, rule', samepage, savebox, sbox, sc, scriptsize, scshape, section,
-section', sep, setlength, sf, sffamily, sl, sloppy, sloppypar,
+section', sep, setlength, addtolength, settowidth, sf, sffamily, sl, sloppy, sloppypar,
 slshape, small, smallskip, spaceProtector, ss, subparagraph,
 subparagraph', subsection, subsection',
 subsubsection, subsubsection', subtitle, table,
@@ -547,9 +547,32 @@ pagestyle = parCmdArg "pagestyle"
 appendix :: ParItem
 appendix = parCmdArgs "appendix" []
 
--- should be \setlength{a}{b}{c} ...
-setlength :: LatexItem -> LatexItem
-setlength = latexCmdArg "setlength"
+-- http://www.personal.ceu.hu/tex/length.htm
+setlength :: LatexLength -> LatexLength -> ParItem
+setlength lengthName newLength
+  | isJust (lengthCst lengthName)
+      = throwError "setlength: the first argument should be a length name not a constant"
+  | otherwise
+      = parCmdArgs "setlength" [mandatory (texLength lengthName)
+                               ,mandatory (texLength newLength)]
+
+-- http://www.personal.ceu.hu/tex/length.htm
+addtolength :: LatexLength -> LatexLength -> ParItem
+addtolength lengthName newLength
+  | isJust (lengthCst lengthName)
+      = throwError "addtolength: the first argument should be a length name not a constant"
+  | otherwise
+      = parCmdArgs "addtolength" [mandatory (texLength lengthName)
+                                 ,mandatory (texLength newLength)]
+
+-- http://www.personal.ceu.hu/tex/length.htm
+settowidth :: LatexLength -> LatexItem -> ParItem
+settowidth lengthName text
+  | isJust (lengthCst lengthName)
+      = throwError "settowidth: the first argument should be a length name not a constant"
+  | otherwise
+      = parCmdArgs "settowidth" [mandatory (texLength lengthName)
+                                ,mandatory text]
 
 item :: ParItem -> ListItem
 item = liftM $ ListItm []
