@@ -129,7 +129,8 @@ body = execWriter $ do
     to add extra burden on the document writer we have choosen to expose two
     variants of some commands. Therefore {ltxcode "\\newline"} is exposed as
     {hcode "B.newline"} and to give the optional size argument one use the
-    {hcode "B.newline'"} function as in {hcode "B.newline' (B.pt 42)"}. Another
+    {hcode "B.newline'"} function as in {hcode "B.newline' (B.pt 42)"}.»
+{-Another
     example is sectionning. Each sectionning command (like {ltxcode "\\chapter"} or
     {ltxcode "\\section"}) have an unnumbered version (like {ltxcode "\\chapter*"} or
     {ltxcode "\\section*"}), and can also take an optional argument that is the
@@ -138,6 +139,7 @@ body = execWriter $ do
     three arguments the first select the normal or the starred version, the second
     is the table of contents version as a {hcode "Maybe"} type and the third is the
     actual title.»
+-}
 
   section «Monoidal structure»
 
@@ -147,7 +149,7 @@ body = execWriter $ do
     set---that will be represented with a {haskell} type---; an associative
     composition operator---called {hcode "mappend"} in {haskell} and abbreviated by
     the {hcode "⊕"} infix operator here; and a neutral element---called
-    {hcode "mempty"} and abbreviated using unicode empty set symbol {{-TODO use ø-}B.math M.emptyset}.
+    {hcode "mempty"} and abbreviated using unicode empty set symbol { {-TODO use ø-}B.math M.emptyset }.
     The neutral element is a left and right unit for the composition operator.»
 
   p «In computer systems a lot of structures are monoid instances. Like lists
