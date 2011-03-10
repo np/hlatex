@@ -48,8 +48,8 @@ code = verb . dropWhile (=='\n')
 put :: ParItem -> ParItemW
 put = tell
 p = put . B.para
-itemize block = B.itemize !$? block
-description block = B.description !$? block
+itemize block = B.itemize ø !$? block
+description block = B.description ø !$? block
 item = tell . return . B.item . B.para
 itemD x = tell . return . B.item' x . B.para
 maketitle = put B.maketitle

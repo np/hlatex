@@ -104,7 +104,7 @@ code = verb . dropWhile (=='\n')
 example :: String -> ParItemW
 example = put . BM.block ø . B.para . code
 
-itemize block = B.itemize !$? block
+itemize block = B.itemize ø !$? block
 description block = B.description !$? block
 item = tell . return . B.item . B.para
 itemD x = tell . return . B.item' x . B.para

@@ -14,7 +14,7 @@ doc = mk "bla bla:" ["Aaaa", "Bbbb", "Cccc"]
     ⊕ mk "bli bli:" ["Dddd", "Eeee", "Ffff"]
 
 mk :: LatexItem -> [LatexItem] -> ParItem
--- mk heading contents = B.para heading ⊕ B.itemize (map (B.item . B.para) contents)
+-- mk heading contents = B.para heading ⊕ B.itemize ø (map (B.item . B.para) contents)
 mk heading (item0 : items) = B.tabular [B.l, B.l] (B.cells [heading, bullet ⊕ item0]
                                                   :map mkrow items)
   where mkrow item = B.cells [ø, bullet ⊕ item]

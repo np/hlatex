@@ -9,14 +9,14 @@ bibliography, bibliographystyle, book, boxedminipage,
 caption, caption', cedil, cell, cells, center, chapter, chapter',
 check, circ, cite, cite', cleardoublepage, clearpage, cline,
 compressSpaces, copyright, corrspace, dag, dash1,
-dash2, dash3, date, ddag, decl, decls, description, description', displaymath,
+dash2, dash3, date, ddag, decl, decls, description, displaymath,
 document, documentclass, dot, dotfill, em, emph, enumerate,
-enumerate', fbox, figure, figure',
+fbox, figure, figure',
 flushleft, footnote,
 footnotesize, framebox, fussy, grave, group, hat, hchar,
 hfill, hline, hr, href, hrulefill, space, hspace, hspace', hspaces,
 hstring, huge, hyphen, hyphenation, i, institute, it, item,
-item', itemize, itemize', itshape, j, label,
+item', itemize, itshape, j, label,
 large, ldots, letter, linebreak,
 lq, makebox, maketitle,
 math, mbox, mdseries, medskip,
@@ -602,21 +602,15 @@ item = liftM $ ListItm []
 item' :: LatexItem -> ParItem -> ListItem
 item' a = liftM2 ListItm (pure . optional <$> a)
 
-itemize :: [ListItem] -> ParItem
-itemize = listLikeEnv "itemize" []
+itemize :: Maybe LatexItem -> [ListItem] -> ParItem
+itemize = listLikeEnv "itemize" . pure . maybe noArg optional
 
 -- enumerate counters are enumi, enumii, enumiii, enumiv
-enumerate :: [ListItem] -> ParItem
-enumerate = listLikeEnv "enumerate" []
-description :: [ListItem] -> ParItem
-description = listLikeEnv "description" []
+enumerate :: Maybe LatexItem -> [ListItem] -> ParItem
+enumerate = listLikeEnv "enumerate" . pure . maybe noArg optional
 
-itemize' :: Maybe LatexItem -> [ListItem] -> ParItem
-itemize' = listLikeEnv "itemize" . pure . maybe noArg optional
-enumerate' :: Maybe LatexItem -> [ListItem] -> ParItem
-enumerate' = listLikeEnv "enumerate" . pure . maybe noArg optional
-description' :: Maybe LatexItem -> [ListItem] -> ParItem
-description' = listLikeEnv "description" . pure . maybe noArg optional
+description :: Maybe LatexItem -> [ListItem] -> ParItem
+description = listLikeEnv "description" . pure . maybe noArg optional
 
 figure, table :: [LocSpec] -> ParItem -> ParItem
 figure', table' :: Star -> [LocSpec] -> ParItem -> ParItem

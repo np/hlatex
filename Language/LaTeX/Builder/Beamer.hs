@@ -179,15 +179,15 @@ ovInts = map (ovSingle . ovInt)
 alert :: LatexItem -> LatexItem
 alert = BI.latexCmdArg "alert"
 
--- A shortcut for @itemize' . texOverlaysOpt@
+-- A shortcut for @itemize . texOverlaysOpt@
 itemize :: Overlays -> [ListItem] -> ParItem
-itemize = B.itemize' . texOverlaysOpt
--- A shortcut for @enumerate' . texOverlaysOpt@
+itemize = B.itemize . texOverlaysOpt
+-- A shortcut for @enumerate . texOverlaysOpt@
 enumerate :: Overlays -> [ListItem] -> ParItem
-enumerate = B.enumerate' . texOverlaysOpt
--- A shortcut for @description' . texOverlaysOpt@
+enumerate = B.enumerate . texOverlaysOpt
+-- A shortcut for @description . texOverlaysOpt@
 description :: Overlays -> [ListItem] -> ParItem
-description = B.description' . texOverlaysOpt
+description = B.description . texOverlaysOpt
 
 -- AtBeginSubsection, AtBeginSection
 

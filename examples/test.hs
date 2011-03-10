@@ -43,7 +43,7 @@ body = id $? do
 
   B.paragraph !$ "Here comes an itemize"
 
-  B.itemize !$
+  B.itemize ø !$
      [ B.item $ B.para "Find a better formula"
      , B.item $ B.para "Write some proofs about it"
      , B.item $ B.para "[I'm not a label] of this item"
@@ -95,7 +95,7 @@ body = id $? do
   B.section !$ "Let's try the Writer monad to write documents"
 
   B.subsection !$ "execWriter, tell and (!$?)"
-  B.description !$
+  B.description ø !$
     let doNotation = B.texttt "do" ⊕ " notation" in
     [ B.item' "execWriter" . B.para $
         "This function runs the writing computation and returns       \
