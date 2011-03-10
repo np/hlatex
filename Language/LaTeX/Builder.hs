@@ -37,7 +37,7 @@ textit, textmd, textnormal, textrm, textsc, textsf,
 textsl, texttt, textup, thinspace, thispagestyle, tieafter, tilde,
 tiny, title, titlepage, tt, ttchar, ttfamily, uml,
 underbar, unwords, upshape, usebox, verb, verse, vfill, vline,
-vphantom, vspace, vspace', (★),
+vphantom, vspace, vspace', (★), vbox, vtop, hbox
   )
   where
 
@@ -70,6 +70,9 @@ import Language.LaTeX.Builder.MonoidUtils
 import Prelude (writeFile, id, Monad(..), fst)
 import Language.Haskell.TH
 -}
+
+
+-- references: http://dmr.ath.cx/notes/tex.html
 
 (★) :: Star
 (★) = Star
@@ -374,6 +377,25 @@ cleardoublepage :: ParItem
 cleardoublepage = parCmdArgs "cleardoublepage" []
 
 --- Boxes
+
+-- TeX level
+-- http://dmr.ath.cx/notes/tex.html#entry25
+hbox :: LatexItem -> LatexItem
+hbox = latexCmdArg "hbox"
+
+-- TeX level
+-- http://dmr.ath.cx/notes/tex.html#entry25
+vbox :: ParItem -> LatexItem
+vbox = latexParModeArgs "vbox" []
+
+-- TeX level
+-- http://dmr.ath.cx/notes/tex.html#entry25
+vtop :: ParItem -> LatexItem
+vtop = latexParModeArgs "vtop" []
+
+-- TODO
+-- vbox_to :: LatexLength -> ParItem -> LatexItem
+-- vbox_to width = latexParModeArgs "vbox" [to $ texLength width]
 
 {-
 class Mbox a where

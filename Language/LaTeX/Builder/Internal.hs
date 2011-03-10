@@ -124,6 +124,9 @@ latexEnvironment x ys = liftM2 (Environment x) $ mapM sequenceA ys
 latexEnvironmentPar :: String -> [Arg LatexItem] -> ParItem -> LatexItem
 latexEnvironmentPar x ys z = liftM2 (Environment x) (mapM sequenceA ys) (LatexParMode `liftM` z)
 
+latexParModeArgs :: String -> [Arg LatexItem] -> ParItem -> LatexItem
+latexParModeArgs x ys z = latexCmdArgs x (ys ++ [mandatory (LatexParMode <$> z)])
+
 parEnvironmentPar :: String -> [Arg LatexItem] -> ParItem -> ParItem
 parEnvironmentPar x ys = liftM2 (ParEnvironmentPar x) $ mapM sequenceA ys
 
