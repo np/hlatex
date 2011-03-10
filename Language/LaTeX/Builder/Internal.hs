@@ -18,7 +18,7 @@ import Language.LaTeX.Builder.MonoidUtils
     - robust/fragile/moving
     - tracking savebin in the monad?
     - generating a doc with examples:
-         [...("sum", [| sum<>sub(i<>eq<>0)<>sup infty<>i<>sup 2 |])...]
+         [...("sum", [| sum⊕sub(i⊕eq⊕0)⊕sup infty⊕i⊕sup 2 |])...]
     - pictures
  -}
 
@@ -136,7 +136,7 @@ figureLike x y = liftM $ FigureLike x y
 listLikeEnv :: String -> [Arg LatexItem] -> [ListItem] -> ParItem
 listLikeEnv name opts items =
   parEnvironmentPar name opts (mconcat <$> mapM (fmap mkItem) items)
-  where mkItem (ListItm opts' contents) = ParCmdArgs "item" opts' <> contents
+  where mkItem (ListItm opts' contents) = ParCmdArgs "item" opts' ⊕ contents
 
 rawTex :: String -> LatexItem
 rawTex = mapNonEmpty $ pure . RawTex

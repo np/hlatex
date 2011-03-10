@@ -82,7 +82,7 @@ rawDecls :: [MathDecl] -> MathItem
 rawDecls = MathItem . fmap MathDecls . sequenceA
 
 decls :: [MathDecl] -> MathItem -> MathItem
-decls ds itm = group (rawDecls ds <> itm)
+decls ds itm = group (rawDecls ds ⊕ itm)
 
 decl :: MathDecl -> MathItem -> MathItem
 decl dcl = decls [dcl]
@@ -103,8 +103,8 @@ mrat :: Rational -> MathItem
 mrat = fromRational
 
 sub, sup :: MathItem -> MathItem
-sub = (rawMath "_" <>) . mathGroup
-sup = (rawMath "^" <>) . mathGroup
+sub = (rawMath "_" ⊕) . mathGroup
+sup = (rawMath "^" ⊕) . mathGroup
 
 frac, stackrel :: MathItem -> MathItem -> MathItem
 frac m1 m2 = mathCmdArgs "frac" [B.mandatory m1,B.mandatory m2]
@@ -120,11 +120,11 @@ phantom :: MathItem -> MathItem
 phantom = mathCmdArgs "phantom" . (:[]) . B.mandatory
 
 mleft, mright :: Char -> MathItem
-mleft m1  = rawMath "\\left"  <> (MathItem $ RawMath <$> parenChar m1)
-mright m1 = rawMath "\\right" <> (MathItem $ RawMath <$> parenChar m1)
+mleft m1  = rawMath "\\left"  ⊕ (MathItem $ RawMath <$> parenChar m1)
+mright m1 = rawMath "\\right" ⊕ (MathItem $ RawMath <$> parenChar m1)
 
 between :: Char -> Char -> MathItem -> MathItem
-between opening closing m1 = mleft opening <> m1 <> mright closing
+between opening closing m1 = mleft opening ⊕ m1 ⊕ mright closing
 
 parens, braces, brackets :: MathItem -> MathItem
 parens   = between '(' ')'

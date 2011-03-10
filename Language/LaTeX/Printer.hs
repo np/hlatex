@@ -17,7 +17,7 @@ text :: String -> ShowS
 text = showString
 
 between :: String -> String -> ShowS -> ShowS
-between opening closing x = text opening <> x <> text closing
+between opening closing x = text opening ⊕ x ⊕ text closing
 
 
 braces, brackets, parens :: ShowS -> ShowS
@@ -32,10 +32,10 @@ nl = text "\n"
 sp = text " "
 
 ($$) :: ShowS -> ShowS -> ShowS
-($$) x y = x <> nl <> y
+($$) x y = x ⊕ nl ⊕ y
 
 vcat :: [ShowS] -> ShowS
-vcat = mconcat . intersperse (nl <> nl)
+vcat = mconcat . intersperse (nl ⊕ nl)
 
 ppArg :: Arg ShowS -> ShowS
 ppArg NoArg             = id
@@ -43,37 +43,37 @@ ppArg StarArg           = text "*"
 ppArg (Mandatory x)     = braces x
 ppArg (Optional  x)     = brackets x
 ppArg (Optionals xs)    = brackets $ mconcat $ intersperse (text ",") xs
-ppArg (Coordinates x y) = parens (x <> text " " <> y)
+ppArg (Coordinates x y) = parens (x ⊕ text " " ⊕ y)
 ppArg (RawArg x)        = text x
 ppArg (PackageDependency _) = id
 
 ppEnv :: String -> [Arg ShowS] -> ShowS -> ShowS
 ppEnv envName args contents =
-  backslash<>begin<>braces envNameS<>mconcat (map ppArg args)
+  backslash ⊕ begin ⊕ braces envNameS ⊕ mconcat (map ppArg args)
  $$
   contents
  $$
-  backslash<>end<>braces envNameS
+  backslash ⊕ end ⊕ braces envNameS
 
   where envNameS = text envName
         begin    = text "begin"
         end      = text "end"
 
 ppCmdNoArg :: String -> ShowS
-ppCmdNoArg cmdName = braces (backslash <> text cmdName)
+ppCmdNoArg cmdName = braces (backslash ⊕ text cmdName)
 
 ppCmdArgNB :: String -> ShowS -> ShowS
-ppCmdArgNB cmdName arg = backslash <> text cmdName <> braces arg
+ppCmdArgNB cmdName arg = backslash ⊕ text cmdName ⊕ braces arg
 
 ppCmdArg :: String -> ShowS -> ShowS
 ppCmdArg cmdName arg = braces (ppCmdArgNB cmdName arg)
 
 ppCmdArgs :: String -> [Arg ShowS] -> ShowS
-ppCmdArgs cmdName args = backslash <> text cmdName <> mconcat (map ppArg args)
+ppCmdArgs cmdName args = backslash ⊕ text cmdName ⊕ mconcat (map ppArg args)
 
 
 ppDecl :: String -> ShowS -> ShowS
-ppDecl declName declArgs = backslash <> text declName <> declArgs <> text " " -- or {}
+ppDecl declName declArgs = backslash ⊕ text declName ⊕ declArgs ⊕ text " " -- or {}
 
 ppTexDecl :: TexDcl -> ShowS
 ppTexDecl (TexDcl declName declArgs) = ppDecl declName (foldMap (ppArg . fmap pp) declArgs)
@@ -87,7 +87,7 @@ pp (LatexCmdArgs cmdName args) = ppCmdArgs cmdName $ map (fmap pp) args
 
 pp (LatexLength texLength) = ppTexLength texLength
 
-pp (LatexCoord (Coord x y)) = ppTexLength x <> text " " <> ppTexLength y
+pp (LatexCoord (Coord x y)) = ppTexLength x ⊕ text " " ⊕ ppTexLength y
 
 pp (LatexKeys keys) = text $ concat $ intersperse "," $ map getKey keys
 
@@ -96,7 +96,7 @@ pp (TexDecls decls) = foldMap ppTexDecl decls
 pp (TexCmdNoArg cmdName) = ppCmdNoArg cmdName
 
 pp (TexCmdArg cmdName contents)
- = braces (backslash <> text cmdName <> text " " <> pp contents)
+ = braces (backslash ⊕ text cmdName ⊕ text " " ⊕ pp contents)
 
 pp (Environment envName args contents) = ppEnv envName (map (fmap pp) args) $ pp contents
 
@@ -105,7 +105,7 @@ pp (LatexParMode pm) = ppParMode pm
 pp (RawTex s) = text s
 
 -- One produce $...$ since \(...\) is fragile
-pp (MathInline m) = text "$ " <> ppMath m <> text " $"
+pp (MathInline m) = text "$ " ⊕ ppMath m ⊕ text " $"
 
 pp (LatexSaveBin bin) = text $ "\\hlatexSaveBin" ++ (map enc . show $ unsafeGetSaveBin bin)
   where enc i = chr (ord 'a' + digitToInt i) -- hackish but numbers are prohibited
@@ -124,7 +124,7 @@ ppParMode (ParGroup p) = braces $ ppParMode p
 ppParMode (ParEnvironmentLR envName contents) = ppEnv envName [] $ pp contents
 ppParMode (ParEnvironmentPar envName args contents)
   = ppEnv envName (map (fmap pp) args) $ ppParMode contents
-ppParMode (DisplayMath m) = text "\\[ " <> ppMath m <> text " \\]"
+ppParMode (DisplayMath m) = text "\\[ " ⊕ ppMath m ⊕ text " \\]"
 ppParMode (Equation m) = ppEnv "equation" [] $ vcat $ map ppMath m
 ppParMode (Tabular specs rows) =
   ppEnv "tabular" [Mandatory $ mconcat $ map (ppRowSpec . fmap pp) specs] (ppRows pp rows)
@@ -138,13 +138,13 @@ ppMath (MathDecls decls) = foldMap ppMathDecl decls
 ppMath (MathCmdArgs cmdName args) = ppCmdArgs cmdName $ map (fmap ppMath) args
 ppMath (RawMath s) = text s
 ppMath (MathRat r) | denominator r == 1 = shows (numerator r)
-                     | otherwise          = shows (numerator r) <> text " / " <> shows (denominator r)
+                     | otherwise          = shows (numerator r) ⊕ text " / " ⊕ shows (denominator r)
 ppMath (MathArray specs rows) = 
   ppEnv "array" [Mandatory $ mconcat $ map (ppRowSpec . fmap ppMath) specs] (ppRows ppMath rows)
 ppMath (MathGroup m) = braces $ ppMath m
 ppMath (MathConcat ms) = mconcat $ map ppMath ms
-ppMath (MathUnOp op m) = text op <> sp <> ppMath m
-ppMath (MathBinOp op l r) = parens (ppMath l <> sp <> text op <> sp <> ppMath r)
+ppMath (MathUnOp op m) = text op ⊕ sp ⊕ ppMath m
+ppMath (MathBinOp op l r) = parens (ppMath l ⊕ sp ⊕ text op ⊕ sp ⊕ ppMath r)
 ppMath (MathToLR cmdName args) = ppCmdArgs cmdName $ map (fmap pp) args
 ppMath (MathNote note m) = ppNote note ppMath m
 
@@ -153,7 +153,7 @@ ppRowSpec Rc        = text "c"
 ppRowSpec Rl        = text "l"
 ppRowSpec Rr        = text "r"
 ppRowSpec Rvline    = text "|"
-ppRowSpec (Rtext x) = text "@" <> braces x
+ppRowSpec (Rtext x) = text "@" ⊕ braces x
 
 
 ppRows :: (a -> ShowS) -> [Row a] -> ShowS
@@ -161,11 +161,11 @@ ppRows _ []
   = ø
 ppRows ppCell (Cells cells : rows)
   = (mconcat . intersperse (text " & ") . map ppCell $ cells)
- <> (if null rows then ø else backslash <> backslash $$ ppRows ppCell rows)
+ ⊕ (if null rows then ø else backslash ⊕ backslash $$ ppRows ppCell rows)
 ppRows ppCell (Hline : rows)
-  = backslash <> text "hline " <> ppRows ppCell rows
+  = backslash ⊕ text "hline " ⊕ ppRows ppCell rows
 ppRows ppCell (Cline c1 c2 : rows)
-  = ppCmdArgNB "cline" (text $ show c1 ++ "-" ++ show c2) <> ppRows ppCell rows
+  = ppCmdArgNB "cline" (text $ show c1 ++ "-" ++ show c2) ⊕ ppRows ppCell rows
 
 unitName :: TexUnit -> String
 unitName u =
@@ -190,13 +190,13 @@ ppTexLength s =
     LengthCmdRatArg  cmd r -> ppCmdArg cmd (showr r)
     LengthScaledBy _ (LengthScaledBy _ _) ->
       error "broken invariant: nested LengthScaledBy"
-    LengthScaledBy r l     -> showr r <> ppTexLength l
-    LengthCst munit r      -> showr r <> foldMap (text . unitName) munit
+    LengthScaledBy r l     -> showr r ⊕ ppTexLength l
+    LengthCst munit r      -> showr r ⊕ foldMap (text . unitName) munit
   where showr r | denominator r == 1 = shows $ numerator r
                 | otherwise          = text $ formatRealFloat FFFixed (Just 2) (fromRational r :: Double)
 
 ppPreamble :: PreambleItm -> ShowS
-ppPreamble (PreambleCmd s) = backslash <> text s
+ppPreamble (PreambleCmd s) = backslash ⊕ text s
 ppPreamble (PreambleCmdArgs cmdName args) = ppCmdArgs cmdName $ map (fmap pp) args
 ppPreamble (PreambleConcat ps) = vcat $ map ppPreamble ps
 ppPreamble (Usepackage pkg opts)
@@ -205,7 +205,7 @@ ppPreamble (RawPreamble raw) = text raw
 ppPreamble (PreambleNote note p) = ppNote note ppPreamble p
 
 ppNote :: Note -> (a -> ShowS) -> a -> ShowS
-ppNote note ppElt elt =  nl' <> mconcat (map ((<>nl') . text) . lines . showNote $ note) <> ppElt elt <> nl'
+ppNote note ppElt elt =  nl' ⊕ mconcat (map ((⊕ nl') . text) . lines . showNote $ note) ⊕ ppElt elt ⊕ nl'
   where nl' = text "%\n%"
         showNote (TextNote s) = show s
         showNote (IntNote  i) = show i
@@ -228,7 +228,7 @@ preambOfDocClass (DocClass kind opts) =
 
 ppDocument :: Document -> ShowS
 ppDocument (Document docClass preamb doc) =
-  ppPreamble (preambOfDocClass docClass <> preamb) $$
+  ppPreamble (preambOfDocClass docClass ⊕ preamb) $$
   ppEnv "document" [] (ppParMode doc)
 
 usedPackages :: PreambleItm -> Set PackageName
@@ -244,7 +244,7 @@ showsLaTeX mdoc = do
       usedPkgs    = usedPackages preamb
       neededPkgs  = neededPackages doc
       missingPkgs = Set.toList $ neededPkgs `Set.difference` usedPkgs
-      preamb'     = preamb <> foldMap (`Usepackage` []) missingPkgs
+      preamb'     = preamb ⊕ foldMap (`Usepackage` []) missingPkgs
   return . ppDocument $ doc { documentPreamble = preamb' }
 
 showLaTeX :: LatexM Document -> Either String String

@@ -14,7 +14,7 @@ where
 import Language.LaTeX.Types hiding (Loc)
 import Language.LaTeX.Builder.Internal (parCmdArgs, texLength, bool, coord, packageDependency,
                                         rat, rawTex, optional, mandatory)
-import Language.LaTeX.Builder.MonoidUtils ((<>))
+import Language.LaTeX.Builder.MonoidUtils ((⊕))
 import Control.Arrow ((***))
 import Data.Maybe
 import Data.String
@@ -134,7 +134,7 @@ pkg = PkgName "graphicx"
 includegraphics :: (IncludeGraphicsOpts -> IncludeGraphicsOpts) -> FilePath -> ParItem
 includegraphics f fp =
    parCmdArgs "includegraphics" $ opt ++ [packageDependency pkg, mandatory $ fromString fp]
-  where h (name, item) = rawTex (name ++ "=") <> item
+  where h (name, item) = rawTex (name ++ "=") ⊕ item
         opts = map h $ includeGraphicsOpts $ f defaultOpts
         opt | null opts = []
             | otherwise = [optional $ mconcat $ intersperse (rawTex ",") opts]
@@ -177,4 +177,4 @@ includeGraphicsOpts o =
             | proj defaultOpts == proj o = Nothing
             | otherwise                  = Just (name, toLatexItem $ proj o)
         maybeCoords = g . (coord *** coord) . fromJust
-        g (x, y) = x <> rawTex " " <> y
+        g (x, y) = x ⊕ rawTex " " ⊕ y

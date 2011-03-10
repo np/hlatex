@@ -16,7 +16,7 @@ import Data.List (intersperse)
 
 main = quickView testViewOpts "test" doc
 
-paraNoindent = B.para . (B.noindent <>)
+paraNoindent = B.para . (B.noindent ⊕)
 
 doc = B.document dc preamb body
   where
@@ -34,9 +34,9 @@ body = id $? do
 
   B.subsection !$ "The precise context"
 
-  B.para !$ ("The " <> B.textbf "initial" <> " formula was " <>
-             B.math (M.sum <> M.sub (M.i<>M.eq<>0) <> M.sup M.infty <>
-                     M.i <> M.sup 2 <> M.alpha) <>
+  B.para !$ ("The " ⊕ B.textbf "initial" ⊕ " formula was " ⊕
+             B.math (M.sum ⊕ M.sub (M.i⊕M.eq⊕0) ⊕ M.sup M.infty ⊕
+                     M.i ⊕ M.sup 2 ⊕ M.alpha) ⊕
              " but it turns out to be not that accurate.")
 
   B.section !$ "The action plan"
@@ -64,8 +64,8 @@ body = id $? do
     M.array [B.vline,B.l,B.vline,B.vline,B.c,B.vline,B.r,B.vline]
             [ B.hline
             , B.cells [1, 2, 3]
-            , B.cells [ M.sin <> (M.pi / 2), M.frac (M.cos <> M.gamma) M.epsilon
-                      , M.sum <> M.sub M.i <> M.sup M.infty <> M.i <> M.sup M.i]
+            , B.cells [ M.sin ⊕ (M.pi / 2), M.frac (M.cos ⊕ M.gamma) M.epsilon
+                      , M.sum ⊕ M.sub M.i ⊕ M.sup M.infty ⊕ M.i ⊕ M.sup M.i]
             , B.hline]
 
   B.displaymath !$ M.brackets mat33
@@ -96,17 +96,17 @@ body = id $? do
 
   B.subsection !$ "execWriter, tell and (!$?)"
   B.description !$
-    let doNotation = B.texttt "do" <> " notation" in
+    let doNotation = B.texttt "do" ⊕ " notation" in
     [ B.item' "execWriter" . B.para $
         "This function runs the writing computation and returns       \
         \the accumulated value. Typically when you want to use        \
-        \the "<>doNotation<>", you can start using execWriter."
+        \the "⊕doNotation⊕", you can start using execWriter."
     , B.item' "tell" . B.para $
         "This function accumulate the given value, this is commonly used \
-        \inside the "<>doNotation<>"."
+        \inside the "⊕doNotation⊕"."
     , B.item' "(!$?)" . B.para $
-        "This function combines "<>B.texttt "execWriter"<>" and "<>B.texttt "tell"<>
-        " to be easily used when building documents with the "<>doNotation<>"."
+        "This function combines "⊕B.texttt "execWriter"⊕" and "⊕B.texttt "tell"⊕
+        " to be easily used when building documents with the "⊕doNotation⊕"."
     ]
 
   B.center !$? do
@@ -124,16 +124,16 @@ body = id $? do
 
   -- G.includegraphics (\r-> r{G.angle=45, G.scale=1%2}) !$ "yi.pdf"
 
-  B.para !$ (B.noindent<>B.decl B._Large ("Not shelfful"<>B.newline<>"but shelf"<>B.sep<>"ful"))
+  B.para !$ (B.noindent⊕B.decl B._Large ("Not shelfful"⊕B.newline⊕"but shelf"⊕B.sep⊕"ful"))
 
   B.para !$ "This is some|text"
   B.para !$ "This is some-text"
   B.para !$ "This is some--text"
   B.para !$ BI.rawTex "This is some|text"
   B.para !$ "This is some---text"
-  B.para !$ ("This is some"<>B.dash1<>"text")
-  B.para !$ ("This is some"<>B.dash2<>B.dash1<>"text")
-  B.para !$ ("This is some"<>B.dash3<>"text")
+  B.para !$ ("This is some"⊕B.dash1⊕"text")
+  B.para !$ ("This is some"⊕B.dash2⊕B.dash1⊕"text")
+  B.para !$ ("This is some"⊕B.dash3⊕"text")
   B.para !$ "This is some``text"
   B.para !$ "This is ''some``text"
   B.para !$ "This is ''''some``text"

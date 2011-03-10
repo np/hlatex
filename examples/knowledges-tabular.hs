@@ -12,10 +12,10 @@ import Data.String
 
 main = quickView testViewOpts "knowledges-tabular" root
 
-root = B.root preamb $ B.document (B.section "Youhou" <> B.para B.noindent <> table)
+root = B.root preamb $ B.document (B.section "Youhou" ⊕ B.para B.noindent ⊕ table)
 
 preamb = B.documentclass (Just (B.pt 11)) (Just B.a4paper) B.article
-      <> B.usepackage [B.optional "latin1"] (B.pkgName "inputenc")
+       ⊕ B.usepackage [B.optional "latin1"] (B.pkgName "inputenc")
 
 data Grade = A | B | C | Z
 
@@ -29,7 +29,7 @@ gradeToLatex g =
               B.raisebox (Em (-0.1)) $
               B.makebox (Em 2) Stretch $
               C.textcolor c $
-              B.hrulefill <> "X" <> B.hrulefill
+              B.hrulefill ⊕ "X" ⊕ B.hrulefill
 
 intersperse' :: a -> [a] -> [a]
 intersperse' x xs = x : intersperse x xs ++ [x]
@@ -38,7 +38,7 @@ table :: ParItem
 table =
   B.tabular tabspec $
     intersperse' B.hline $
-      B.cells (("Contrôle n"<>B.textdegree<>"1") : map (R.turn 90 . B.decl B.small) header) : tablebodyTex
+      B.cells (("Contrôle n"⊕B.textdegree⊕"1") : map (R.turn 90 . B.decl B.small) header) : tablebodyTex
   where tabspec = concat (intersperse' [B.vline]
                   ([B.l] : intercalate [[B.rtext (B.hspace (Em 1))]]
                                      (let c = [B.rtext "", B.c, B.rtext ""] in
@@ -55,7 +55,7 @@ header =
     ,"Calculer une étendue"
     ,"Utiliser la linéarité de la moyenne"
     ,"Démontrer en utilisant le théorème de Thalès"
-    ,"Démontrer en utilisant le théorème de Pythagore"<>B.nbsp]
+    ,"Démontrer en utilisant le théorème de Pythagore"⊕B.nbsp]
 
 tablebodyTex :: [Row LatexItem]
 tablebodyTex =

@@ -101,7 +101,7 @@ displaymath :: MathItem -> ParItem
 displaymath = liftM DisplayMath . mathItmM
 
 decls :: [TexDecl] -> LatexItem -> LatexItem
-decls ds x = group (rawDecls ds <> x)
+decls ds x = group (rawDecls ds ⊕ x)
 
 decl :: TexDecl -> LatexItem -> LatexItem
 decl d = decls [d]
@@ -177,7 +177,7 @@ person name email = href (hstring ("mailto:"++email)) (hstring name)
 
 -- simulate the <hr> html tag
 hr :: LatexItem
-hr = group $ noindent <> rule L.linewidth (L.pt 1.5)
+hr = group $ noindent ⊕ rule L.linewidth (L.pt 1.5)
 
 hstring :: String -> LatexItem
 hstring = fromString

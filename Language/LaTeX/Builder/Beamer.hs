@@ -113,7 +113,7 @@ frame ov mov fopts title subtitle =
   BI.parEnvironmentPar "frame" ([ texOverlaysArg ov
                                 , maybe BI.noArg BI.optional $ texOverlaysOpt mov
                                 ] ++ texFrameOpts fopts) .
-     (mapNonEmpty frametitle title<>) . (mapNonEmpty framesubtitle subtitle<>)
+     (mapNonEmpty frametitle title ⊕) . (mapNonEmpty framesubtitle subtitle ⊕)
 
 frameO :: Overlays -> ParItem  -> ParItem
 frameO overlays = BI.parEnvironmentPar "frame" [maybe BI.noArg BI.optional $ texOverlaysOpt overlays]
@@ -131,7 +131,7 @@ slide :: LatexItem -> ParItem -> ParItem
 slide tit = frame [] [] [] tit ø
 
 slideO :: LatexItem -> Overlays -> ParItem -> ParItem
-slideO tit ovs body = frameO ovs (frametitle tit <> body)
+slideO tit ovs body = frameO ovs (frametitle tit ⊕ body)
 
 frametitle :: LatexItem -> ParItem
 frametitle = BI.parCmdArg "frametitle"
@@ -355,14 +355,14 @@ data BeamerSize
 
 texBeamerSizeArg :: BeamerSize -> LatexItem
 texBeamerSizeArg bs = case bs of
-  TextMarginLeft dim -> BI.rawTex "text margin left=" <> BI.texLength dim
-  TextMarginRight dim -> BI.rawTex "text margin right=" <> BI.texLength dim
-  SidebarWidthLeft dim -> BI.rawTex "sidebar width left=" <> BI.texLength dim
-  SidebarWidthRight dim -> BI.rawTex "sidebar width right=" <> BI.texLength dim
-  DescriptionWidth dim -> BI.rawTex "description width=" <> BI.texLength dim
-  DescriptionWidthOf txt -> BI.rawTex "description width of=" <> txt
-  MiniFrameSize dim -> BI.rawTex "mini frame size=" <> BI.texLength dim
-  MiniFrameOffset dim -> BI.rawTex "mini frame offset=" <> BI.texLength dim
+  TextMarginLeft dim -> BI.rawTex "text margin left=" ⊕ BI.texLength dim
+  TextMarginRight dim -> BI.rawTex "text margin right=" ⊕ BI.texLength dim
+  SidebarWidthLeft dim -> BI.rawTex "sidebar width left=" ⊕ BI.texLength dim
+  SidebarWidthRight dim -> BI.rawTex "sidebar width right=" ⊕ BI.texLength dim
+  DescriptionWidth dim -> BI.rawTex "description width=" ⊕ BI.texLength dim
+  DescriptionWidthOf txt -> BI.rawTex "description width of=" ⊕ txt
+  MiniFrameSize dim -> BI.rawTex "mini frame size=" ⊕ BI.texLength dim
+  MiniFrameOffset dim -> BI.rawTex "mini frame offset=" ⊕ BI.texLength dim
 
 setbeamersize :: BeamerSize -> PreambleItem
 setbeamersize = BI.preambleCmdArgs "setbeamersize" . pure . BI.mandatory . texBeamerSizeArg
@@ -395,18 +395,18 @@ footline Footline{authorPercent=authorp,titlePercent=titlep,datePercent=maydatep
         {
           \leavevmode%
           \hbox{%
-            \begin{beamercolorbox}[wd=.|] <> f authorp <> [$str|\paperwidth,ht=2.25ex,dp=1.125ex,center]{author in head/foot}%
+            \begin{beamercolorbox}[wd=.|] ⊕ f authorp ⊕ [$str|\paperwidth,ht=2.25ex,dp=1.125ex,center]{author in head/foot}%
               \usebeamerfont{author in head/foot}
               \insertshortauthor
             \end{beamercolorbox}%
-            \begin{beamercolorbox}[wd=.|] <> f titlep <> [$str|\paperwidth,ht=2.25ex,dp=1.125ex,center]{title in head/foot}%
+            \begin{beamercolorbox}[wd=.|] ⊕ f titlep ⊕ [$str|\paperwidth,ht=2.25ex,dp=1.125ex,center]{title in head/foot}%
               \usebeamerfont{title in head/foot}
               \insertshorttitle
             \end{beamercolorbox}%
-            \begin{beamercolorbox}[wd=.|] <> f datep <> [$str|\paperwidth,ht=2.25ex,dp=1.125ex,right]{date  in head/foot}%
+            \begin{beamercolorbox}[wd=.|] ⊕ f datep ⊕ [$str|\paperwidth,ht=2.25ex,dp=1.125ex,right]{date  in head/foot}%
               \usebeamerfont{date in head/foot}
               \insertshortdate{}\hspace*{2em}
-              \insertframenumber{}|] <> maytotalframes <> [$str|\hspace*{2ex}
+              \insertframenumber{}|] ⊕ maytotalframes ⊕ [$str|\hspace*{2ex}
             \end{beamercolorbox}}%
           \vskip0pt%
         }
