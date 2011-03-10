@@ -211,3 +211,13 @@ checkRows specs = mapM checkRow
         isCol (Rtext _) = False
         err msg x op y = throwError $ L.unwords ["tabular:", msg, '(' : show x, op, show y ++ ")"]
 
+-- `{' `}' are like bgroup plus egroup except that `{' and `}' are
+-- syntactically forced to be balanced.
+-- begingroup and endgroup only save the scopes of definitions.
+-- bgroup and egroup save the scopes as well but also resolve the springs
+-- independently.
+bgroup, egroup, begingroup, endgroup :: TexDecl
+bgroup      = texDecl "bgroup"
+egroup      = texDecl "egroup"
+begingroup  = texDecl "begingroup"
+endgroup    = texDecl "endgroup"
