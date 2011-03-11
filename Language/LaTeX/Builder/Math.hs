@@ -1,7 +1,7 @@
 module Language.LaTeX.Builder.Math
   
   -- NOTE: do not forget to update allMathItems, allMathDecls
-  (charToMath, mchar, mstring, protect, protector, verb,
+  (charToMath, stringToMath, mchar, mstring, mathlift, protect, protector, verb,
    _Delta, _Gamma, _Lambda, _Leftarrow, _Leftrightarrow, _Omega, _Phi, _Pi, _Pr,
    _Rightarrow, _Sigma, _Theta, _Xi, acute, aleph, alpha, approx, array, at,
    backslash, bar, beta, between, bigcap, bigcup, bigvee, bigwedge, bmod, bot,
@@ -38,6 +38,7 @@ module Language.LaTeX.Builder.Math
 import Prelude hiding (sqrt, min, max, lcm, gcd, log, mod, tanh, cosh, tan, sinh,
                        sin, cos, succ, sum, pi, mapM)
 import Data.Char
+import Data.Maybe (fromMaybe)
 import Data.Foldable (foldMap)
 import Data.Traversable (sequenceA, mapM)
 import Data.String
@@ -620,6 +621,9 @@ vartriangleright = mathCmd "vartriangleright"
 bmod :: MathItem -> MathItem -> MathItem
 bmod = mathBinOp "bmod"
 
+mathlift :: (LatexItem -> LatexItem) -> MathItem -> MathItem
+mathlift f = text . f . B.math
+
 allMathDecls :: [MathDecl]
 allMathDecls = [displaystyle, textstyle, scriptstyle, scriptscriptstyle, mit, cal]
 
@@ -682,16 +686,27 @@ mchar x | x `elem` "#&{}$%"  = ['\\',x]
         | otherwise          = [x]
 -}
 
+type MXChar = Char -> MathItem
+
+-- This char translator transformer only take care of math specific characters.
+-- For instance 'a' will be displayed in text mode.
 mchar :: XChar -> XChar
 mchar xchar ch = maybe (xchar ch) B.math m'
   where m' | isAscii ch && isAlphaNum ch = Nothing
            | otherwise                   = charToMath ch
 
+-- find a better name and export
+mchar' :: XChar -> MXChar
+mchar' xchar ch = fromMaybe (text (xchar ch)) (charToMath ch)
+
+stringToMath :: String -> MathItem
+stringToMath = foldMap $ mchar' B.hchar
+
 mstring :: String -> LatexItem
-mstring = foldMap $ mchar B.hchar
+mstring = B.math . stringToMath
 
 instance IsString MathItem where
-  fromString = text . mstring
+  fromString = stringToMath
 
 charToMath :: Char -> Maybe MathItem
 charToMath ch
