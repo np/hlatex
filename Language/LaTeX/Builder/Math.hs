@@ -740,7 +740,7 @@ charToMath ch
       , ('·', cdotp)
       , ('∘', circ)
       , ('⊕', oplus)
-      --, ('', otimes)
+      , ('⊛', otimes)
       , ('∧', wedge)
       --, ('', bigwedge)
       , ('∨', vee)
@@ -757,9 +757,9 @@ charToMath ch
       , ('∈', in_)
       , ('∉', notin)
       , ('⊂', subset)
-      --, ('', supset)
+      , ('⊃', supset)
       , ('⊆', subseteq)
-      --, ('', supseteq)
+      , ('⊇', supseteq)
       , ('≡', equiv)
       , ('=', eq)
       , ('≠', neq)
@@ -771,7 +771,7 @@ charToMath ch
       , ('∀', forall_)
       , ('∃', exists)
       , ('⊥', bot)
-      --, ('', top)
+      , ('⊤', top)
       , ('⊢', vdash)
       , ('⊩', models)
       {-
@@ -784,11 +784,11 @@ charToMath ch
       , ('', pm)
       -}
       , ('ø', emptyset)
+      , ('∞', infty)
+      , ('…', ldots)
+      , ('⋯', cdots)
       {-
-      , ('', infty)
       , ('', aleph)
-      , ('', ldots)
-      , ('', cdots)
       , ('', vdots)
       , ('', ddots)
       , ('', quad)
@@ -798,7 +798,9 @@ charToMath ch
       , ('', rfloor)
       , ('', lceiling)
       , ('', rceiling)
-      , ('', uparrow)
+      -}
+      , ('↑', uparrow)
+      {-
       , ('', downarrow)
 prec
 succ
