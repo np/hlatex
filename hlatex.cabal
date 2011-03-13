@@ -35,7 +35,8 @@ library
                  Language.LaTeX.Builder.Beamer,
                  Language.LaTeX.Builder.Babel,
                  Language.LaTeX.Printer,
-                 Language.LaTeX.Slicer
+                 Language.LaTeX.Slicer,
+                 Language.LaTeX.Unicode
     ghc-options: -Wall
 
 executable generate_hlatex_user_guide
