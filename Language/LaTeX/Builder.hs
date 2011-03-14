@@ -11,8 +11,7 @@ check, circ, cite, cite', cleardoublepage, clearpage, cline,
 compressSpaces, copyright, corrspace, dag, dash1,
 dash2, dash3, date, ddag, decl, decls, description, displaymath,
 document, documentclass, dot, dotfill, em, emph, enumerate,
-fbox, figure, figure',
-flushleft, footnote,
+fbox, figure, flushleft, footnote,
 footnotesize, framebox, fussy, grave, group, hat, hchar,
 hfill, hline, hr, href, hrulefill, space, hspace, hspace', hspaces,
 hstring, huge, hyphen, hyphenation, i, institute, it, item,
@@ -32,7 +31,7 @@ section', sep, setlength, addtolength, settowidth, sf, sffamily, sl, sloppy, slo
 slshape, small, smallskip, spaceProtector, ss, subparagraph,
 subparagraph', subsection, subsection',
 subsubsection, subsubsection', subtitle, table,
-table', tableofcontents, tabular, textbf, textdegree,
+tableofcontents, tabular, textbf, textdegree,
 textit, textmd, textnormal, textrm, textsc, textsf,
 textsl, texttt, textup, thinspace, thispagestyle, tieafter, tilde,
 tiny, title, titlepage, tt, ttchar, ttfamily, uml,
@@ -612,12 +611,9 @@ enumerate = listLikeEnv "enumerate" . pure . maybe noArg optional
 description :: Maybe LatexItem -> [ListItem] -> ParItem
 description = listLikeEnv "description" . pure . maybe noArg optional
 
-figure, table :: [LocSpec] -> ParItem -> ParItem
-figure', table' :: Star -> [LocSpec] -> ParItem -> ParItem
-figure' = figureLike . starize "figure"
-table'  = figureLike . starize "table"
-figure = figure' ø
-table = table' ø
+figure, table :: Star -> [LocSpec] -> ParItem -> ParItem
+figure = figureLike "figure"
+table  = figureLike "table"
 
 -- Accents
 

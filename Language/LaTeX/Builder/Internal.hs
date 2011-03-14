@@ -130,8 +130,8 @@ latexParModeArgs x ys z = latexCmdArgs x (ys ++ [mandatory (LatexParMode <$> z)]
 parEnvironmentPar :: String -> [Arg LatexItem] -> ParItem -> ParItem
 parEnvironmentPar x ys = liftM2 (ParEnvironmentPar x) $ mapM sequenceA ys
 
-figureLike :: String -> [LocSpec] -> ParItem -> ParItem
-figureLike x y = liftM $ FigureLike x y
+figureLike :: String -> Star -> [LocSpec] -> ParItem -> ParItem
+figureLike x s y = liftM $ FigureLike (starize x s) y
 
 listLikeEnv :: String -> [Arg LatexItem] -> [ListItem] -> ParItem
 listLikeEnv name opts items =
