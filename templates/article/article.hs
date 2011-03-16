@@ -27,7 +27,7 @@ docclass = B.article (Just (L.pt 11)) (Just B.a4paper) []
 -- Some preliminary declarations
 preamble = B.title     «My nice article»
          ⊕ B.author    «Me and some others»
-      -- ⊕ [$qp|Some raw \LaTeX code in the preamble|]
+      -- ⊕ [qp|Some raw \LaTeX code in the preamble|]
 
 body = slice . execWriter $ do
   maketitle
@@ -44,7 +44,7 @@ body = slice . execWriter $ do
 
   section «Bla»
 
-  p [$tex|Here is some raw \LaTeX{} code, use it with care.|]
+  p [tex|Here is some raw \LaTeX{} code, use it with care.|]
 
   subsection «Foo»
 
