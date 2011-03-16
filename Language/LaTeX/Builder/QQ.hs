@@ -16,10 +16,20 @@ frAntiq = id
 
 frQQ,str,istr,tex,qm,qp :: QuasiQuoter
 
-frQQ = QuasiQuoter TH.stringE (TH.litP . TH.stringL)
+quasiQuoter :: String -> QuasiQuoter
+quasiQuoter qqName =
+  QuasiQuoter (err "expressions") (err "patterns")
+-- if GHC7
+              (err "types") (err "declarations")
+-- endif
+  where err kind _ = error $ qqName ++ ": not available in " ++ kind
+
+frQQ = (quasiQuoter "frQQ"){ quoteExp = TH.stringE
+                           , quotePat = TH.litP . TH.stringL }
+
 str = frQQ
 
-istr = QuasiQuoter (TH.stringE . stripIdent) (error "istr: not available in patterns")
+istr = (quasiQuoter "istr"){ quoteExp = TH.stringE . stripIdent }
   where stripIdent = unlines' . skipFirst (map (dropBar . dropWhile isSpace)) . lines
         unlines'   = intercalate "\n"
         skipFirst _ []     = []
@@ -29,8 +39,7 @@ istr = QuasiQuoter (TH.stringE . stripIdent) (error "istr: not available in patt
         dropBar _        = error "istr: syntax error '|' expected after spaces"
 
 mkQQ :: String -> TH.Name -> QuasiQuoter
-mkQQ qqName qqFun =
-  QuasiQuoter (TH.appE (TH.varE qqFun) . TH.stringE) (error $ qqName ++ ": not available in patterns")
+mkQQ qqName qqFun = (quasiQuoter qqName){ quoteExp = TH.appE (TH.varE qqFun) . TH.stringE }
 
 tex = mkQQ "tex" 'rawTex
 qm  = mkQQ "qm"  'mstring
