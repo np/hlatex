@@ -11,7 +11,7 @@ module Language.LaTeX.Builder.Math
    gamma, gcd, ge, geq, grave, group, hat, iff, imath, implies, in_, inf,
    infty, int, iota, jmath, kappa, lambda, langle, lbrace, lceiling, lcm,
    ldots, ldotp, le, leftarrow, leftrightarrow, leq, lfloor, lim, liminf, limsup, ln,
-   log, mathBinOp, longleftarrow, longrightarrow, longleftrightarrow,
+   log, lparen, mathBinOp, longleftarrow, longrightarrow, longleftrightarrow,
    mathBinOps, mathCmd, mathCmdArg, mathCmdArgs, mathCmdsArg,
    mathDecl, mathGroup, allMathItems, allMathDecls, rawDecls, decl, decls,
    mathToLR, mathbb, mathbf,
@@ -20,7 +20,7 @@ module Language.LaTeX.Builder.Math
    thinspace, mu, nabla, ne, neg, notin, nu, oint, omega, omicron, oplus, otimes,
    overbrace, overline, parenChar, parens, partial, phi, pi, pm, pmod, prec,
    prod, propto, psi, quad, rangle, rawMath, rawMathChar, rbrace, rceiling,
-   rfloor, rho, rightarrow, scriptscriptstyle, scriptstyle, sec, sigma, sin, sinh,
+   rfloor, rho, rightarrow, rparen, scriptscriptstyle, scriptstyle, sec, sigma, sin, sinh,
    space, sqrt, sqrt', square, stackrel, sub, subset, subseteq, succ, sum, sup,
    supset, supseteq, tan, tanh, tau, text, textstyle, theta, tilde, times, to, top,
    underbrace, underline, uparrow, upsilon, varepsilon, varphi, vartheta, vdash,
@@ -121,8 +121,8 @@ phantom :: MathItem -> MathItem
 phantom = mathCmdArgs "phantom" . (:[]) . B.mandatory
 
 mleft, mright :: Char -> MathItem
-mleft m1  = rawMath "\\left"  ⊕ (MathItem $ RawMath <$> parenChar m1)
-mright m1 = rawMath "\\right" ⊕ (MathItem $ RawMath <$> parenChar m1)
+mleft m1  = MathItem $ RawMath . ("\\left"  ⊕) <$> parenChar m1
+mright m1 = MathItem $ RawMath . ("\\right" ⊕) <$> parenChar m1
 
 between :: Char -> Char -> MathItem -> MathItem
 between opening closing m1 = mleft opening ⊕ m1 ⊕ mright closing
@@ -150,6 +150,10 @@ lbrace :: MathItem
 lbrace = mathCmd "{"
 rbrace :: MathItem
 rbrace = mathCmd "}"
+lparen :: MathItem
+lparen = rawMathChar '('
+rparen :: MathItem
+rparen = rawMathChar ')'
 space :: MathItem
 space = mathCmd " "
 at :: MathItem
@@ -622,7 +626,7 @@ bmod :: MathItem -> MathItem -> MathItem
 bmod = mathBinOp "bmod"
 
 mathlift :: (LatexItem -> LatexItem) -> MathItem -> MathItem
-mathlift f = text . f . B.math
+mathlift fun = text . fun . B.math
 
 allMathDecls :: [MathDecl]
 allMathDecls = [displaystyle, textstyle, scriptstyle, scriptscriptstyle, mit, cal]
@@ -648,6 +652,7 @@ allMathItems =
   ,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z
   ,_A, _B, _C, _D, _E, _F, _G, _H, _I, _J, _K, _L, _M, _N, _O, _P
   ,_Q, _R, _S, _T, _U, _V, _W, _X, _Y, _Z
+  ,lparen,rparen
   ]
 
 mathCmdsArg :: [MathItem -> MathItem]
