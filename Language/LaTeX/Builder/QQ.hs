@@ -1,5 +1,12 @@
 {-# LANGUAGE TemplateHaskell #-}
-module Language.LaTeX.Builder.QQ (frTop, frAntiq, frQQ, tex, qp, str, istr, qm, mkQQ) where
+module Language.LaTeX.Builder.QQ
+  (-- * Quasi Quoters
+   frQQ,frQQFile,str,strFile,istr,istrFile,tex,texFile,qm,qmFile,qp,qpFile,
+   -- * Building new Quasi Quoters
+   mkQQ,
+   -- * Misc functions used by the frquotes expander of «...»
+   frTop, frAntiq,
+  ) where
 
 import Data.List
 import Data.Char
@@ -14,7 +21,7 @@ frTop = id
 frAntiq :: a -> a
 frAntiq = id
 
-frQQ,str,istr,tex,qm,qp :: QuasiQuoter
+frQQ,frQQFile,str,strFile,istr,istrFile,tex,texFile,qm,qmFile,qp,qpFile :: QuasiQuoter
 
 quasiQuoter :: String -> QuasiQuoter
 quasiQuoter qqName =
@@ -44,3 +51,10 @@ mkQQ qqName qqFun = (quasiQuoter qqName){ quoteExp = TH.appE (TH.varE qqFun) . T
 tex = mkQQ "tex" 'rawTex
 qm  = mkQQ "qm"  'mstring
 qp  = mkQQ "qp"  'rawPreamble
+
+frQQFile  = quoteFile frQQ
+strFile   = quoteFile str
+istrFile  = quoteFile istr
+texFile   = quoteFile tex
+qmFile    = quoteFile qm
+qpFile    = quoteFile qp
