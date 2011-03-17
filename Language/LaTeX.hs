@@ -1,5 +1,55 @@
 module Language.LaTeX
-  (module Language.LaTeX.Types
+  (
+   -- * Types
+   Document
+  ,LineNumber
+  ,CharNumber
+  ,Loc
+  ,Note
+  ,DocumentClassKind
+  ,DocumentClss
+  ,Star
+  ,Coord
+  ,Percentage
+  ,TexUnit
+  ,LatexLength
+  ,RowSpec
+  ,LocSpec
+  ,Pos
+  ,LatexPaperSize
+  ,Row
+  ,PackageName
+  ,Key
+  ,SaveBin
+  ,LatexState
+  ,TexDecl
+  ,LatexItem
+  ,ParItem
+  ,MathDecl
+  ,AnyItem
+  ,MathItem
+  ,ListItem
+  ,PreambleItem
+  ,DocumentClass
+  ,LatexM
+  -- * Internal types
+  ,Arg
+  ,MathDcl
+  ,AnyItm
+  ,PreambleItm
+  ,TexDcl
+  ,LatexItm
+  ,ParItm
+  ,MathItm
+  ,ListItm
+  -- * Writer type aliases
+  ,TexDeclW
+  ,LatexItemW
+  ,ParItemW
+  ,MathDeclW
+  ,MathItemW
+  ,PreambleItemW
+  -- * Utils
   ,module Language.LaTeX.Builder.MonoidUtils
   ,(!$), ($?), (!$?), tell, Writer
   ,(★)
