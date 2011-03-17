@@ -36,7 +36,8 @@ textit, textmd, textnormal, textrm, textsc, textsf,
 textsl, texttt, textup, thinspace, thispagestyle, tieafter, tilde,
 tiny, title, titlepage, tt, ttchar, ttfamily, uml,
 underbar, unwords, upshape, usebox, verb, verse, vfill, vline,
-vphantom, vspace, vspace', (★), vbox, vtop, hbox
+vphantom, vspace, vspace', (★), vbox, vtop, hbox, here, top, bottom, page,
+centered, flushLeft, flushRight, stretch,
   )
   where
 
@@ -813,6 +814,19 @@ class HaveR a where r :: a
 instance HaveC (RowSpec a) where c = Rc
 instance HaveL (RowSpec a) where l = Rl
 instance HaveR (RowSpec a) where r = Rr
+
+here, top, bottom, page :: LocSpec
+here   = Lh
+top    = Lt
+bottom = Lb
+page   = Lp
+
+centered, flushLeft, flushRight, stretch :: Pos
+centered = Centered
+flushLeft = FlushLeft
+flushRight = FlushRight
+stretch = Stretch
+
 
 -- eqnarraystar = 
 

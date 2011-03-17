@@ -123,6 +123,9 @@ showPaper (OtherPaperSize s) = s
 latexPaper :: LatexPaperSize -> LatexItem
 latexPaper = rawTex . showPaper
 
+otherDocumentClassKind :: String -> DocumentClassKind
+otherDocumentClassKind = OtherDocumentClassKind
+
 bool :: Bool -> LatexItem
 bool True  = rawTex "true"
 bool False = rawTex "false"
