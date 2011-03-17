@@ -52,12 +52,18 @@ data DocumentClss
               }
   deriving (Show, Eq, Typeable, Data)
 
-data PreambleItm = PreambleCmd String
-              | PreambleCmdArgs String [Arg LatexItm]
-              | PreambleConcat [PreambleItm]
-              | Usepackage PackageName [LatexItm]
-              | RawPreamble String
-              | PreambleNote Note PreambleItm
+data AnyItm = PreambleItm PreambleItm
+            | LatexItm    LatexItm
+            | MathItm     MathItm
+            | ParItm      ParItm
+  deriving (Show, Eq, Typeable, Data)
+
+data PreambleItm = PreambleCmdArgs String [Arg LatexItm]
+                 | PreambleEnv String [Arg LatexItm] AnyItm
+                 | PreambleConcat [PreambleItm]
+                 | Usepackage PackageName [LatexItm]
+                 | RawPreamble String
+                 | PreambleNote Note PreambleItm
   deriving (Show, Eq, Typeable, Data)
 
 instance Monoid PreambleItm where
@@ -153,8 +159,7 @@ newtype Percentage = Percentage { percentage :: Int } deriving (Eq,Show,Ord,Num)
 
 data ParItm  = Para LatexItm -- Here LatexItm does not mean LR mode
              | ParCmdArgs String [Arg LatexItm]
-             | ParEnvironmentLR String LatexItm
-             | ParEnvironmentPar String [Arg LatexItm] ParItm
+             | ParEnv String [Arg LatexItm] AnyItm
              | DisplayMath MathItm
              | Equation [MathItm]
              | Tabular [RowSpec LatexItm] [Row LatexItm]
@@ -407,6 +412,8 @@ type TexDecl   = LatexM TexDcl
 type LatexItem = LatexM LatexItm
 type ParItem   = LatexM ParItm
 type MathDecl  = LatexM MathDcl
+newtype AnyItem   = AnyItem { anyItmM :: LatexM AnyItm }
+  deriving (Eq, Show, Typeable, Data)
 newtype MathItem  = MathItem { mathItmM :: LatexM MathItm }
   deriving (Monoid, Eq, Show, Num, Fractional, Typeable, Data)
 type ListItem  = LatexM ListItm

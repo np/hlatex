@@ -59,18 +59,9 @@ ppEnv envName args contents =
         begin    = text "begin"
         end      = text "end"
 
-ppCmdNoArg :: String -> ShowS
-ppCmdNoArg cmdName = braces (backslash ⊕ text cmdName)
-
-ppCmdArgNB :: String -> ShowS -> ShowS
-ppCmdArgNB cmdName arg = backslash ⊕ text cmdName ⊕ braces arg
-
-ppCmdArg :: String -> ShowS -> ShowS
-ppCmdArg cmdName arg = braces (ppCmdArgNB cmdName arg)
-
+-- these are not wrapped by braces
 ppCmdArgs :: String -> [Arg ShowS] -> ShowS
 ppCmdArgs cmdName args = backslash ⊕ text cmdName ⊕ mconcat (map ppArg args)
-
 
 ppDecl :: String -> ShowS -> ShowS
 ppDecl declName declArgs = backslash ⊕ text declName ⊕ declArgs ⊕ text " " -- or {}
@@ -89,11 +80,11 @@ pp (LatexLength texLength) = ppTexLength texLength
 
 pp (LatexCoord (Coord x y)) = ppTexLength x ⊕ text " " ⊕ ppTexLength y
 
-pp (LatexKeys keys) = text $ concat $ intersperse "," $ map getKey keys
+pp (LatexKeys keys) = text . concat . intersperse "," $ map getKey keys
 
 pp (TexDecls decls) = foldMap ppTexDecl decls
 
-pp (TexCmdNoArg cmdName) = ppCmdNoArg cmdName
+pp (TexCmdNoArg cmdName) = braces $ ppCmdArgs cmdName []
 
 pp (TexCmdArg cmdName contents)
  = braces (backslash ⊕ text cmdName ⊕ text " " ⊕ pp contents)
@@ -121,14 +112,13 @@ ppParMode (Para t) = pp t
 ppParMode (ParCmdArgs cmdName args) = ppCmdArgs cmdName $ map (fmap pp) args
 ppParMode (RawParMode x) = text x
 ppParMode (ParGroup p) = braces $ ppParMode p
-ppParMode (ParEnvironmentLR envName contents) = ppEnv envName [] $ pp contents
-ppParMode (ParEnvironmentPar envName args contents)
-  = ppEnv envName (map (fmap pp) args) $ ppParMode contents
+ppParMode (ParEnv envName args contents)
+  = ppEnv envName (map (fmap pp) args) $ ppAny contents
 ppParMode (DisplayMath m) = text "\\[ " ⊕ ppMath m ⊕ text " \\]"
-ppParMode (Equation m) = ppEnv "equation" [] $ vcat $ map ppMath m
+ppParMode (Equation m) = ppEnv "equation" [] . vcat $ map ppMath m
 ppParMode (Tabular specs rows) =
-  ppEnv "tabular" [Mandatory $ mconcat $ map (ppRowSpec . fmap pp) specs] (ppRows pp rows)
-ppParMode (FigureLike name locs body) = ppEnv name [Optional $ text $ map locSpecChar locs] $ ppParMode body
+  ppEnv "tabular" [Mandatory . mconcat $ map (ppRowSpec . fmap pp) specs] (ppRows pp rows)
+ppParMode (FigureLike name locs body) = ppEnv name [Optional . text $ map locSpecChar locs] $ ppParMode body
 
 ppParMode (ParConcat contents) = vcat $ map ppParMode contents
 ppParMode (ParNote note t) = ppNote note ppParMode t
@@ -140,13 +130,19 @@ ppMath (RawMath s) = text s
 ppMath (MathRat r) | denominator r == 1 = shows (numerator r)
                      | otherwise          = shows (numerator r) ⊕ text " / " ⊕ shows (denominator r)
 ppMath (MathArray specs rows) = 
-  ppEnv "array" [Mandatory $ mconcat $ map (ppRowSpec . fmap ppMath) specs] (ppRows ppMath rows)
+  ppEnv "array" [Mandatory . mconcat $ map (ppRowSpec . fmap ppMath) specs] (ppRows ppMath rows)
 ppMath (MathGroup m) = braces $ ppMath m
 ppMath (MathConcat ms) = mconcat $ map ppMath ms
 ppMath (MathUnOp op m) = text op ⊕ sp ⊕ ppMath m
 ppMath (MathBinOp op l r) = parens (ppMath l ⊕ sp ⊕ text op ⊕ sp ⊕ ppMath r)
 ppMath (MathToLR cmdName args) = ppCmdArgs cmdName $ map (fmap pp) args
 ppMath (MathNote note m) = ppNote note ppMath m
+
+ppAny :: AnyItm -> ShowS
+ppAny (PreambleItm x) = ppPreamble x
+ppAny (LatexItm    x) = pp x
+ppAny (MathItm     x) = ppMath x
+ppAny (ParItm      x) = ppParMode x
 
 ppRowSpec :: RowSpec ShowS -> ShowS
 ppRowSpec Rc        = text "c"
@@ -165,7 +161,8 @@ ppRows ppCell (Cells cells : rows)
 ppRows ppCell (Hline : rows)
   = backslash ⊕ text "hline " ⊕ ppRows ppCell rows
 ppRows ppCell (Cline c1 c2 : rows)
-  = ppCmdArgNB "cline" (text $ show c1 ++ "-" ++ show c2) ⊕ ppRows ppCell rows
+  -- No braces here around the \cline, intentionally
+  = ppCmdArgs "cline" [Mandatory . text $ show c1 ++ "-" ++ show c2] ⊕ ppRows ppCell rows
 
 unitName :: TexUnit -> String
 unitName u =
@@ -187,7 +184,7 @@ ppTexLength :: LatexLength -> ShowS
 ppTexLength s =
   case s of
     LengthCmd cmd          -> ppCmdArgs cmd []
-    LengthCmdRatArg  cmd r -> ppCmdArg cmd (showr r)
+    LengthCmdRatArg  cmd r -> braces $ ppCmdArgs cmd [Mandatory $ showr r]
     LengthScaledBy _ (LengthScaledBy _ _) ->
       error "broken invariant: nested LengthScaledBy"
     LengthScaledBy r l     -> showr r ⊕ ppTexLength l
@@ -196,8 +193,8 @@ ppTexLength s =
                 | otherwise          = text $ formatRealFloat FFFixed (Just 2) (fromRational r :: Double)
 
 ppPreamble :: PreambleItm -> ShowS
-ppPreamble (PreambleCmd s) = backslash ⊕ text s
 ppPreamble (PreambleCmdArgs cmdName args) = ppCmdArgs cmdName $ map (fmap pp) args
+ppPreamble (PreambleEnv envName args contents) = ppEnv envName (map (fmap pp) args) (ppAny contents)
 ppPreamble (PreambleConcat ps) = vcat $ map ppPreamble ps
 ppPreamble (Usepackage pkg opts)
   = ppCmdArgs "usepackage" [Optionals (map pp opts), Mandatory (text $ getPkgName pkg)]

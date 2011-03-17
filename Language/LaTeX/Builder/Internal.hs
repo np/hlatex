@@ -89,11 +89,26 @@ preambleCmdArgs x ys = PreambleCmdArgs x <$> mapM sequenceA ys
 preambleCmdArg :: String -> LatexItem -> PreambleItem
 preambleCmdArg x y = preambleCmdArgs x [mandatory y]
 
+preambleEnv :: String -> [Arg LatexItem] -> AnyItem -> PreambleItem
+preambleEnv x ys = liftM2 (PreambleEnv x) (mapM sequenceA ys) . anyItmM
+
 rawPreamble :: String -> PreambleItem
 rawPreamble = mapNonEmpty $ pure . RawPreamble
 
 texLength :: LatexLength -> LatexItem
 texLength = pure . LatexLength
+
+latexItem :: LatexItem -> AnyItem
+latexItem = AnyItem . fmap LatexItm
+
+mathItem :: MathItem -> AnyItem
+mathItem = AnyItem . fmap MathItm . mathItmM
+
+parItem :: ParItem -> AnyItem
+parItem = AnyItem . fmap ParItm
+
+preambleItem :: PreambleItem -> AnyItem
+preambleItem = AnyItem . fmap PreambleItm
 
 pkgName :: String -> PackageName
 pkgName = PkgName
@@ -127,8 +142,11 @@ latexEnvironmentPar x ys z = liftM2 (Environment x) (mapM sequenceA ys) (LatexPa
 latexParModeArgs :: String -> [Arg LatexItem] -> ParItem -> LatexItem
 latexParModeArgs x ys z = latexCmdArgs x (ys ++ [mandatory (LatexParMode <$> z)])
 
+parEnv :: String -> [Arg LatexItem] -> AnyItem -> ParItem
+parEnv x ys = liftM2 (ParEnv x) (mapM sequenceA ys) . anyItmM
+
 parEnvironmentPar :: String -> [Arg LatexItem] -> ParItem -> ParItem
-parEnvironmentPar x ys = liftM2 (ParEnvironmentPar x) $ mapM sequenceA ys
+parEnvironmentPar x ys = parEnv x ys . parItem
 
 figureLike :: String -> Star -> [LocSpec] -> ParItem -> ParItem
 figureLike x s y = liftM $ FigureLike (starize x s) y

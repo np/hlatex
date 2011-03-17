@@ -780,7 +780,7 @@ quotation = parEnvironmentPar "quotation" []
 verse = parEnvironmentPar "verse" []
 
 quote :: LatexItem -> ParItem
-quote = liftM $ ParEnvironmentLR "quote"
+quote = liftM $ ParEnv "quote" [] . LatexItm
 
 -- The array and tablular Environments
 
