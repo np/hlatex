@@ -2,6 +2,7 @@
 module Language.LaTeX.Builder.QQ
   (-- * Quasi Quoters
    frQQ,frQQFile,str,strFile,istr,istrFile,tex,texFile,qm,qmFile,qp,qpFile,
+   keys,keysFile,
    -- * Building new Quasi Quoters
    mkQQ,
    -- * Misc functions used by the frquotes expander of «...»
@@ -12,6 +13,7 @@ import Data.List
 import Data.Char
 import qualified Language.Haskell.TH as TH
 import Language.Haskell.TH.Quote
+import Language.LaTeX.Types (Key(..))
 import Language.LaTeX.Builder.Internal (rawTex, rawPreamble)
 import Language.LaTeX.Builder.Math (mstring)
 
@@ -21,7 +23,8 @@ frTop = id
 frAntiq :: a -> a
 frAntiq = id
 
-frQQ,frQQFile,str,strFile,istr,istrFile,tex,texFile,qm,qmFile,qp,qpFile :: QuasiQuoter
+frQQ,frQQFile,str,strFile,istr,istrFile,tex,texFile,qm,qmFile,qp,qpFile,
+  keys, keysFile :: QuasiQuoter
 
 quasiQuoter :: String -> QuasiQuoter
 quasiQuoter qqName =
@@ -52,9 +55,20 @@ tex = mkQQ "tex" 'rawTex
 qm  = mkQQ "qm"  'mstring
 qp  = mkQQ "qp"  'rawPreamble
 
+keys = (quasiQuoter "keys"){ quoteDec = fs } where
+  fs = sequence . concatMap f . words
+  clean = filter isAlphaNum
+  f x = [TH.sigD n [t|Key|]
+        ,TH.valD (TH.varP n)
+                 (TH.normalB (TH.appE (TH.conE 'Key) $ TH.stringE x))
+                 []
+        ]
+        where n = TH.mkName (clean x)
+
 frQQFile  = quoteFile frQQ
 strFile   = quoteFile str
 istrFile  = quoteFile istr
 texFile   = quoteFile tex
 qmFile    = quoteFile qm
 qpFile    = quoteFile qp
+keysFile  = quoteFile keys
