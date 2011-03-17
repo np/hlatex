@@ -211,11 +211,12 @@ body = execWriter $ do
     literal piece of text. Once desugared this extension relies on the  
     quasi-quoting system provided by {ghc}.»
 
-  let (frO, frC, brO, brC) = ("«", "»", "{", "}")
-  p «Currently the French Quotes extension only desugar to litteral strings
-    and monoid compositions. French Quotes are introduced using `{frO}' and
-    closed using `{frC}'. Interpolation (injection of {haskell} code inside the
-    quotes) is done using braces (`{brO}' and `{brC}'). These interpolated holes
+  -- TODO
+  p «TO BE UPDATED.
+    Currently the French Quotes extension only desugar to litteral strings
+    and monoid compositions. French Quotes are introduced using `{«}' and
+    closed using `{»}'. Interpolation (injection of {haskell} code inside the
+    quotes) is done using braces (`«{»' and `«}»'). These interpolated holes
     can contains an {haskell} expression including nested French Quotes,
     string, comments, braces, etc. The French Quotes characters can be used
     inside French Quotes but must be balanced.»
