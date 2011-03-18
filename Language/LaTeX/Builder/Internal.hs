@@ -42,6 +42,9 @@ coordinates = Coordinates
 optionals :: [a] -> Arg a
 optionals = Optionals
 
+rawArg :: String -> Arg a
+rawArg = RawArg
+
 usepackage :: [LatexItem] -> PackageName -> PreambleItem
 usepackage opts pkg = Usepackage pkg <$> sequenceA opts
 
