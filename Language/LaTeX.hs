@@ -54,6 +54,7 @@ module Language.LaTeX
   ,(!$), ($?), (!$?), tell, Writer
   ,(★)
   ,Monoid(..)
+  ,printLatexDocument
   ,ViewOpts(..)
   ,quickView
   ,myViewOpts
@@ -107,3 +108,6 @@ quickView vo basename doc =
         pdf = basename <.> "pdf"
         ltx = basename <.> "ltx"
         cmd = unwords ["cd", basedir vo, "&&", pdflatex vo, ltx, "&&", pdfviewer vo, pdf]
+
+printLatexDocument :: LatexM Document -> IO ()
+printLatexDocument = putStr . either error id . showLaTeX
