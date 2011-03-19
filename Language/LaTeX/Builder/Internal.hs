@@ -42,11 +42,17 @@ coordinates = Coordinates
 optionals :: [a] -> Arg a
 optionals = Optionals
 
-rawArg :: String -> Arg a
-rawArg = RawArg
-
 usepackage :: [LatexItem] -> PackageName -> PreambleItem
 usepackage opts pkg = Usepackage pkg <$> sequenceA opts
+
+stringNote :: String -> Note
+stringNote = TextNote
+
+intNote :: Int -> Note
+intNote = IntNote
+
+locNote :: Loc -> Note
+locNote = LocNote
 
 -- Note that @rawArg ""@ reduces to ø.
 rawArg :: String -> Arg a
