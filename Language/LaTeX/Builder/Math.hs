@@ -835,4 +835,24 @@ succ
       , ('⟶', longrightarrow)
       , ('⟵', longleftarrow)
       , ('▹', vartriangleright)
+      -- black board
+      , ('ℕ', mathbb _N)
+      , ('ℍ', mathbb _H)
+      , ('ℙ', mathbb _P)
+      , ('ℝ', mathbb _R)
+      , ('ⅅ', mathbb _D)
+      , ('ℚ', mathbb _Q)
+      , ('ℤ', mathbb _Z)
+      --fail/TODO: find the correct definitions
+      --, ('ℽ', mathbb gamma)
+      --, ('ℾ', mathbb _Gamma)
+      --, ('ℿ', mathbb _Pi)
+      --, ('⅀', mathbb _Sigma)
+
+      -- mathcal
+      , ('℘', mathcal _P)
+      , ('ℒ', mathcal _L)
+      , ('ℛ', mathcal _R)
+      , ('𝒩', mathcal _N)
+
       ]
