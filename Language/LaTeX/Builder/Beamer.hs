@@ -264,7 +264,7 @@ usecolortheme  = beamerPreambleCmdArgs "usecolortheme"
 
 {- | Draws a button with the given button text .
 
-  Example: @hyperlink "somewhere" (beamerbutton "Go somewhere")@
+  Example: @hyperlink [] "somewhere" (beamerbutton "Go somewhere")@
 
   p97 beamer userguide
 -}
@@ -275,7 +275,7 @@ beamerbutton = BI.latexCmdArg "beamerbutton"
      right-pointing arrow) is inserted that indicates that pressing this button will jump
      to another *area* of the presentation.
 
-  Example: @hyperlink "detour" (beamergotobutton "Go to detour")@
+  Example: @hyperlink [] "detour" (beamergotobutton "Go to detour")@
 
   p98 beamer userguide
 -}
