@@ -88,9 +88,9 @@ body = id $? do
   tell B.newpage
 
   let letters = splitEvery 10 $ filter isPrint $ map chr [0..255]
-  paraNoindent !$ B.texttt . mconcat . intersperse B.newline $ map B.protect letters
-  paraNoindent !$ mconcat . intersperse B.newline $ map B.hstring letters
-  paraNoindent !$ mconcat . intersperse B.newline $ map B.verb letters
+  paraNoindent !$ B.texttt . mconcat . intersperse (B.newline ø) $ map B.protect letters
+  paraNoindent !$ mconcat . intersperse (B.newline ø) $ map B.hstring letters
+  paraNoindent !$ mconcat . intersperse (B.newline ø) $ map B.verb letters
 
   B.section !$ "Let's try the Writer monad to write documents"
 
@@ -124,7 +124,7 @@ body = id $? do
 
   -- G.includegraphics (\r-> r{G.angle=45, G.scale=1%2}) !$ "yi.pdf"
 
-  B.para !$ (B.noindent⊕B.decl B._Large ("Not shelfful"⊕B.newline⊕"but shelf"⊕B.sep⊕"ful"))
+  B.para !$ (B.noindent⊕B.decl B._Large ("Not shelfful"⊕B.newline ø⊕"but shelf"⊕B.sep⊕"ful"))
 
   B.para !$ "This is some|text"
   B.para !$ "This is some-text"

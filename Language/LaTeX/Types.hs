@@ -280,6 +280,10 @@ instance Num LatexLength where
   signum = error "LatexLength.signum is undefined"
   fromInteger = LengthCst Nothing . (%1)
 
+instance Monoid LatexLength where
+  mempty = 0
+  mappend = (+)
+
 instance Fractional LatexLength where
   x / LengthCst Nothing ry = scaleBy (1/ry) x
   x / y                    = safeLengthOp "/" (/) x y

@@ -20,7 +20,7 @@ large, ldots, letter, linebreak,
 lq, makebox, maketitle,
 math, mbox, mdseries, medskip,
 minipage, minipageBot, minipageTop, nbsp, negthinspace, newline,
-newline', newpage, nocite, noindent, nolinebreak, nopagebreak, normalfont,
+newpage, nocite, noindent, nolinebreak, nopagebreak, normalfont,
 normalmarginpar, normalsize, num, o, oe, overbar, overdot, pagebreak,
 pageref, pagestyle, para, paragraph, paragraph', parbox, parboxBot,
 parboxTop, part, part', person, phantom, pounds,
@@ -154,7 +154,7 @@ protect = protector hchar
 
 -- Turns @'\n'@ into 'newline' and others with the given translator.
 nlchar :: XChar -> XChar
-nlchar _      '\n'  = newline
+nlchar _      '\n'  = newline ø
 nlchar xchar  ch    = xchar ch
 
 hchar :: XChar
@@ -335,10 +335,8 @@ nolinebreak = texDeclOpt "nolinebreak" . num
 
 -- fragile
 -- ParItem? But then protect and verb would potentially needs it too ....
-newline :: LatexItem
-newline = texCmdNoArg "newline"
-newline' :: LatexLength -> TexDecl
-newline' = texDeclOpt "newline" . texLength
+newline :: Maybe LatexLength -> LatexItem
+newline mlen = latexCmdArgs "newline" [maybe noArg (optional . texLength) mlen, rawArg "%\n"]
 
 -- robust
 hyphen :: LatexItem

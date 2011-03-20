@@ -45,7 +45,7 @@ data Addr = Addr { name    :: String
                  , country :: Maybe String
                  }
 
-texLines = mconcat . intersperse B.newline . filter (/= ø)
+texLines = mconcat . intersperse (B.newline ø) . filter (/= ø)
 
 texAddr :: Addr -> ParItem
 texAddr Addr{..} =
