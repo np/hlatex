@@ -53,6 +53,7 @@ data OverlayInt = OvInt Int
                 | OvPlus
                 | OvPlusOffset Int
                 | OvDot
+                | OvFill Bool    -- ^ Only used internally
   deriving (Eq,Ord)
 
 -- | Only overlay actions are not supported currently.
@@ -65,6 +66,19 @@ type Overlays = [Overlay]
 
 type BeamerOpt = (String, String)
 
+instance Enum OverlayInt where
+  succ (OvInt i)        = OvInt (succ i)
+  succ _                = error "Enum OverlayInt => succ: OvInt expected"
+  pred (OvInt i)        = OvInt (pred i)
+  pred _                = error "Enum OverlayInt => pred: OvInt expected"
+  toEnum                = ovInt
+  fromEnum (OvInt i)    = i
+  fromEnum _            = error "Enum OverlayInt => fromEnum: OvInt expected"
+  enumFrom x            = [x,OvFill True]
+  enumFromThen x y      = [x,y,OvFill True]
+  enumFromTo x y        = [x,OvFill False,y]
+  enumFromThenTo x y z  = [x,y,OvFill False,z]
+
 texFrameOpt :: FrameOpt -> BeamerOpt
 texFrameOpt (Label lbl)        = ("label",lbl)
 texFrameOpt Fragile            = ("fragile","")
@@ -73,11 +87,31 @@ texFrameOpt (OtherOption a b)  = (a,b)
 texFrameOpts :: [FrameOpt] -> [Arg LatexItem]
 texFrameOpts = beamerOpts . map texFrameOpt
 
+{-
+ovs :: [OverlayInt] -> [Overlay]
+ovs []                              = []
+ovs (OvFill : xs)                   = ovs (ovInt 0 : OvFill : xs)
+ovs (OvMaxBound : xs)               = error "ovs: should not start with OvMaxBound"
+ovs (x : OvFill : OvMaxBound : xs)  = OvFrom x : ovs xs
+ovs (x : OvFill : y : xs)           = OvFromTo x y : ovs xs
+ovs (x : OvFill : [])               = error "ovs: should not end with OvFill False"
+ovs (x : xs)                        = OvSingle x : ovs xs
+-}
+
+ovs :: [OverlayInt] -> [Overlay]
+ovs []                           = []
+ovs (OvFill b : xs)              = ovs (ovInt 0 : OvFill b : xs)
+ovs (x : OvFill True : xs)       = OvFrom x : ovs xs
+ovs (x : OvFill False : y : xs)  = OvFromTo x y : ovs xs
+ovs (_ : OvFill False : [])      = error "ovs: should not end with OvFill False"
+ovs (x : xs)                     = OvSingle x : ovs xs
+
 showOvInt :: OverlayInt -> ShowS
 showOvInt (OvInt i)           = shows i
 showOvInt OvPlus              = ('+':)
 showOvInt OvDot               = ('.':)
 showOvInt (OvPlusOffset off)  = ('+':) . ('(':) . shows off . (')':)
+showOvInt (OvFill _)          = error "showOvInt: unexpected OvFill"
 
 showOverlay :: Overlay -> ShowS
 showOverlay (OvSingle i)    = showOvInt i
@@ -85,8 +119,8 @@ showOverlay (OvFromTo i j)  = showOvInt i . ('-':) . showOvInt j
 showOverlay (OvFrom i)      = showOvInt i . ('-':)
 
 showOverlays :: Overlays -> Maybe String
-showOverlays []   = Nothing
-showOverlays ovs  = Just . ('<':) . (++">") . showsOv ovs $ []
+showOverlays []  = Nothing
+showOverlays os  = Just . ('<':) . (++">") . showsOv os $ []
    where
      showsOv :: Overlays -> ShowS
      showsOv = mconcat . intersperse (',':) . map showOverlay
@@ -131,7 +165,7 @@ slide :: LatexItem -> ParItem -> ParItem
 slide tit = frame [] [] [] tit ø
 
 slideO :: LatexItem -> Overlays -> ParItem -> ParItem
-slideO tit ovs body = frameO ovs (frametitle tit ⊕ body)
+slideO tit os body = frameO os (frametitle tit ⊕ body)
 
 frametitle :: LatexItem -> ParItem
 frametitle = BI.parCmdArg "frametitle"
