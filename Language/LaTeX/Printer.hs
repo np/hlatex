@@ -105,7 +105,7 @@ pp (TexGroup t) = braces $ pp t
 
 pp (LatexConcat contents) = mconcat $ map pp contents
 
-pp (LatexNote note t) = ppNote note pp t
+pp (LatexNote key note t) = ppNote key note pp t
 
 ppParMode :: ParItm -> ShowS
 ppParMode (Para t) = pp t
@@ -121,7 +121,7 @@ ppParMode (Tabular specs rows) =
 ppParMode (FigureLike name locs body) = ppEnv name [Optional . text $ map locSpecChar locs] $ ppParMode body
 
 ppParMode (ParConcat contents) = vcat $ map ppParMode contents
-ppParMode (ParNote note t) = ppNote note ppParMode t
+ppParMode (ParNote key note t) = ppNote key note ppParMode t
 
 ppMath :: MathItm -> ShowS
 ppMath (MathDecls decls) = foldMap ppMathDecl decls
@@ -136,7 +136,7 @@ ppMath (MathConcat ms) = mconcat $ map ppMath ms
 ppMath (MathUnOp op m) = text op ⊕ sp ⊕ ppMath m
 ppMath (MathBinOp op l r) = parens (ppMath l ⊕ sp ⊕ text op ⊕ sp ⊕ ppMath r)
 ppMath (MathToLR cmdName args) = ppCmdArgs cmdName $ map (fmap pp) args
-ppMath (MathNote note m) = ppNote note ppMath m
+ppMath (MathNote key note m) = ppNote key note ppMath m
 
 ppAny :: AnyItm -> ShowS
 ppAny (PreambleItm x) = ppPreamble x
@@ -199,14 +199,15 @@ ppPreamble (PreambleConcat ps) = vcat $ map ppPreamble ps
 ppPreamble (Usepackage pkg opts)
   = ppCmdArgs "usepackage" [Optionals (map pp opts), Mandatory (text $ getPkgName pkg)]
 ppPreamble (RawPreamble raw) = text raw
-ppPreamble (PreambleNote note p) = ppNote note ppPreamble p
+ppPreamble (PreambleNote key note p) = ppNote key note ppPreamble p
 
-ppNote :: Note -> (a -> ShowS) -> a -> ShowS
-ppNote note ppElt elt =  nl' ⊕ mconcat (map ((⊕ nl') . text) . lines . showNote $ note) ⊕ ppElt elt ⊕ nl'
-  where nl' = text "%\n%"
-        showNote (TextNote s) = show s
+ppNote :: Key -> Note -> (a -> ShowS) -> a -> ShowS
+ppNote (Key key) note ppElt elt = nl' ⊕ comment (key ⊕ ": " ⊕ showNote note) ⊕ ppElt elt ⊕ nl'
+  where nl' = text "%\n"
+        showNote (TextNote s) = s
         showNote (IntNote  i) = show i
         showNote (LocNote  loc) = showLoc loc
+        comment = mconcat . map (text . ('%':) . (⊕ "\n")) . lines
 
 showLoc :: Loc -> String
 showLoc (Loc fp line char) = unwords [fp, ":", show line, ":", show char]

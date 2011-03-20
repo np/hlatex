@@ -71,8 +71,8 @@ texDecl' s opt = TexDcl s <$> mapM sequenceA opt
 texDeclOpt :: String -> LatexItem -> TexDecl
 texDeclOpt s opt = TexDcl s <$> ((:[]) . optional <$> opt)
 
-parNote :: Note -> ParItem -> ParItem
-parNote = fmap . ParNote
+parNote :: Key -> Note -> ParItem -> ParItem
+parNote k = fmap . ParNote k
 
 parCmdArgs :: String -> [Arg LatexItem] -> ParItem
 parCmdArgs x ys = ParCmdArgs x <$> mapM sequenceA ys
@@ -80,8 +80,8 @@ parCmdArgs x ys = ParCmdArgs x <$> mapM sequenceA ys
 parCmdArg :: String -> LatexItem -> ParItem
 parCmdArg x y = parCmdArgs x [mandatory y]
 
-latexNote :: Note -> LatexItem -> LatexItem
-latexNote = fmap . LatexNote
+latexNote :: Key -> Note -> LatexItem -> LatexItem
+latexNote k = fmap . LatexNote k
 
 latexCmdArgs :: String -> [Arg LatexItem] -> LatexItem
 latexCmdArgs x ys = LatexCmdArgs x <$> mapM sequenceA ys
@@ -89,8 +89,8 @@ latexCmdArgs x ys = LatexCmdArgs x <$> mapM sequenceA ys
 latexCmdArg :: String -> LatexItem -> LatexItem
 latexCmdArg x y = latexCmdArgs x [mandatory y]
 
-preambleNote :: Note -> PreambleItem -> PreambleItem
-preambleNote = fmap . PreambleNote
+preambleNote :: Key -> Note -> PreambleItem -> PreambleItem
+preambleNote k = fmap . PreambleNote k
 
 preambleCmdArgs :: String -> [Arg LatexItem] -> PreambleItem
 preambleCmdArgs x ys = PreambleCmdArgs x <$> mapM sequenceA ys

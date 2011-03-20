@@ -63,7 +63,7 @@ data PreambleItm = PreambleCmdArgs String [Arg LatexItm]
                  | PreambleConcat [PreambleItm]
                  | Usepackage PackageName [LatexItm]
                  | RawPreamble String
-                 | PreambleNote Note PreambleItm
+                 | PreambleNote Key Note PreambleItm
   deriving (Show, Eq, Typeable, Data)
 
 instance Monoid PreambleItm where
@@ -98,7 +98,7 @@ data LatexItm
            | RawTex String
            | TexGroup LatexItm
            | LatexConcat [LatexItm]
-           | LatexNote Note LatexItm
+           | LatexNote Key Note LatexItm
   deriving (Show, Eq, Typeable, Data)
 
 instance Monoid LatexItm where
@@ -167,7 +167,7 @@ data ParItm  = Para LatexItm -- Here LatexItm does not mean LR mode
              | RawParMode String
              | ParGroup ParItm -- check validity of this
              | ParConcat [ParItm]
-             | ParNote Note ParItm
+             | ParNote Key Note ParItm
   deriving (Show, Eq, Typeable, Data)
 
 instance Monoid ParItm where
@@ -194,7 +194,7 @@ data MathItm   = MathDecls [MathDcl]
                | MathConcat [MathItm]
                | MathBinOp String MathItm MathItm
                | MathUnOp String MathItm
-               | MathNote Note MathItm
+               | MathNote Key Note MathItm
   deriving (Show, Eq, Typeable, Data)
 
 instance Monoid MathItm where
