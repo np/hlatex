@@ -207,7 +207,8 @@ ppNote (Key key) note ppElt elt = nl' ⊕ comment (key ⊕ ": " ⊕ showNote not
         showNote (TextNote s) = s
         showNote (IntNote  i) = show i
         showNote (LocNote  loc) = showLoc loc
-        comment = mconcat . map (text . ('%':) . (⊕ "\n")) . lines
+        comment = mconcat . map (text . ('%':) . (⊕ "\n") . stripRight) . lines
+        stripRight = reverse . dropWhile isSpace . reverse
 
 showLoc :: Loc -> String
 showLoc (Loc fp line char) = unwords [fp, ":", show line, ":", show char]

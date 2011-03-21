@@ -8,7 +8,7 @@ bf, bfseries, bigskip,
 bibliography, bibliographystyle, book, boxedminipage,
 caption, caption', cedil, cell, cells, center, chapter, chapter',
 check, circ, cite, cite', cleardoublepage, clearpage, cline,
-compressSpaces, copyright, corrspace, dag, dash1,
+comment, compressSpaces, copyright, corrspace, dag, dash1,
 dash2, dash3, date, ddag, decl, decls, description, displaymath,
 document, documentclass, dot, dotfill, em, emph, enumerate,
 fbox, figure, flushleft, footnote,
@@ -170,6 +170,10 @@ ttchar ch | isAscii ch &&
 
 verb :: String -> LatexItem
 verb = texttt . protector ttchar
+
+-- A comment put in the generated LaTeX document
+comment :: String -> ParItem
+comment s = parNote (Key "comment") (stringNote s) ø
 
 href :: LatexItem -> LatexItem -> LatexItem
 href x y = latexCmdArgs "href" [mandatory x,mandatory y]
