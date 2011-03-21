@@ -138,6 +138,10 @@ latexPaper = rawTex . showPaper
 otherDocumentClassKind :: String -> DocumentClassKind
 otherDocumentClassKind = OtherDocumentClassKind
 
+-- use with care
+latexParMode :: ParItem -> LatexItem
+latexParMode = fmap LatexParMode
+
 bool :: Bool -> LatexItem
 bool True  = rawTex "true"
 bool False = rawTex "false"
