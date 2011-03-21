@@ -16,10 +16,10 @@ footnotesize, framebox, fussy, grave, group, hat, hchar,
 hfill, hline, hr, href, hrulefill, space, hspace, hspace', hspaces,
 hstring, huge, hyphen, hyphenation, i, institute, it, item,
 item', itemize, itshape, j, label,
-large, ldots, letter, linebreak,
+large, ldots, letter, linebreak, linebr,
 lq, makebox, maketitle,
 math, mbox, mdseries, medskip,
-minipage, minipageBot, minipageTop, nbsp, negthinspace, newline,
+minipage, minipageBot, minipageTop, nbsp, negthinspace, newline, rawNewline,
 newpage, nocite, noindent, nolinebreak, nopagebreak, normalfont,
 normalmarginpar, normalsize, num, o, oe, overbar, overdot, pagebreak,
 pageref, pagestyle, para, paragraph, paragraph', parbox, parboxBot,
@@ -154,7 +154,7 @@ protect = protector hchar
 
 -- Turns @'\n'@ into 'newline' and others with the given translator.
 nlchar :: XChar -> XChar
-nlchar _      '\n'  = newline ø
+nlchar _      '\n'  = rawNewline ø
 nlchar xchar  ch    = xchar ch
 
 hchar :: XChar
@@ -332,21 +332,41 @@ textnormal = latexCmdArg "textnormal"
 
 -- fragile
 -- http://www.personal.ceu.hu/tex/breaking.htm#linebreak
--- http://www.personal.ceu.hu/tex/breaking.htm#nolinebreak
-linebreak, nolinebreak :: Int -> TexDecl
+linebreak :: Int -> TexDecl
 linebreak = texDeclOpt "linebreak" . num
-nolinebreak = texDeclOpt "nolinebreak" . num
 
 -- fragile
--- ParItem? But then protect and verb would potentially needs it too ....
-newline :: Maybe LatexLength -> LatexItem
-newline mlen = latexCmdArgs "newline" [maybe noArg (optional . texLength) mlen, rawArg "%\n"]
+-- http://www.personal.ceu.hu/tex/breaking.htm#nolinebreak
+nolinebreak :: Int -> TexDecl
+nolinebreak = texDeclOpt "nolinebreak" . num
+
+-- http://www.personal.ceu.hu/tex/breaking.htm#linebr
+linebr :: Star -> Maybe LatexLength -> LatexItem
+linebr s extraSpace =
+  latexCmdArgs "\\" [starToArg s
+                    ,maybe noArg (optional . texLength) extraSpace
+                    ,rawArg "%\n"]
+
+-- fragile
+-- http://www.personal.ceu.hu/tex/breaking.htm#newline
+rawNewline :: Maybe LatexLength -> LatexItem
+rawNewline mlen =
+  latexCmdArgs "newline" [maybe noArg (optional . texLength) mlen
+                         ,rawArg "%\n"]
+
+-- fragile
+-- http://www.personal.ceu.hu/tex/breaking.htm#newline
+-- see rawNewline for a more permissive dangerous version of newline
+newline :: Maybe LatexLength -> ParItem
+newline = para . rawNewline
 
 -- robust
+-- http://www.personal.ceu.hu/tex/breaking.htm#hyph
 hyphen :: LatexItem
 hyphen = rawTex "{\\-}" -- check if {...} does not cause trouble here
 
 -- robust
+-- http://www.personal.ceu.hu/tex/breaking.htm#hyphw
 hyphenation :: [String] -> ParItem
 hyphenation = parCmdArg "hyphenation" . rawTex . L.unwords -- rawTex is a bit rough here
 
@@ -359,7 +379,13 @@ sloppypar :: ParItem -> ParItem
 sloppypar = parEnvironmentPar "sloppypar" []
 
 -- fragile
-pagebreak, nopagebreak :: Int -> TexDecl
+-- http://www.personal.ceu.hu/tex/breaking.htm#pagebreak
+pagebreak :: Int -> TexDecl
+
+-- fragile
+-- http://www.personal.ceu.hu/tex/breaking.htm#nopagebreak
+nopagebreak :: Int -> TexDecl
+
 (pagebreak, nopagebreak) =
   ((texDeclOpt "pagebreak" =<<) . check0to4 "pagebreak"
   ,(texDeclOpt "nopagebreak" =<<) . check0to4 "nopagebreak")
@@ -371,12 +397,17 @@ samepage :: TexDecl
 samepage = texDecl "samepage"
 
 -- robust
+-- http://www.personal.ceu.hu/tex/breaking.htm#newpage
 newpage :: ParItem
 newpage = parCmdArgs "newpage" []
+
 -- robust
+-- http://www.personal.ceu.hu/tex/breaking.htm#clrpage
 clearpage :: ParItem
 clearpage = parCmdArgs "clearpage" []
+
 -- fragile
+-- http://www.personal.ceu.hu/tex/breaking.htm#clrdblpage
 cleardoublepage :: ParItem
 cleardoublepage = parCmdArgs "cleardoublepage" []
 
