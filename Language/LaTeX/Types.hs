@@ -448,6 +448,12 @@ rawhchar x  | x `elem` "#&{}$%"  = ['\\',x]
             | x `elem` "]["      = ['{', x, '}'] -- to avoid mess up optional args
             | otherwise          = [x]
 
+-- | Type for encodings used in commands like.
+-- @\usepackage[utf8]{inputenc}@, that we can
+-- express as 'useInputenc' 'utf8'.
+newtype Encoding = Encoding { fromEncoding :: String }
+  deriving (Eq,Ord,Show)
+
 -- instance (Integral a, Typeable a, Typeable b, PlateAll a b) => PlateAll (Ratio a) b where
 --   plateAll r = plate (%) |+ numerator r |+ denominator r
 

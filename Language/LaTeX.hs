@@ -32,6 +32,7 @@ module Language.LaTeX
   ,PreambleItem
   ,DocumentClass
   ,LatexM
+  ,Encoding
   -- * Internal types
   ,Arg
   ,MathDcl

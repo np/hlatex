@@ -39,7 +39,7 @@ underbar, unwords, upshape, usebox, verb, verse, vfill, vline,
 vphantom, vspace, vspace', (★), vbox, vtop, hbox, here, top, bottom, page,
 centered, flushLeft, flushRight, stretch,
 -- * Input Encodings (inputenc package)
-Encoding,utf8,latin1,inputenc
+utf8,latin1,inputenc,fromEncoding,
   )
   where
 
@@ -1030,17 +1030,11 @@ institute = preambleCmdArg "institute"
 authors :: [LatexItem] -> PreambleItem
 authors = author . mconcat . intersperse (rawTex " & ")
 
--- | Type for encodings used in commands like.
--- @\usepackage[utf8]{inputenc}@, that we can
--- express as 'useInputenc' 'utf8'.
-newtype Encoding = Encoding { fromEncoding :: String }
-  deriving (Eq,Ord,Show)
-
 utf8 :: Encoding
-utf8 = Encoding "utf8"
+utf8 = rawEncoding "utf8"
 
 latin1 :: Encoding
-latin1 = Encoding "latin1"
+latin1 = rawEncoding "latin1"
 
 inputenc :: Encoding -> PreambleItem
 inputenc (Encoding enc)

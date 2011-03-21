@@ -119,6 +119,9 @@ parItem = AnyItem . fmap ParItm
 preambleItem :: PreambleItem -> AnyItem
 preambleItem = AnyItem . fmap PreambleItm
 
+rawEncoding :: String -> Encoding
+rawEncoding = Encoding
+
 pkgName :: String -> PackageName
 pkgName = PkgName
 
