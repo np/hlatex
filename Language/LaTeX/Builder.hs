@@ -1,6 +1,10 @@
 module Language.LaTeX.Builder
   ( (!$), (!$?), ($?), HaveC(..), HaveL(..), HaveR(..),
-Spaces(..), _AA, _AE, _H, _Huge, _L, _LARGE, _LaTeX,
+Spaces(..),
+-- * Injecting declarations
+decl, decls, parDecls, parDecl,
+-- * Others
+_AA, _AE, _H, _Huge, _L, _LARGE, _LaTeX,
 _Large, _O, _OE, _P, _S, _TeX, _l, XChar, a4paper, aa,
 acute, addvspace, ae, allTexDecls, appendix,
 article, author, authors,
@@ -9,7 +13,8 @@ bibliography, bibliographystyle, book, boxedminipage,
 caption, caption', cedil, cell, cells, center, chapter, chapter',
 check, circ, cite, cite', cleardoublepage, clearpage, cline,
 comment, compressSpaces, copyright, corrspace, dag, dash1,
-dash2, dash3, date, ddag, decl, decls, description, displaymath,
+dash2, dash3, date, ddag,
+description, displaymath,
 document, documentclass, dot, dotfill, em, emph, enumerate,
 fbox, figure, flushleft, footnote,
 footnotesize, framebox, fussy, grave, group, hat, hchar,
@@ -106,7 +111,13 @@ decls :: [TexDecl] -> LatexItem -> LatexItem
 decls ds x = group (rawDecls ds ⊕ x)
 
 decl :: TexDecl -> LatexItem -> LatexItem
-decl d = decls [d]
+decl = decls . pure
+
+parDecls :: [TexDecl] -> ParItem
+parDecls = para . rawDecls
+
+parDecl :: TexDecl -> ParItem
+parDecl = parDecls . pure
 
 document :: DocumentClass -> PreambleItem -> ParItem -> LatexM Document
 document = liftM3 Document
