@@ -715,7 +715,7 @@ instance IsString MathItem where
 
 charToMath :: Char -> Maybe MathItem
 charToMath ch
-   | isAscii ch && isAlphaNum ch = Just $ rawMathChar ch
+   | isAscii ch && (isAlphaNum ch || isSpace ch) = Just $ rawMathChar ch
    | otherwise = IntMap.lookup (fromEnum ch) mapping
   where
     mapping = IntMap.fromList $ map (first fromEnum)
