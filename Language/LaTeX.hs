@@ -61,6 +61,7 @@ module Language.LaTeX
   ,myViewOpts
   ,testViewOpts
   ,showLaTeX
+  ,runLatexM
   )
 where
 import Data.Monoid (Monoid(..))
