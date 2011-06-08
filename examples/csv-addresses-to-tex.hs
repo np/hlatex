@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, RecordWildCards #-}
+{-# LANGUAGE OverloadedStrings, RecordWildCards, NamedFieldPuns #-}
 {-# OPTIONS -Wall -fno-warn-missing-signatures #-}
 import Language.LaTeX
 import qualified Language.LaTeX.Builder as B
@@ -23,20 +23,38 @@ import System.Environment
 import qualified Safe
 import System.IO (stdout,hSetEncoding,utf8)
 
-mainArgs [] = do hSetEncoding stdout utf8
-                 putStr . fromAddrs =<< getContents
+data Env = Env { rows :: Int, cols :: Int }
+
+mainArgs env ("-c":n:args) | all isDigit n = mainArgs env{cols=read n} args
+mainArgs env ("-r":n:args) | all isDigit n = mainArgs env{rows=read n} args
+mainArgs env [] = do hSetEncoding stdout utf8
+                     putStr . fromAddrs =<< getContents
   where fromAddrs = either error id           . showLaTeX    -- show
-                                              . body         -- LaTeX it
+                                              . body env     -- LaTeX it
                   . fromMaybe []              . addrFromCSV  -- load records
                   . either (error . show) id  . parseCSV "-" -- parse CSV
-mainArgs _ = error "Usage: csv-addresses-to-pdf"
+mainArgs _ _ = error "Usage: csv-addresses-to-pdf [-r <rows> | -c <cols>]"
 
-main = mainArgs =<< getArgs
+main = mainArgs Env{rows=7,cols=3} =<< getArgs
 
 -- paraNoindent = B.para . (B.noindent ⊕)
 
 preamb = B.useBabel B.francais []
        ⊕ BI.usepackage ["utf8"] (BI.pkgName "inputenc")
+       ⊕ setlength L.topmargin zero
+       ⊕ setlength L.headheight zero
+       ⊕ setlength L.headsep zero
+       ⊕ setlength L.oddsidemargin zero
+       ⊕ setlength L.evensidemargin zero
+       ⊕ setlength L.leftmargin zero
+       ⊕ setlength L.rightmargin zero
+       ⊕ addtolength L.textwidth (L.inch 3.75)
+       ⊕ addtolength L.textheight (L.inch 3.75)
+  where setlength var len =
+          BI.preambleCmdArgs "setlength" . map (BI.mandatory . BI.texLength) $ [var, len]
+        addtolength var len =
+          BI.preambleCmdArgs "addtolength" . map (BI.mandatory . BI.texLength) $ [var, len]
+        zero = L.inch 0
 
 data Addr = Addr { name    :: String
                  , street  :: String
@@ -60,11 +78,11 @@ texAddr Addr{..} =
          | otherwise     = fromString x
 
 
-texAddrs :: [Addr] -> ParItem
-texAddrs = foldMap texAddrPage . chunk 20 -- . prolongateByMod def 2
+texAddrs :: Env -> [Addr] -> ParItem
+texAddrs Env{rows,cols}
+    = foldMap texAddrPage . chunk (rows*cols) -- . prolongateByMod def 2
   where
     -- def = Addr "" "" "" "" Nothing
-    cols = (2 :: Int)
     wi = L.linewidth / fromIntegral cols
     texAddrPage addrs =
       B.tabular (replicate cols B.l) (
@@ -114,5 +132,5 @@ addrLoaderFromCSV header =
         return build
   where sel = csvSelector header
 
-body addrs = B.document dc preamb (B.pagestyle "empty" ⊕ texAddrs addrs)
+body env addrs = B.document dc preamb (B.pagestyle "empty" ⊕ texAddrs env addrs)
   where dc = B.article (Just (L.pt 12)) (Just B.a4paper) []
