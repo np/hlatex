@@ -1,7 +1,8 @@
 module Language.LaTeX.Builder.Math
   
   -- NOTE: do not forget to update allMathItems, allMathDecls
-  (charToMath, stringToMath, mchar, mstring, mathlift, protect, protector, verb,
+  (amsmath,
+   charToMath, stringToMath, mchar, mstring, mathlift, protect, protector, verb,
    _Delta, _Gamma, _Lambda, _Leftarrow, _Leftrightarrow, _Omega, _Phi, _Pi, _Pr,
    _Rightarrow, _Sigma, _Theta, _Xi, acute, aleph, alpha, approx, array, at,
    backslash, bar, beta, between, bigcap, bigcup, bigvee, bigwedge, bmod, bot,
@@ -15,7 +16,7 @@ module Language.LaTeX.Builder.Math
    mathBinOps, mathCmd, mathCmdArg, mathCmdArgs, mathCmdsArg,
    mathDecl, mathGroup, allMathItems, allMathDecls, rawDecls, decl, decls,
    mathToLR, mathbb, mathbf,
-   mathcal, mathfrak, mathtt, max, min, mit, mleft, mediumspace,
+   mathcal, mathfrak, mathtt, max, mbox, min, mit, mleft, mediumspace,
    negthinspace, mod, models, mrat, mright, msup, thickspace,
    thinspace, mu, nabla, ne, neg, notin, nu, oint, omega, omicron, oplus, otimes,
    overbrace, overline, parenChar, parens, partial, phi, pi, pm, pmod, prec,
@@ -138,8 +139,14 @@ parenChar m1 | m1 `elem` "([.])" = return [m1]
              | m1 == '}'         = return "\\}"
              | otherwise         = throwError $ "invalid parenthesis-like: " ++ show m1
 
+-- NOTE: This command is defined in the amsmath package. It does conflict with
+-- some other packages/classes like the JFP class.
+-- Maybe this should be move to a Amsmath module
 text :: LatexItem -> MathItem
 text arg = mathToLR "text" [B.packageDependency amsmath, B.mandatory arg]
+
+mbox :: LatexItem -> MathItem
+mbox arg = mathToLR "mbox" [B.mandatory arg]
 
 array :: [RowSpec MathItem] -> [Row MathItem] -> MathItem
 array spec items = MathItem $ B.tabularLike MathArray (map (fmap mathItmM) spec)
@@ -627,6 +634,7 @@ bmod = mathBinOp "bmod"
 
 mathlift :: (LatexItem -> LatexItem) -> MathItem -> MathItem
 mathlift fun = text . fun . B.math
+{-# DEPRECATED mathlift "The use of M.text should be done with care (mbox is an alternative)" #-}
 
 allMathDecls :: [MathDecl]
 allMathDecls = [displaystyle, textstyle, scriptstyle, scriptscriptstyle, mit, cal]
@@ -702,7 +710,7 @@ mchar xchar ch = maybe (xchar ch) B.math m'
 
 -- find a better name and export
 mchar' :: XChar -> MXChar
-mchar' xchar ch = fromMaybe (text (xchar ch)) (charToMath ch)
+mchar' xchar ch = fromMaybe (mbox (xchar ch)) (charToMath ch)
 
 stringToMath :: String -> MathItem
 stringToMath = foldMap $ mchar' B.hchar

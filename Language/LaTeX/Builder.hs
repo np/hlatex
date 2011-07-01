@@ -462,6 +462,7 @@ instance Mbox ParItem where
 -}
 
 -- robust
+-- http://www.personal.ceu.hu/tex/spacebox.htm#makebox
 mbox :: LatexItem -> LatexItem
 mbox = latexCmdArg "mbox"
 
