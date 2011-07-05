@@ -15,7 +15,7 @@ module Language.LaTeX.Builder.Math
    log, lparen, mathBinOp, longleftarrow, longrightarrow, longleftrightarrow,
    mathBinOps, mathCmd, mathCmdArg, mathCmdArgs, mathCmdsArg,
    mathDecl, mathGroup, allMathItems, allMathDecls, rawDecls, decl, decls,
-   mathToLR, mathbb, mathbf,
+   mathToLR, mathbb, mathbf, mathnormal, mathrm, mathsf, mathit, mathscr,
    mathcal, mathfrak, mathtt, max, mbox, min, mit, mleft, mediumspace,
    negthinspace, mod, models, mrat, mright, msup, thickspace,
    thinspace, mu, nabla, ne, neg, notin, nu, oint, omega, omicron, oplus, otimes,
@@ -457,16 +457,19 @@ _Leftarrow :: MathItem
 _Leftarrow = mathCmd "Leftarrow"
 _Leftrightarrow :: MathItem
 _Leftrightarrow = mathCmd "Leftrightarrow"
-mathbf :: MathItem -> MathItem
+-- https://secure.wikimedia.org/wikibooks/en/wiki/LaTeX/Mathematics#Formatting_mathematics_symbols
+-- they are said to depend on amsfonts, maybe one should force it
+mathnormal, mathrm, mathit, mathbf, mathsf, mathtt, mathbb, mathcal, mathfrak, mathscr :: MathItem -> MathItem
+mathnormal = mathCmdArg "mathnormal"
+mathrm = mathCmdArg "mathrm"
+mathit = mathCmdArg "mathit"
 mathbf = mathCmdArg "mathbf"
-mathbb :: MathItem -> MathItem
-mathbb = mathCmdArg "mathbb"
-mathcal :: MathItem -> MathItem
-mathcal = mathCmdArg "mathcal"
-mathtt :: MathItem -> MathItem
+mathsf = mathCmdArg "mathsf"
 mathtt = mathCmdArg "mathtt"
-mathfrak :: MathItem -> MathItem
+mathcal = mathCmdArg "mathcal"
 mathfrak = mathCmdArg "mathfrak"
+mathbb = mathCmdArg "mathbb"
+mathscr = mathCmdArg "mathscr"
 pmod :: MathItem -> MathItem
 pmod = mathCmdArg "pmod"
 tilde :: MathItem -> MathItem
