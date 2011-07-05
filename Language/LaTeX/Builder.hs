@@ -325,7 +325,8 @@ scshape = texDecl "scshape"
 normalfont = texDecl "normalfont"
 
 emph, textrm, textsf, texttt, textmd, textbf,
-  textup, textit, textsl, textsc, textnormal :: LatexItem -> LatexItem
+  textup, textit, textsl, textsc, textnormal,
+  textsuperscript, textsubscript :: LatexItem -> LatexItem
 -- textXYZ commands should work in math too (use a typeclass)
 emph = latexCmdArg "emph"
 textrm = latexCmdArg "textrm"
@@ -338,6 +339,8 @@ textit = latexCmdArg "textit"
 textsl = latexCmdArg "textsl"
 textsc = latexCmdArg "textsc"
 textnormal = latexCmdArg "textnormal"
+textsuperscript = latexCmdArg "textsuperscript"
+textsubscript = latexCmdArg "textsubscript"
 
 -- Line and page breaking
 
