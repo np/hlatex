@@ -38,7 +38,7 @@ subparagraph', subsection, subsection',
 subsubsection, subsubsection', subtitle, table,
 tableofcontents, tabular, textbf, textdegree,
 textit, textmd, textnormal, textrm, textsc, textsf,
-textsl, texttt, textup, textsuperscript, textsubscript,
+textsl, texttt, textup, textsuperscript, textsubscript, textunderscore,
 thinspace, thispagestyle, tieafter, tilde,
 tiny, title, titlepage, tt, ttchar, ttfamily, uml,
 underbar, unwords, upshape, usebox, verb, verse, vfill, vline,
@@ -340,8 +340,18 @@ textit = latexCmdArg "textit"
 textsl = latexCmdArg "textsl"
 textsc = latexCmdArg "textsc"
 textnormal = latexCmdArg "textnormal"
+
+-- http://en.wikibooks.org/wiki/LaTeX/Formatting#Text_mode_superscript_and_subscript
 textsuperscript = latexCmdArg "textsuperscript"
-textsubscript = latexCmdArg "textsubscript"
+
+-- http://en.wikibooks.org/wiki/LaTeX/Formatting#Text_mode_superscript_and_subscript
+-- fixltxe2 is not the only package providing textsubscript
+textsubscript x = latexCmdArgs "textsubscript" [packageDependency (pkgName "fixltxe2")
+                                               ,mandatory x]
+
+-- Litteral underscore in text mode
+textunderscore :: LatexItem
+textunderscore = texCmdNoArg "textunderscore"
 
 -- Line and page breaking
 
