@@ -292,6 +292,11 @@ addvspace = parCmdArg "addvspace" . texLength
 unwords :: [LatexItem] -> LatexItem
 unwords = mconcat . intersperse space
 
+-- TODO
+-- unlines:
+-- * does it makes sense?
+-- * given that newline can be forbidden at some places is it safe?
+-- * Why not just a minipage ? . mconcat
 
 -- Fonts
 -- some ref used: http://www.cl.cam.ac.uk/~rf10/pstex/latexcommands.htm
