@@ -1,10 +1,10 @@
 module Language.LaTeX.Builder.Rotating (pkg, turn) where
 
 import Language.LaTeX.Types
-import qualified Language.LaTeX.Builder.Internal as B
+import qualified Language.LaTeX.Builder.Internal as BI
 
 pkg :: PackageName
-pkg = B.pkgName "rotating"
+pkg = BI.pkgName "rotating"
 
 turn :: Int -> LatexItem -> LatexItem
-turn i = B.latexEnvironment "turn" [B.packageDependency pkg, B.mandatory (B.num i)]
+turn i = BI.latexEnvironment "turn" [BI.packageDependency pkg, BI.mandatory (BI.num i)]

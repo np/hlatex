@@ -9,7 +9,7 @@ import qualified Language.LaTeX.Builder.Internal as BI
 import qualified Language.LaTeX.Builder as B
 import Language.LaTeX.Builder.QQ
 import Control.Applicative
-import Data.List (intersperse,intercalate)
+import Data.List (intersperse)
 import Data.Maybe
 import Data.Monoid
 
@@ -35,14 +35,20 @@ showDocClassOption Red       = "red"
 documentclasskind :: DocumentClassKind
 documentclasskind =  OtherDocumentClassKind "beamer"
 
-beamer :: Maybe LatexLength -> [DocClassOption] -> [LatexItem] -> DocumentClass
+beamer :: Maybe LatexLength -> [DocClassOption] -> [AnyItem] -> DocumentClass
 beamer msize opts
   = B.documentclass documentclasskind
   . (maybeToList (BI.texLength <$> msize) ++)
-  . (map (BI.rawTex . showDocClassOption) opts ++)
+  . (map (BI.latexItem . BI.rawTex . showDocClassOption) opts ++)
 
 type TargetName = String
 type Label = String
+
+labelArg :: Label -> Arg AnyItem
+labelArg = BI.mandatoryLatexItem . BI.rawTex
+
+targetArg :: TargetName -> Arg AnyItem
+targetArg = BI.mandatoryLatexItem . BI.rawTex
 
 data FrameOpt = Label Label
               | Fragile
@@ -70,7 +76,7 @@ texFrameOpt (Label lbl)        = ("label",lbl)
 texFrameOpt Fragile            = ("fragile","")
 texFrameOpt (OtherOption a b)  = (a,b)
 
-texFrameOpts :: [FrameOpt] -> [Arg LatexItem]
+texFrameOpts :: [FrameOpt] -> Arg AnyItem
 texFrameOpts = beamerOpts . map texFrameOpt
 
 showOvInt :: OverlayInt -> ShowS
@@ -94,8 +100,11 @@ showOverlays ovs  = Just . ('<':) . (++">") . showsOv ovs $ []
 texOverlaysOpt :: Overlays -> Maybe LatexItem
 texOverlaysOpt = fmap BI.rawTex . showOverlays
 
-texOverlaysArg :: Overlays -> Arg LatexItem
+texOverlaysArg :: Overlays -> Arg a
 texOverlaysArg = maybe BI.noArg BI.rawArg . showOverlays
+
+texOverlaysOptArg :: Overlays -> Arg AnyItem
+texOverlaysOptArg = maybe BI.noArg (BI.optionalLatexItem . BI.rawTex) . showOverlays
 
 label :: Label -> FrameOpt
 label = Label
@@ -106,17 +115,18 @@ frame ov mov fopts title subtitle =
   {- recent beamer versions
   BI.parEnvironmentPar "frame" $ [ texOverlaysArg ov
                                  , maybe BI.noArg BI.optional $ texOverlaysOpt mov
-                                 ] ++ texFrameOpts fopts ++
-                                 [ BI.mandatory title
+                                 , texFrameOpts fopts
+                                 , BI.mandatory title
                                  , BI.mandatory subtitle ]
   -}
-  BI.parEnvironmentPar "frame" ([ texOverlaysArg ov
-                                , maybe BI.noArg BI.optional $ texOverlaysOpt mov
-                                ] ++ texFrameOpts fopts) .
-     (mapNonEmpty frametitle title ⊕) . (mapNonEmpty framesubtitle subtitle ⊕)
+  BI.parEnvironmentPar "frame" [ texOverlaysArg ov
+                               , texOverlaysOptArg mov
+                               , texFrameOpts fopts
+                               ] . (mapNonEmpty frametitle title ⊕)
+                                 . (mapNonEmpty framesubtitle subtitle ⊕)
 
 frameO :: Overlays -> ParItem  -> ParItem
-frameO overlays = BI.parEnvironmentPar "frame" [maybe BI.noArg BI.optional $ texOverlaysOpt overlays]
+frameO overlays = BI.parEnvironmentPar "frame" [texOverlaysOptArg overlays]
 
 example :: ParItem -> ParItem
 example = BI.parEnvironmentPar "example" []
@@ -125,7 +135,7 @@ theorem :: ParItem -> ParItem
 theorem = BI.parEnvironmentPar "theorem" []
 
 block :: LatexItem -> ParItem -> ParItem
-block title = BI.parEnvironmentPar "block" [BI.mandatory title]
+block title = BI.parEnvironmentPar "block" [BI.mandatoryLatexItem title]
 
 slide :: LatexItem -> ParItem -> ParItem
 slide tit = frame [] [] [] tit ø
@@ -134,10 +144,10 @@ slideO :: LatexItem -> Overlays -> ParItem -> ParItem
 slideO tit ovs body = frameO ovs (frametitle tit ⊕ body)
 
 frametitle :: LatexItem -> ParItem
-frametitle = BI.parCmdArg "frametitle"
+frametitle = BI.parCmdArg "frametitle" . BI.latexItem
 
 framesubtitle :: LatexItem -> ParItem
-framesubtitle = BI.parCmdArg "framesubtitle"
+framesubtitle = BI.parCmdArg "framesubtitle" . BI.latexItem
 
 -- | All overlays counting from the given argument (like in @<1->@).
 ovFrom :: OverlayInt -> Overlay
@@ -241,17 +251,18 @@ altenv :: Overlays   -- ^ overlay specification
        -> ParItem
 altenv ov b e ab ae =
   BI.parEnvironmentPar "altenv"  [  texOverlaysArg ov
-                                 ,  BI.mandatory b, BI.mandatory e
-                                 ,  BI.mandatory ab, BI.mandatory ae
+                                 ,  BI.mandatoryLatexItem b
+                                 ,  BI.mandatoryLatexItem e
+                                 ,  BI.mandatoryLatexItem ab
+                                 ,  BI.mandatoryLatexItem ae
                                  ]
 
-beamerOpts :: [BeamerOpt] -> [Arg LatexItem]
-beamerOpts []  = []
-beamerOpts os  = [BI.optional . BI.rawTex . intercalate "," . map f $ os]
-  where f (x,y) = x ++ "=" ++ y
+beamerOpts :: [BeamerOpt] -> Arg AnyItem
+beamerOpts = BI.namedOpts . map f
+  where f (x,y) = Named x (BI.latexItem . BI.rawTex $ y)
 
 beamerPreambleCmdArgs :: String -> [BeamerOpt] -> LatexItem -> PreambleItem
-beamerPreambleCmdArgs name opts arg = BI.preambleCmdArgs name (beamerOpts opts ++ [BI.mandatory arg])
+beamerPreambleCmdArgs name opts arg = BI.preambleCmdArgs name [beamerOpts opts, BI.mandatoryLatexItem arg]
 
 usetheme, usefonttheme, useinnertheme, useoutertheme,
   usecolortheme :: [BeamerOpt] -> LatexItem -> PreambleItem
@@ -309,18 +320,19 @@ beamerreturnbutton = BI.latexCmdArg "beamerreturnbutton"
 -}
 hyperlink :: Overlays -> TargetName -> LatexItem -> Overlays -> LatexItem
 hyperlink ov1 target linkText ov2 =
-  BI.latexCmdArgs "hyperlink"  [  texOverlaysArg ov1
-                               ,  BI.mandatory (BI.rawTex target)
-                               ,  BI.mandatory linkText
-                               ,  texOverlaysArg ov2
-                               ]
+  BI.latexCmdAnyArgs "hyperlink"  [  texOverlaysArg ov1
+                                  ,  targetArg target
+                                  ,  BI.mandatoryLatexItem linkText
+                                  ,  texOverlaysArg ov2
+                                  ]
 
 againframe :: Overlays -> Overlays -> [FrameOpt] -> Label -> ParItem
 againframe ov1 ov2 fopts lbl =
-  BI.parCmdArgs "againframe" . concat $  [  texOverlaysArg ov1
-                                         ,  texOverlaysArg ov2
-                                         ]
-                                         : texFrameOpts fopts : [[BI.mandatory (BI.rawTex lbl)]]
+  BI.parCmdArgs "againframe" [ texOverlaysArg ov1
+                             , texOverlaysArg ov2
+                             , texFrameOpts fopts
+                             , labelArg lbl
+                             ]
 
 
 -- | Disable those litte icons at the bottom right of your presentation.
@@ -353,19 +365,20 @@ data BeamerSize
     -- ^ set an additional vertical offset that is added to the mini
     -- frame size when arranging mini frames vertically.
 
-texBeamerSizeArg :: BeamerSize -> LatexItem
-texBeamerSizeArg bs = case bs of
-  TextMarginLeft dim -> BI.rawTex "text margin left=" ⊕ BI.texLength dim
-  TextMarginRight dim -> BI.rawTex "text margin right=" ⊕ BI.texLength dim
-  SidebarWidthLeft dim -> BI.rawTex "sidebar width left=" ⊕ BI.texLength dim
-  SidebarWidthRight dim -> BI.rawTex "sidebar width right=" ⊕ BI.texLength dim
-  DescriptionWidth dim -> BI.rawTex "description width=" ⊕ BI.texLength dim
-  DescriptionWidthOf txt -> BI.rawTex "description width of=" ⊕ txt
-  MiniFrameSize dim -> BI.rawTex "mini frame size=" ⊕ BI.texLength dim
-  MiniFrameOffset dim -> BI.rawTex "mini frame offset=" ⊕ BI.texLength dim
+texBeamerSizeArg :: BeamerSize -> Arg AnyItem
+texBeamerSizeArg bs = BI.namedArgs . pure $ case bs of
+  TextMarginLeft dim     -> n "text margin left"     $ BI.texLength dim
+  TextMarginRight dim    -> n "text margin right"    $ BI.texLength dim
+  SidebarWidthLeft dim   -> n "sidebar width left"   $ BI.texLength dim
+  SidebarWidthRight dim  -> n "sidebar width right"  $ BI.texLength dim
+  DescriptionWidth dim   -> n "description width"    $ BI.texLength dim
+  DescriptionWidthOf txt -> n "description width of" $ BI.latexItem txt
+  MiniFrameSize dim      -> n "mini frame size"      $ BI.texLength dim
+  MiniFrameOffset dim    -> n "mini frame offset"    $ BI.texLength dim
+  where n = Named
 
 setbeamersize :: BeamerSize -> PreambleItem
-setbeamersize = BI.preambleCmdArgs "setbeamersize" . pure . BI.mandatory . texBeamerSizeArg
+setbeamersize = BI.preambleCmdArgs "setbeamersize" . pure . texBeamerSizeArg
 
 appendix :: ParItem
 appendix = BI.parCmdArgs "appendix" []

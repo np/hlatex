@@ -20,10 +20,8 @@ module Language.LaTeX.Builder.Color
 where
 
 import Data.String
-import Data.List
-import Data.Monoid
 import Language.LaTeX.Types
-import qualified Language.LaTeX.Builder.Internal as B
+import qualified Language.LaTeX.Builder.Internal as BI
 import Control.Monad.Error (throwError)
 
 data Color = BaseColor String
@@ -32,15 +30,17 @@ data Color = BaseColor String
            | CYMK Rational Rational Rational Rational
            | Gray Rational
 
-colorArgs :: Color -> [Arg LatexItem]
-colorArgs = (B.packageDependency pkg:) . f
-  where f (BaseColor n)  = [B.mandatory (fromString n)]
-        f (NamedColor n) = [B.optional "named", B.mandatory (fromString n)]
+colorArgs :: Color -> [Arg AnyItem]
+colorArgs = (BI.packageDependency pkg:) . f
+  where f (BaseColor n)  = [man n]
+        f (NamedColor n) = [opt "named", man n]
         f (RGB r g b)    = model "rgb" [r,g,b]
         f (CYMK c y m k) = model "cymk" [c,y,m,k]
         f (Gray g)       = model "gray" [g]
-        model name cs    = [B.optional name
-                           ,B.mandatory (mconcat (intersperse "," (map B.num cs)))]
+        opt = BI.optionalLatexItem . fromString
+        man = BI.mandatoryLatexItem . fromString
+        model name cs    = [opt name,
+                            BI.mandatoryList . map BI.num $ cs]
 
 red, green, blue, black, white, cyan, magenta, yellow :: Color
 [red, green, blue, black, white, cyan, magenta, yellow] =
@@ -50,7 +50,7 @@ orange :: Color
 orange = rgb 1 0.5 0
 
 pkg :: PackageName
-pkg = B.pkgName "color"
+pkg = BI.pkgName "color"
 
 named :: String -> Color
 named = NamedColor
@@ -66,19 +66,19 @@ gray = Gray
 
 -- | 'pagecolor' sets the background colour for the current and following pages
 pagecolor :: Color -> ParItem
-pagecolor = B.parCmdArgs "pagecolor" . colorArgs
+pagecolor = BI.parCmdArgs "pagecolor" . colorArgs
 
 -- | 'color' is a declaration to switch to setting text in the given colour
 color :: Color -> TexDecl
-color = B.texDecl' "color" . colorArgs
+color = BI.texDecl' "color" . colorArgs
 
 -- | 'textcolor' sets the text of its argument in the given colour
 textcolor :: Color -> LatexItem -> LatexItem
-textcolor c x = B.latexCmdArgs "textcolor" (colorArgs c ++ [B.mandatory x])
+textcolor c x = BI.latexCmdAnyArgs "textcolor" (colorArgs c ++ [BI.mandatoryLatexItem $ x])
 
 -- | 'colorbox' sets its argument in a box with the given colour as background
 colorbox :: Color -> LatexItem -> LatexItem
-colorbox c x = B.latexCmdArgs "colorbox" (colorArgs c ++ [B.mandatory x])
+colorbox c x = BI.latexCmdAnyArgs "colorbox" (colorArgs c ++ [BI.mandatoryLatexItem $ x])
 
 -- | @fcolorbox c1 c2 text@ is like 'colorbox', with a frame of @c1@ around a box
 --   of background colour @c2@.
@@ -94,17 +94,17 @@ fcolorbox c1 c2 x =
        case (colorArgs c1, colorArgs c2) of
          ([p, m1, a1], [_, m2, a2]) | m1 == m2 -> [p, m1, a1, a2]
          ([p, a1], [_, a2]) -> [p, a1, a2]
-         _ -> [B.mandatory (throwError "fcolorbox: arguments must be either of the same model,\
+         _ -> [BI.mandatory (AnyItem $ throwError "fcolorbox: arguments must be either of the same model,\
                                        \ or be defined colors.")]
   in
-  B.latexCmdArgs "fcolorbox" (args ++ [B.mandatory x])
+  BI.latexCmdAnyArgs "fcolorbox" (args ++ [BI.mandatoryLatexItem x])
 
 -- | Like 'color' but usable in the preamble.
 preamblecolor :: Color -> PreambleItem
-preamblecolor = B.preambleCmdArgs "color" . colorArgs
+preamblecolor = BI.preambleCmdArgs "color" . colorArgs
 
 -- | 'normalcolor' switches to the colour that was active at the end of the preamble.
 --   Thus placing a 'color' declaration in the preamble can change the standard colour
 --   for the whole document. This is the equivalent to 'normalfont' for font selection.
 normalcolor :: TexDecl
-normalcolor = B.texDecl' "normalcolor" [B.packageDependency pkg]
+normalcolor = BI.texDecl' "normalcolor" [BI.packageDependency pkg]

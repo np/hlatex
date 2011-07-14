@@ -13,9 +13,9 @@ module Language.LaTeX.Builder.Math
    infty, int, iota, jmath, kappa, lambda, langle, lbrace, lceiling, lcm,
    ldots, ldotp, le, leftarrow, leftrightarrow, leq, lfloor, lim, liminf, limsup, ln,
    log, lparen, mathBinOp, longleftarrow, longrightarrow, longleftrightarrow,
-   mathBinOps, mathCmd, mathCmdArg, mathCmdArgs, mathCmdsArg,
+   mathBinOps, mathCmd, mathCmdArg, mathCmdArgs, mathCmdMathArg, mathCmdMathArgs, mathCmdsArg,
    mathDecl, mathGroup, allMathItems, allMathDecls, rawDecls, decl, decls,
-   mathToLR, mathbb, mathbf, mathnormal, mathrm, mathsf, mathit, mathscr,
+   mathbb, mathbf, mathnormal, mathrm, mathsf, mathit, mathscr,
    mathcal, mathfrak, mathtt, max, mbox, min, mit, mleft, mediumspace,
    negthinspace, mod, models, mrat, mright, msup, thickspace,
    thinspace, mu, nabla, ne, neg, notin, nu, oint, omega, omicron, oplus, otimes,
@@ -68,14 +68,17 @@ group = liftMath MathGroup
 mathGroup :: MathItem -> MathItem
 mathGroup = liftMath MathGroup
 
-mathCmdArgs :: String -> [Arg MathItem] -> MathItem
-mathCmdArgs m1 ys = MathItem $ MathCmdArgs m1 <$> mapM (mapM mathItmM) ys
+mathCmdArgs :: String -> [Arg AnyItem] -> MathItem
+mathCmdArgs name args = MathItem $ MathCmdArgs name <$> mapM (mapM anyItmM) args
 
-mathCmdArg :: String -> MathItem -> MathItem
+mathCmdMathArgs :: String -> [Arg MathItem] -> MathItem
+mathCmdMathArgs name = mathCmdArgs name . (map . fmap) B.mathItem
+
+mathCmdArg :: String -> AnyItem -> MathItem
 mathCmdArg m1 m2 = mathCmdArgs m1 [B.mandatory m2]
 
-mathToLR :: String -> [Arg LatexItem] -> MathItem
-mathToLR cmdName args = MathItem $ MathToLR cmdName <$> mapM sequenceA args
+mathCmdMathArg :: String -> MathItem -> MathItem
+mathCmdMathArg name = mathCmdMathArgs name . pure . B.mandatory
 
 mathDecl :: String -> MathDecl
 mathDecl = pure . MathDcl
@@ -109,17 +112,17 @@ sub = (rawMath "_" ⊕) . mathGroup
 sup = (rawMath "^" ⊕) . mathGroup
 
 frac, stackrel :: MathItem -> MathItem -> MathItem
-frac m1 m2 = mathCmdArgs "frac" [B.mandatory m1,B.mandatory m2]
-stackrel m1 m2 = mathCmdArgs "stackrel" [B.mandatory m1,B.mandatory m2]
+frac m1 m2 = mathCmdMathArgs "frac" [B.mandatory m1,B.mandatory m2]
+stackrel m1 m2 = mathCmdMathArgs "stackrel" [B.mandatory m1,B.mandatory m2]
 
 sqrt :: MathItem -> MathItem
-sqrt = mathCmdArgs "sqrt" . (:[]) . B.mandatory
+sqrt = mathCmdMathArg "sqrt"
 
 sqrt' :: MathItem -> MathItem -> MathItem
-sqrt' n1 m1 = mathCmdArgs "sqrt" [B.optional n1, B.mandatory m1]
+sqrt' n1 m1 = mathCmdMathArgs "sqrt" [B.optional n1, B.mandatory m1]
 
 phantom :: MathItem -> MathItem
-phantom = mathCmdArgs "phantom" . (:[]) . B.mandatory
+phantom = mathCmdMathArg "phantom"
 
 mleft, mright :: Char -> MathItem
 mleft m1  = MathItem $ RawMath . ("\\left"  ⊕) <$> parenChar m1
@@ -143,14 +146,16 @@ parenChar m1 | m1 `elem` "([.])" = return [m1]
 -- some other packages/classes like the JFP class.
 -- Maybe this should be move to a Amsmath module
 text :: LatexItem -> MathItem
-text arg = mathToLR "text" [B.packageDependency amsmath, B.mandatory arg]
+text arg = mathCmdArgs "text" [B.packageDependency amsmath, B.mandatoryLatexItem arg]
 
 mbox :: LatexItem -> MathItem
-mbox arg = mathToLR "mbox" [B.mandatory arg]
+mbox arg = mathCmdArgs "mbox" [B.mandatoryLatexItem arg]
 
 array :: [RowSpec MathItem] -> [Row MathItem] -> MathItem
 array spec items = MathItem $ B.tabularLike MathArray (map (fmap mathItmM) spec)
                                                       (map (fmap mathItmM) items)
+
+-- TODO equation
 
 {- This chunk was extracted from Language.LaTeX.Builder -}
 lbrace :: MathItem
@@ -460,54 +465,54 @@ _Leftrightarrow = mathCmd "Leftrightarrow"
 -- https://secure.wikimedia.org/wikibooks/en/wiki/LaTeX/Mathematics#Formatting_mathematics_symbols
 -- they are said to depend on amsfonts, maybe one should force it
 mathnormal, mathrm, mathit, mathbf, mathsf, mathtt, mathbb, mathcal, mathfrak, mathscr :: MathItem -> MathItem
-mathnormal = mathCmdArg "mathnormal"
-mathrm = mathCmdArg "mathrm"
-mathit = mathCmdArg "mathit"
-mathbf = mathCmdArg "mathbf"
-mathsf = mathCmdArg "mathsf"
-mathtt = mathCmdArg "mathtt"
-mathcal = mathCmdArg "mathcal"
-mathfrak = mathCmdArg "mathfrak"
-mathbb = mathCmdArg "mathbb"
-mathscr = mathCmdArg "mathscr"
+mathnormal = mathCmdMathArg "mathnormal"
+mathrm = mathCmdMathArg "mathrm"
+mathit = mathCmdMathArg "mathit"
+mathbf = mathCmdMathArg "mathbf"
+mathsf = mathCmdMathArg "mathsf"
+mathtt = mathCmdMathArg "mathtt"
+mathcal = mathCmdMathArg "mathcal"
+mathfrak = mathCmdMathArg "mathfrak"
+mathbb = mathCmdMathArg "mathbb"
+mathscr = mathCmdMathArg "mathscr"
 pmod :: MathItem -> MathItem
-pmod = mathCmdArg "pmod"
+pmod = mathCmdMathArg "pmod"
 tilde :: MathItem -> MathItem
-tilde = mathCmdArg "tilde"
+tilde = mathCmdMathArg "tilde"
 hat :: MathItem -> MathItem
-hat = mathCmdArg "hat"
+hat = mathCmdMathArg "hat"
 check :: MathItem -> MathItem
-check = mathCmdArg "check"
+check = mathCmdMathArg "check"
 breve :: MathItem -> MathItem
-breve = mathCmdArg "breve"
+breve = mathCmdMathArg "breve"
 acute :: MathItem -> MathItem
-acute = mathCmdArg "acute"
+acute = mathCmdMathArg "acute"
 grave :: MathItem -> MathItem
-grave = mathCmdArg "grave"
+grave = mathCmdMathArg "grave"
 bar :: MathItem -> MathItem
-bar = mathCmdArg "bar"
+bar = mathCmdMathArg "bar"
 vec :: MathItem -> MathItem
-vec = mathCmdArg "vec"
+vec = mathCmdMathArg "vec"
 dot :: MathItem -> MathItem
-dot = mathCmdArg "dot"
+dot = mathCmdMathArg "dot"
 ddot :: MathItem -> MathItem
-ddot = mathCmdArg "ddot"
+ddot = mathCmdMathArg "ddot"
 overbrace :: MathItem -> MathItem
-overbrace = mathCmdArg "overbrace"
+overbrace = mathCmdMathArg "overbrace"
 underbrace :: MathItem -> MathItem
-underbrace = mathCmdArg "underbrace"
+underbrace = mathCmdMathArg "underbrace"
 overline :: MathItem -> MathItem
-overline = mathCmdArg "overline"
+overline = mathCmdMathArg "overline"
 underline :: MathItem -> MathItem
-underline = mathCmdArg "underline"
+underline = mathCmdMathArg "underline"
 widehat :: MathItem -> MathItem
-widehat = mathCmdArg "widehat"
+widehat = mathCmdMathArg "widehat"
 widetilde :: MathItem -> MathItem
-widetilde = mathCmdArg "widetilde"
+widetilde = mathCmdMathArg "widetilde"
 imath :: MathItem -> MathItem
-imath = mathCmdArg "imath"
+imath = mathCmdMathArg "imath"
 jmath :: MathItem -> MathItem
-jmath = mathCmdArg "jmath"
+jmath = mathCmdMathArg "jmath"
 displaystyle :: MathDecl
 displaystyle = mathDecl "displaystyle"
 textstyle :: MathDecl

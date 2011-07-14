@@ -48,7 +48,7 @@ data DocumentClassKind  = Article
 
 data DocumentClss
   = DocClass  {  docClassKind     :: DocumentClassKind
-              ,  docClassOptions  :: [LatexItm]
+              ,  docClassOptions  :: [AnyItm]
               }
   deriving (Show, Eq, Typeable, Data)
 
@@ -56,12 +56,15 @@ data AnyItm = PreambleItm PreambleItm
             | LatexItm    LatexItm
             | MathItm     MathItm
             | ParItm      ParItm
+            | LocSpecs    [LocSpec]
+            | Key         Key
+            | PackageName PackageName
   deriving (Show, Eq, Typeable, Data)
 
-data PreambleItm = PreambleCmdArgs String [Arg LatexItm]
-                 | PreambleEnv String [Arg LatexItm] AnyItm
+data PreambleItm = PreambleCmdArgs String [Arg AnyItm]
+                 | PreambleEnv String [Arg AnyItm] AnyItm
                  | PreambleConcat [PreambleItm]
-                 | Usepackage PackageName [LatexItm]
+                 | Usepackage PackageName [AnyItm]
                  | RawPreamble String
                  | PreambleNote Key Note PreambleItm
   deriving (Show, Eq, Typeable, Data)
@@ -74,7 +77,7 @@ instance Monoid PreambleItm where
   x                 `mappend` y                 = PreambleConcat [x, y]
 
 data TexDcl = TexDcl { texDeclName :: String
-                     , texDeclArgs :: [Arg LatexItm]
+                     , texDeclArgs :: [Arg AnyItm]
                      }
   deriving (Show, Eq, Typeable, Data)
 
@@ -85,14 +88,14 @@ data TexDcl = TexDcl { texDeclName :: String
 -- Modes: http://www.personal.ceu.hu/tex/modes.htm
 data LatexItm
            = LatexCmdArgs String [Arg LatexItm]
+           | LatexCmdAnyArgs String [Arg AnyItm]
            | TexDecls [TexDcl]
            | TexCmdNoArg String
            | TexCmdArg String LatexItm
-           | Environment String [Arg LatexItm] LatexItm
+           | Environment String [Arg AnyItm] LatexItm
            | MathInline MathItm
            | LatexCoord Coord
            | LatexLength LatexLength
-           | LatexKeys [Key]
            | LatexSaveBin SaveBin
            | LatexParMode ParItm
            | RawTex String
@@ -114,12 +117,16 @@ instance IsString LatexItm where
     | otherwise = f s
     where f = RawTex . concatMap rawhchar . concat . intersperse "\n" . filter (not . null) . lines
 
+data Named a = Named String a
+  deriving (Show, Eq, Typeable, Data)
+
 data Arg a = NoArg
-           | StarArg
-           | Optional a
-           | Optionals [a]
-           | Mandatory a
-           | Coordinates a a
+           | StarArg             -- `*'
+           | Mandatory [a]       -- surrounded by `{' `}', separated by `,'
+           | Optional [a]        -- surrounded by `[' `]', separated by `,' or empty is null
+           | NamedArgs [Named a] -- surrounded by `{' `}', separated by `=` and `,'
+           | NamedOpts [Named a] -- surrounded by `[' `]', separated by `=' and `,' or empty is null
+           | Coordinates a a     -- surrounded by `(' `)', separated by ` '
            | RawArg String
            | PackageDependency PackageName
   deriving (Show, Eq, Typeable, Data)
@@ -132,38 +139,16 @@ instance Monoid Star where
   NoStar `mappend` x      = x
   x      `mappend` _      = x
 
-{-
-instance Functor Arg where
-  f `fmap` (Optional x) = Optional $ f x
-  f `fmap` (Optionals xs) = Optionals $ fmap f xs
-  f `fmap` (Mandatory x) = Mandatory $ f x
-  f `fmap` (Coordinates x y) = Coordinates (f x) (f y)
-
-instance Foldable Arg where
-  foldr f z (Optional x) = f x z
-  foldr f z (Optionals xs) = foldr f z xs
-  foldr f z (Mandatory x) = f x z
-  foldr f z (Coordinates x y) = f x (f y z)
-
-instance Traversable Arg where
-  sequenceA (Optional x) = Optional <$> x
-  sequenceA (Optionals xs) = Optionals <$> sequenceA xs
-  sequenceA (Mandatory x) = Mandatory <$> x
-  sequenceA (Coordinates x y) = Coordinates <$> x <*> y
--}
-
 data Coord = Coord LatexLength LatexLength
   deriving (Show, Eq, Typeable, Data)
 
 newtype Percentage = Percentage { percentage :: Int } deriving (Eq,Show,Ord,Num)
 
 data ParItm  = Para LatexItm -- Here LatexItm does not mean LR mode
-             | ParCmdArgs String [Arg LatexItm]
-             | ParEnv String [Arg LatexItm] AnyItm
+             | ParCmdArgs String [Arg AnyItm]
+             | ParEnv String [Arg AnyItm] AnyItm
              | DisplayMath MathItm
-             | Equation [MathItm]
              | Tabular [RowSpec LatexItm] [Row LatexItm]
-             | FigureLike String [LocSpec] ParItm
              | RawParMode String
              | ParGroup ParItm -- check validity of this
              | ParConcat [ParItm]
@@ -185,8 +170,7 @@ newtype MathDcl = MathDcl String
   deriving (Show, Eq, Typeable, Data)
 
 data MathItm   = MathDecls [MathDcl]
-               | MathCmdArgs String [Arg MathItm]
-               | MathToLR String [Arg LatexItm]
+               | MathCmdArgs String [Arg AnyItm]
                | MathArray [RowSpec MathItm] [Row MathItm]
                | RawMath String
                | MathRat Rational
@@ -209,7 +193,7 @@ instance Num MathItm where
   (*) = MathBinOp "*"
   (-) = MathBinOp "-"
   negate = MathUnOp "-"
-  abs x = MathCmdArgs "abs" [Mandatory x] -- TODO check
+  abs x = MathCmdArgs "abs" [Mandatory [MathItm x]] -- TODO check
   signum = error "MathItm.signum is undefined"
   fromInteger = MathRat . (%1)
 
@@ -380,7 +364,7 @@ data ListItm = ListItm { itemOptions :: [Arg LatexItm], itemContents :: ParItm }
 newtype PackageName = PkgName { getPkgName :: String }
   deriving (Ord, Eq, Show, Typeable, Data)
 
-newtype Key = Key { getKey :: String }
+newtype Key = MkKey { getKey :: String }
   deriving (Eq, Show, Typeable, Data)
 
 newtype SaveBin = UnsafeMakeSaveBin { unsafeGetSaveBin :: Int }
@@ -457,7 +441,9 @@ newtype Encoding = Encoding { fromEncoding :: String }
 -- instance (Integral a, Typeable a, Typeable b, PlateAll a b) => PlateAll (Ratio a) b where
 --   plateAll r = plate (%) |+ numerator r |+ denominator r
 
-
+$(derive makeFunctor     ''Named)
+$(derive makeFoldable    ''Named)
+$(derive makeTraversable ''Named)
 $(derive makeFunctor     ''Arg)
 $(derive makeFoldable    ''Arg)
 $(derive makeTraversable ''Arg)

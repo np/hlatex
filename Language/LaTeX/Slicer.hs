@@ -11,7 +11,7 @@ import Language.LaTeX.Builder.MonoidUtils
 import qualified Data.Generics.Uniplate.Data as U
 
 marknote :: ParItm
-marknote = ParNote (Key "slicemark") (TextNote "") ø
+marknote = ParNote (MkKey "slicemark") (TextNote "") ø
 
 mark :: ParItemW
 mark = tell $ return marknote

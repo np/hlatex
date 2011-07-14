@@ -24,11 +24,10 @@ item', itemize, itshape, j, label,
 large, ldots, letter, linebreak, linebr,
 lq, makebox, maketitle,
 math, mbox, mdseries, medskip,
-minipage, minipageBot, minipageTop, nbsp, negthinspace, newline, rawNewline,
+minipage, nbsp, negthinspace, newline, rawNewline,
 newpage, nocite, noindent, nolinebreak, nopagebreak, normalfont,
 normalmarginpar, normalsize, num, o, oe, overbar, overdot, pagebreak,
-pageref, pagestyle, para, paragraph, paragraph', parbox, parboxBot,
-parboxTop, part, part', person, phantom, pounds,
+pageref, pagestyle, para, paragraph, paragraph', parbox, part, part', person, phantom, pounds,
 protect, protector, quotation, quote, raisebox, raisebox',
 rat, ref, report, reversemarginpar, ring, rm, rmfamily, rq,
 rtext, rule, rule', samepage, savebox, sbox, sc, scriptsize, scshape, section,
@@ -42,7 +41,7 @@ textsl, texttt, textup, textsuperscript, textsubscript, textunderscore,
 thinspace, thispagestyle, tieafter, tilde,
 tiny, title, titlepage, tt, ttchar, ttfamily, uml,
 underbar, unwords, upshape, usebox, verb, verse, vfill, vline,
-vphantom, vspace, vspace', (★), vbox, vtop, hbox, here, top, bottom, page,
+vphantom, vspace, vspace', (★), vbox, vtop, hbox, here, top, bot, bottom, page, normal,
 centered, flushLeft, flushRight, stretch,
 -- * Input Encodings (inputenc package)
 utf8,latin1,inputenc,fromEncoding,
@@ -185,7 +184,7 @@ verb = texttt . protector ttchar
 
 -- A comment put in the generated LaTeX document
 comment :: String -> ParItem
-comment s = parNote (Key "comment") (stringNote s) ø
+comment s = parNote (MkKey "comment") (stringNote s) ø
 
 href :: LatexItem -> LatexItem -> LatexItem
 href x y = latexCmdArgs "href" [mandatory x,mandatory y]
@@ -227,7 +226,7 @@ normalmarginpar = texDecl "normalmarginpar"
 -- robust
 -- http://www.personal.ceu.hu/tex/spacebox.htm#hspace
 hspace' :: Star -> LatexLength -> LatexItem
-hspace' s = latexCmdArg (starize "hspace" s) . texLength
+hspace' s = latexCmdAnyArg (starize "hspace" s) . texLength
 
 -- robust
 -- http://www.personal.ceu.hu/tex/spacebox.htm#hspace
@@ -373,16 +372,16 @@ nolinebreak = texDeclOpt "nolinebreak" . num
 -- http://www.personal.ceu.hu/tex/breaking.htm#linebr
 linebr :: Star -> Maybe LatexLength -> LatexItem
 linebr s extraSpace =
-  latexCmdArgs "\\" [starToArg s
-                    ,maybe noArg (optional . texLength) extraSpace
-                    ,rawArg "%\n"]
+  latexCmdAnyArgs "\\" [starToArg s
+                       ,maybe noArg optTexLength extraSpace
+                       ,rawArg "%\n"]
 
 -- fragile
 -- http://www.personal.ceu.hu/tex/breaking.htm#newline
 rawNewline :: Maybe LatexLength -> LatexItem
 rawNewline mlen =
-  latexCmdArgs "newline" [maybe noArg (optional . texLength) mlen
-                         ,rawArg "%\n"]
+  latexCmdAnyArgs "newline" [maybe noArg optTexLength mlen
+                            ,rawArg "%\n"]
 
 -- fragile
 -- http://www.personal.ceu.hu/tex/breaking.htm#newline
@@ -398,7 +397,7 @@ hyphen = rawTex "{\\-}" -- check if {...} does not cause trouble here
 -- robust
 -- http://www.personal.ceu.hu/tex/breaking.htm#hyphw
 hyphenation :: [String] -> ParItem
-hyphenation = parCmdArg "hyphenation" . rawTex . L.unwords -- rawTex is a bit rough here
+hyphenation = parCmdArg "hyphenation" . latexItem . rawTex . L.unwords -- rawTex is a bit rough here
 
 sloppy, fussy :: TexDecl
 sloppy = texDecl "sloppy"
@@ -485,13 +484,16 @@ instance Mbox ParItem where
 mbox :: LatexItem -> LatexItem
 mbox = latexCmdArg "mbox"
 
+posArg :: Pos -> Arg AnyItem
+posArg = optional . latexItem . rawTex . pure . charPos
+
 -- fragile
 -- http://www.personal.ceu.hu/tex/spacebox.htm#makebox
 makebox :: LatexLength -> Pos -> LatexItem -> LatexItem
 makebox width pos txt =
-  latexCmdArgs "makebox" [optional $ texLength width
-                         ,optional $ rawTex [charPos pos]
-                         ,mandatory txt]
+  latexCmdAnyArgs "makebox" [optTexLength width
+                            ,posArg pos
+                            ,mandatoryLatexItem txt]
 
 -- robust
 fbox :: LatexItem -> LatexItem
@@ -500,9 +502,9 @@ fbox = latexCmdArg "fbox"
 -- fragile
 -- http://www.personal.ceu.hu/tex/spacebox.htm#framebox
 framebox :: LatexLength -> Pos -> LatexItem -> LatexItem
-framebox width pos txt = latexCmdArgs "framebox" [optional $ texLength width
-                                                 ,optional $ rawTex [charPos pos]
-                                                 ,mandatory txt]
+framebox width pos txt = latexCmdAnyArgs "framebox" [optTexLength width
+                                                    ,posArg pos
+                                                    ,mandatoryLatexItem txt]
 
 phantom :: LatexItem -> LatexItem
 phantom = latexCmdArg "phantom"
@@ -512,68 +514,67 @@ vphantom = latexCmdArg "vphantom"
 
 -- robust
 sbox :: SaveBin -> LatexItem -> LatexItem
-sbox bin txt = latexCmdArgs "sbox" [mandatory $ latexSaveBin bin, mandatory txt]
+sbox bin txt = latexCmdAnyArgs "sbox" [mandatory $ latexSaveBin bin, mandatoryLatexItem txt]
 
 -- fragile
 savebox :: SaveBin -> Maybe LatexLength -> Maybe (Either () ()) -> LatexItem -> LatexItem
 savebox bin width dir txt =
-  latexCmdArgs "savebox" [mandatory $ latexSaveBin bin
-                         ,maybe noArg (optional . texLength) width
-                         ,maybe noArg (optional . either ll rr) dir
-                         ,mandatory txt]
+  latexCmdAnyArgs "savebox" [mandatory $ latexSaveBin bin
+                            ,maybe noArg (optTexLength) width
+                            ,maybe noArg (optionalLatexItem . either ll rr) dir
+                            ,mandatoryLatexItem txt]
   where ll _ = rawTex "l"
         rr _ = rawTex "r"
 
 -- robust
 usebox :: SaveBin -> LatexItem
-usebox bin = latexCmdArgs "usebox" [mandatory $ latexSaveBin bin]
+usebox bin = latexCmdAnyArgs "usebox" [mandatory $ latexSaveBin bin]
+
+-- vertical position for parbox and minipage
+data VPos = Normal
+          | Top
+          | Bot
+
+vposArg :: VPos -> Arg AnyItem
+vposArg Normal = noArg
+vposArg Top    = optional . latexItem . rawTex $ "t"
+vposArg Bot    = optional . latexItem . rawTex $ "b"
 
 -- fragile
 -- http://www.personal.ceu.hu/tex/spacebox.htm#parbox
-parbox :: LatexLength -> LatexItem -> LatexItem
-parbox width txt =
-  latexCmdArgs "parbox" [mandatory $ texLength width, mandatory  txt]
+parbox :: VPos -> LatexLength -> LatexItem -> LatexItem
+parbox pos width txt =
+  latexCmdAnyArgs "parbox" [vposArg pos, mandatory $ texLength width, mandatoryLatexItem txt]
 
--- fragile
-parboxTop :: LatexLength -> LatexItem -> LatexItem
-parboxTop width txt =
-  latexCmdArgs "parbox" [optional $ rawTex "t", mandatory $ texLength width, mandatory  txt]
-
--- fragile
-parboxBot :: LatexLength -> LatexItem -> LatexItem
-parboxBot width txt =
-  latexCmdArgs "parbox" [optional $ rawTex "b", mandatory $ texLength width, mandatory  txt]
-
-minipage :: LatexLength -> ParItem -> LatexItem
-minipage width = latexEnvironmentPar "minipage" [mandatory $ texLength width]
-
-minipageTop :: LatexLength -> ParItem -> LatexItem
-minipageTop width = latexEnvironmentPar "minipage" [optional $ rawTex "t", mandatory $ texLength width]
-
-minipageBot :: LatexLength -> ParItem -> LatexItem
-minipageBot width = latexEnvironmentPar "minipage" [optional $ rawTex "b", mandatory $ texLength width]
+minipage :: VPos -> LatexLength -> ParItem -> LatexItem
+minipage pos width = latexEnvironmentPar "minipage" [vposArg pos, mandatory $ texLength width]
 
 -- fragile
 -- http://www.personal.ceu.hu/tex/spacebox.htm#rule
 rule :: LatexLength -> LatexLength -> LatexItem
-rule width height = latexCmdArgs "rule" [mandatory $ texLength width,mandatory $ texLength height]
+rule width height = latexCmdAnyArgs "rule" [mandatory $ texLength width
+                                           ,mandatory $ texLength height]
 
 -- fragile
 rule' :: LatexLength -> LatexLength -> LatexLength -> LatexItem
-rule' raise_len width height = latexCmdArgs "rule" [optional $ texLength raise_len
-                                                   ,mandatory $ texLength width,mandatory $ texLength height]
+rule' raise_len width height = latexCmdAnyArgs "rule" [optTexLength raise_len
+                                                      ,mandatory $ texLength width
+                                                      ,mandatory $ texLength height]
 
 -- fragile
 -- http://www.personal.ceu.hu/tex/spacebox.htm#raisebox
 raisebox :: LatexLength -> LatexItem -> LatexItem
 raisebox raise_len txt =
-  latexCmdArgs "raisebox" [mandatory $ texLength raise_len,mandatory txt]
+  latexCmdAnyArgs "raisebox" [mandatory $ texLength raise_len
+                             ,mandatoryLatexItem txt]
 
 -- fragile
 raisebox' :: LatexLength -> LatexLength -> LatexLength -> LatexItem -> LatexItem
 raisebox' raise_len height depth txt =
-  latexCmdArgs "raisebox" [mandatory $ texLength raise_len
-                          ,optional $ texLength height,optional $ texLength depth,mandatory  txt]
+  latexCmdAnyArgs "raisebox" [mandatory $ texLength raise_len
+                             ,optTexLength height
+                             ,optTexLength depth
+                             ,mandatoryLatexItem txt]
 
 footnote :: LatexItem -> LatexItem
 footnote = latexCmdArg "footnote"
@@ -587,21 +588,21 @@ caption' lstentry txt = latexCmdArgs "caption" [optional $ checkentry lstentry, 
           | otherwise        = throwError "caption': restriction to alphanumeric characters for the lstentry"
 
 label :: Key -> LatexItem
-label = latexCmdArg "label" . latexKey
+label = latexCmdAnyArg "label" . latexKey
 ref :: Key -> LatexItem
-ref = latexCmdArg "ref" . latexKey
+ref = latexCmdAnyArg "ref" . latexKey
 pageref :: Key -> LatexItem
-pageref = latexCmdArg "pageref" . latexKey
+pageref = latexCmdAnyArg "pageref" . latexKey
 
 -- fragile
 cite :: [Key] -> LatexItem
-cite = latexCmdArg "cite" . latexKeys
+cite = latexCmdAnyArgs "cite" . pure . latexKeysArg
 cite' :: LatexItem -> [Key] -> LatexItem
-cite' txt keys = latexCmdArgs "cite" [optional txt, mandatory $ latexKeys keys]
+cite' txt keys = latexCmdAnyArgs "cite" [optionalLatexItem txt, latexKeysArg keys]
 
 -- fragile
 nocite :: [Key] -> LatexItem
-nocite = latexCmdArg "nocite" . latexKeys
+nocite = latexCmdAnyArgs "nocite" . pure . latexKeysArg
 
 -- sectioning
 
@@ -624,13 +625,13 @@ para :: LatexItem -> ParItem
 para = liftM Para
 
 bibliography :: LatexItem -> ParItem
-bibliography = parCmdArg "bibliography"
+bibliography = parCmdArg "bibliography" . latexItem
 bibliographystyle :: LatexItem -> ParItem
-bibliographystyle = parCmdArg "bibliographystyle"
+bibliographystyle = parCmdArg "bibliographystyle" . latexItem
 thispagestyle :: LatexItem -> ParItem
-thispagestyle = parCmdArg "thispagestyle"
+thispagestyle = parCmdArg "thispagestyle" . latexItem
 pagestyle :: LatexItem -> ParItem
-pagestyle = parCmdArg "pagestyle"
+pagestyle = parCmdArg "pagestyle" . latexItem
 
 appendix :: ParItem
 appendix = parCmdArgs "appendix" []
@@ -660,7 +661,7 @@ settowidth lengthName text
       = throwError "settowidth: the first argument should be a length name not a constant"
   | otherwise
       = parCmdArgs "settowidth" [mandatory (texLength lengthName)
-                                ,mandatory text]
+                                ,mandatoryLatexItem text]
 
 item :: ParItem -> ListItem
 item = liftM $ ListItm []
@@ -881,11 +882,23 @@ instance HaveC (RowSpec a) where c = Rc
 instance HaveL (RowSpec a) where l = Rl
 instance HaveR (RowSpec a) where r = Rr
 
-here, top, bottom, page :: LocSpec
-here   = Lh
-top    = Lt
-bottom = Lb
-page   = Lp
+class HaveTop a where top :: a
+instance HaveTop LocSpec where top = Lt
+instance HaveTop VPos    where top = Top
+
+class HaveBot a where bot :: a
+instance HaveBot LocSpec where bot = Lb
+instance HaveBot VPos    where bot = Bot
+
+class HaveNormal a where normal :: a
+instance HaveNormal VPos where normal = Normal
+
+bottom :: HaveBot a => a
+bottom = bot
+
+here, page :: LocSpec
+here = Lh
+page = Lp
 
 centered, flushLeft, flushRight, stretch :: Pos
 centered = Centered
@@ -899,30 +912,30 @@ stretch = Stretch
 a4paper :: LatexPaperSize
 a4paper = A4paper
 
-documentclass ::  DocumentClassKind -> [LatexItem] ->
+documentclass ::  DocumentClassKind -> [AnyItem] ->
                   DocumentClass
-documentclass dc = (DocClass dc <$>) . sequenceA
+documentclass dc = (DocClass dc <$>) . mapM anyItmM
 
 article ::  Maybe LatexLength -> Maybe LatexPaperSize ->
-            [LatexItem] -> DocumentClass
+            [AnyItem] -> DocumentClass
 article msize mpaper args =
   documentclass Article $  maybeToList (latexPaper <$> mpaper) ++
                            maybeToList (texLength <$> msize) ++
                            args
 
 -- TODO improve options
-letter :: [LatexItem] -> DocumentClass
+letter :: [AnyItem] -> DocumentClass
 letter = documentclass Letter
 
 book ::  Maybe LatexLength -> Maybe LatexPaperSize ->
-         [LatexItem] -> DocumentClass
+         [AnyItem] -> DocumentClass
 book msize mpaper args =
   documentclass Book $  maybeToList (latexPaper <$> mpaper) ++
                         maybeToList (texLength <$> msize) ++
                         args
 
 -- TODO improve options
-report :: [LatexItem] -> DocumentClass
+report :: [AnyItem] -> DocumentClass
 report = documentclass Report
 
 {-
@@ -1049,14 +1062,14 @@ $(
 {- This chunk was generated by the previous TH splice.
    The lists of all commands are manually maintained though. -}
 author, title, subtitle, date, institute :: LatexItem -> PreambleItem
-title = preambleCmdArg "title"
-subtitle = preambleCmdArg "subtitle"
-date = preambleCmdArg "date"
-author = preambleCmdArg "author"
+title = preambleCmdArg "title" . latexItem
+subtitle = preambleCmdArg "subtitle" . latexItem
+date = preambleCmdArg "date" . latexItem
+author = preambleCmdArg "author" . latexItem
 -- Institute is defined in beamer but not in article.
 -- Should we move these definitions into sub modules?
 -- For instance Language.LaTeX.Article.date
-institute = preambleCmdArg "institute"
+institute = preambleCmdArg "institute" . latexItem
 
 authors :: [LatexItem] -> PreambleItem
 authors = author . mconcat . intersperse (rawTex " & ")
@@ -1069,7 +1082,7 @@ latin1 = rawEncoding "latin1"
 
 inputenc :: Encoding -> PreambleItem
 inputenc (Encoding enc)
-  = usepackage [fromString enc] (pkgName "inputenc")
+  = usepackage [latexItem $ fromString enc] (pkgName "inputenc")
 
 {-# DEPRECATED em "Use emph instead" #-}
 em :: TexDecl

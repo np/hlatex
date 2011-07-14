@@ -60,7 +60,7 @@ keys = (quasiQuoter "keys"){ quoteDec = fs } where
   clean = filter isAlphaNum
   f x = [TH.sigD n [t|Key|]
         ,TH.valD (TH.varP n)
-                 (TH.normalB (TH.appE (TH.conE 'Key) $ TH.stringE x))
+                 (TH.normalB (TH.appE (TH.conE 'MkKey) $ TH.stringE x))
                  []
         ]
         where n = TH.mkName (clean x)

@@ -33,17 +33,36 @@ starToArg Star   = starArg
 starToArg NoStar = noArg
 
 mandatory, optional :: a -> Arg a
-mandatory = Mandatory
-optional = Optional
+mandatory = Mandatory . pure
+optional = Optional . pure
+
+mandatoryLatexItem, optionalLatexItem :: LatexItem -> Arg AnyItem
+mandatoryLatexItem = mandatory . latexItem
+optionalLatexItem = optional . latexItem
 
 coordinates :: a -> a -> Arg a
 coordinates = Coordinates
 
-optionals :: [a] -> Arg a
-optionals = Optionals
+mandatoryList :: [a] -> Arg a
+mandatoryList = Mandatory
 
-usepackage :: [LatexItem] -> PackageName -> PreambleItem
-usepackage opts pkg = Usepackage pkg <$> sequenceA opts
+optionals :: [a] -> Arg a
+optionals = Optional
+
+named :: String -> a -> Named a
+named = Named
+
+namedOpts :: [Named a] -> Arg a
+namedOpts = NamedOpts
+
+namedArgs :: [Named a] -> Arg a
+namedArgs = NamedArgs
+
+optionalLatexItems :: [LatexItem] -> Arg AnyItem
+optionalLatexItems = optionals . map latexItem
+
+usepackage :: [AnyItem] -> PackageName -> PreambleItem
+usepackage opts pkg = Usepackage pkg <$> mapM anyItmM opts
 
 stringNote :: String -> Note
 stringNote = TextNote
@@ -65,19 +84,19 @@ rawDecls = mapNonEmpty $ fmap TexDecls . sequenceA
 texDecl :: String -> TexDecl
 texDecl s = pure $ TexDcl s []
 
-texDecl' :: String -> [Arg LatexItem] -> TexDecl
-texDecl' s opt = TexDcl s <$> mapM sequenceA opt
+texDecl' :: String -> [Arg AnyItem] -> TexDecl
+texDecl' s opts = TexDcl s <$> mapM (mapM anyItmM) opts
 
-texDeclOpt :: String -> LatexItem -> TexDecl
-texDeclOpt s opt = TexDcl s <$> ((:[]) . optional <$> opt)
+texDeclOpt :: String -> AnyItem -> TexDecl
+texDeclOpt s (AnyItem opt) = TexDcl s <$> ((:[]) . optional <$> opt)
 
 parNote :: Key -> Note -> ParItem -> ParItem
 parNote k = fmap . ParNote k
 
-parCmdArgs :: String -> [Arg LatexItem] -> ParItem
-parCmdArgs x ys = ParCmdArgs x <$> mapM sequenceA ys
+parCmdArgs :: String -> [Arg AnyItem] -> ParItem
+parCmdArgs x ys = ParCmdArgs x <$> mapM (mapM anyItmM) ys
 
-parCmdArg :: String -> LatexItem -> ParItem
+parCmdArg :: String -> AnyItem -> ParItem
 parCmdArg x y = parCmdArgs x [mandatory y]
 
 latexNote :: Key -> Note -> LatexItem -> LatexItem
@@ -86,26 +105,35 @@ latexNote k = fmap . LatexNote k
 latexCmdArgs :: String -> [Arg LatexItem] -> LatexItem
 latexCmdArgs x ys = LatexCmdArgs x <$> mapM sequenceA ys
 
+latexCmdAnyArgs :: String -> [Arg AnyItem] -> LatexItem
+latexCmdAnyArgs x ys = LatexCmdAnyArgs x <$> mapM (mapM anyItmM) ys
+
 latexCmdArg :: String -> LatexItem -> LatexItem
 latexCmdArg x y = latexCmdArgs x [mandatory y]
+
+latexCmdAnyArg :: String -> AnyItem -> LatexItem
+latexCmdAnyArg x y = latexCmdAnyArgs x [mandatory y]
 
 preambleNote :: Key -> Note -> PreambleItem -> PreambleItem
 preambleNote k = fmap . PreambleNote k
 
-preambleCmdArgs :: String -> [Arg LatexItem] -> PreambleItem
-preambleCmdArgs x ys = PreambleCmdArgs x <$> mapM sequenceA ys
+preambleCmdArgs :: String -> [Arg AnyItem] -> PreambleItem
+preambleCmdArgs x ys = PreambleCmdArgs x <$> mapM (mapM anyItmM) ys
 
-preambleCmdArg :: String -> LatexItem -> PreambleItem
+preambleCmdArg :: String -> AnyItem -> PreambleItem
 preambleCmdArg x y = preambleCmdArgs x [mandatory y]
 
-preambleEnv :: String -> [Arg LatexItem] -> AnyItem -> PreambleItem
-preambleEnv x ys = liftM2 (PreambleEnv x) (mapM sequenceA ys) . anyItmM
+preambleEnv :: String -> [Arg AnyItem] -> AnyItem -> PreambleItem
+preambleEnv x ys = liftM2 (PreambleEnv x) (mapM (mapM anyItmM) ys) . anyItmM
 
 rawPreamble :: String -> PreambleItem
 rawPreamble = mapNonEmpty $ pure . RawPreamble
 
-texLength :: LatexLength -> LatexItem
-texLength = pure . LatexLength
+texLength :: LatexLength -> AnyItem
+texLength = latexItem . pure . LatexLength
+
+optTexLength :: LatexLength -> Arg AnyItem
+optTexLength = optional . latexItem . pure . LatexLength
 
 latexItem :: LatexItem -> AnyItem
 latexItem = AnyItem . fmap LatexItm
@@ -118,6 +146,9 @@ parItem = AnyItem . fmap ParItm
 
 preambleItem :: PreambleItem -> AnyItem
 preambleItem = AnyItem . fmap PreambleItm
+
+locSpecs :: [LocSpec] -> AnyItem
+locSpecs = AnyItem . pure . LocSpecs
 
 rawEncoding :: String -> Encoding
 rawEncoding = Encoding
@@ -132,8 +163,8 @@ showPaper :: LatexPaperSize -> String
 showPaper A4paper = "a4paper"
 showPaper (OtherPaperSize s) = s
 
-latexPaper :: LatexPaperSize -> LatexItem
-latexPaper = rawTex . showPaper
+latexPaper :: LatexPaperSize -> AnyItem
+latexPaper = latexItem . rawTex . showPaper
 
 otherDocumentClassKind :: String -> DocumentClassKind
 otherDocumentClassKind = OtherDocumentClassKind
@@ -142,38 +173,41 @@ otherDocumentClassKind = OtherDocumentClassKind
 latexParMode :: ParItem -> LatexItem
 latexParMode = fmap LatexParMode
 
-bool :: Bool -> LatexItem
-bool True  = rawTex "true"
-bool False = rawTex "false"
+bool :: Bool -> AnyItem
+bool True  = latexItem $ rawTex "true"
+bool False = latexItem $ rawTex "false"
 
 coord :: Coord -> LatexItem
 coord = pure . LatexCoord
 
-latexSaveBin :: SaveBin -> LatexItem
-latexSaveBin = pure . LatexSaveBin
+latexSaveBin :: SaveBin -> AnyItem
+latexSaveBin = latexItem . pure . LatexSaveBin
 
-latexEnvironment :: String -> [Arg LatexItem] -> LatexItem -> LatexItem
-latexEnvironment x ys = liftM2 (Environment x) $ mapM sequenceA ys
+latexEnvironment :: String -> [Arg AnyItem] -> LatexItem -> LatexItem
+latexEnvironment x ys = liftM2 (Environment x) $ mapM (mapM anyItmM) ys
 
-latexEnvironmentPar :: String -> [Arg LatexItem] -> ParItem -> LatexItem
-latexEnvironmentPar x ys z = liftM2 (Environment x) (mapM sequenceA ys) (LatexParMode `liftM` z)
+latexEnvironmentPar :: String -> [Arg AnyItem] -> ParItem -> LatexItem
+latexEnvironmentPar x ys z = liftM2 (Environment x) (mapM (mapM anyItmM) ys) (LatexParMode `liftM` z)
 
 latexParModeArgs :: String -> [Arg LatexItem] -> ParItem -> LatexItem
 latexParModeArgs x ys z = latexCmdArgs x (ys ++ [mandatory (LatexParMode <$> z)])
 
-parEnv :: String -> [Arg LatexItem] -> AnyItem -> ParItem
-parEnv x ys = liftM2 (ParEnv x) (mapM sequenceA ys) . anyItmM
+parEnv :: String -> [Arg AnyItem] -> AnyItem -> ParItem
+parEnv x ys = liftM2 (ParEnv x) (mapM (mapM anyItmM) ys) . anyItmM
 
-parEnvironmentPar :: String -> [Arg LatexItem] -> ParItem -> ParItem
+parEnvironmentPar :: String -> [Arg AnyItem] -> ParItem -> ParItem
 parEnvironmentPar x ys = parEnv x ys . parItem
 
 figureLike :: String -> Star -> [LocSpec] -> ParItem -> ParItem
-figureLike x s y = liftM $ FigureLike (starize x s) y
+figureLike name star locs
+  = parEnvironmentPar (starize name star)
+      [optional . locSpecs $ locs] -- liftM $ FigureLike (starize x s) y
 
 listLikeEnv :: String -> [Arg LatexItem] -> [ListItem] -> ParItem
 listLikeEnv name opts items =
-  parEnvironmentPar name opts (mconcat <$> mapM (fmap mkItem) items)
-  where mkItem (ListItm opts' contents) = ParCmdArgs "item" opts' ⊕ contents
+  parEnvironmentPar name ((map.fmap) latexItem opts)
+                         (mconcat <$> mapM (fmap mkItem) items)
+  where mkItem (ListItm opts' contents) = ParCmdArgs "item" ((map.fmap) LatexItm opts') ⊕ contents
 
 rawTex :: String -> LatexItem
 rawTex = mapNonEmpty $ pure . RawTex
@@ -181,19 +215,25 @@ rawTex = mapNonEmpty $ pure . RawTex
 texCmdNoArg :: String -> LatexItem
 texCmdNoArg = pure . TexCmdNoArg
 
-latexKey :: Key -> LatexItem
-latexKey = pure . LatexKeys . (:[])
+latexKey :: Key -> AnyItem
+latexKey = AnyItem . pure . Key
 
-latexKeys :: [Key] -> LatexItem
-latexKeys = pure . LatexKeys
+latexKeys :: [Key] -> [AnyItem]
+latexKeys = map latexKey
+
+latexKeysArg :: [Key] -> Arg AnyItem
+latexKeysArg = mandatoryList . latexKeys
+
+latexKeyArg :: Key -> Arg AnyItem
+latexKeyArg = mandatory . latexKey
 
 normSpaces :: String -> String
 normSpaces = unlines . map (L.unwords . words) . lines
 
-num :: Real a => a -> LatexItem
+num :: Real a => a -> AnyItem
 num = texLength . fromRational . toRational
 
-rat :: Rational -> LatexItem
+rat :: Rational -> AnyItem
 rat = texLength . fromRational
 
 space :: LatexItem
@@ -209,7 +249,7 @@ starize s Star   = s ++ "*"
 unsafeNewsavebox :: Int -> (SaveBin, LatexItem)
 unsafeNewsavebox n =
   let bin = UnsafeMakeSaveBin n
-  in (bin, latexCmdArg "newsavebox" $ latexSaveBin bin)
+  in (bin, latexCmdAnyArg "newsavebox" $ latexSaveBin bin)
 
 -- sectioning
 
@@ -219,7 +259,8 @@ sectioning :: String -> (LatexItem -> ParItem,
 sectioning name = (sect, sect')
   where sect = sect' ø Nothing
         sect' s opt arg = parCmdArgs (starize name s)
-                                     (maybeToList (fmap optional opt) ++ [mandatory arg])
+                                     (maybeToList (fmap (optional . latexItem) opt) ++
+                                      [mandatory (latexItem arg)])
 
 -- The array and tablular Environments
 

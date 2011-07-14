@@ -13,6 +13,10 @@ import GHC.Float (formatRealFloat, FFFormat(FFFixed))
 import Language.LaTeX.Types
 import Language.LaTeX.Builder.MonoidUtils
 
+optionals :: [a] -> Arg a
+optionals [] = NoArg
+optionals xs = Optional xs
+
 text :: String -> ShowS
 text = showString
 
@@ -37,12 +41,20 @@ sp = text " "
 vcat :: [ShowS] -> ShowS
 vcat = mconcat . intersperse (nl ⊕ nl)
 
+ppNamed :: Named ShowS -> ShowS
+ppNamed (Named name val) = text name ⊕ text "=" ⊕ val
+
+commas = mconcat . intersperse (text ",")
+
 ppArg :: Arg ShowS -> ShowS
 ppArg NoArg             = id
 ppArg StarArg           = text "*"
-ppArg (Mandatory x)     = braces x
-ppArg (Optional  x)     = brackets x
-ppArg (Optionals xs)    = brackets $ mconcat $ intersperse (text ",") xs
+ppArg (Optional [])     = error "ppArg: impossible: Optional []"
+ppArg (NamedOpts [])    = error "ppArg: impossible: NamedOpts []"
+ppArg (Mandatory xs)    = braces   . commas $ xs
+ppArg (Optional xs)     = brackets . commas $ xs
+ppArg (NamedArgs xs)    = braces   . commas . map ppNamed $ xs
+ppArg (NamedOpts xs)    = brackets . commas . map ppNamed $ xs
 ppArg (Coordinates x y) = parens (x ⊕ text " " ⊕ y)
 ppArg (RawArg x)        = text x
 ppArg (PackageDependency _) = id
@@ -67,7 +79,7 @@ ppDecl :: String -> ShowS -> ShowS
 ppDecl declName declArgs = backslash ⊕ text declName ⊕ declArgs ⊕ text " " -- or {}
 
 ppTexDecl :: TexDcl -> ShowS
-ppTexDecl (TexDcl declName declArgs) = ppDecl declName (foldMap (ppArg . fmap pp) declArgs)
+ppTexDecl (TexDcl declName declArgs) = ppDecl declName (foldMap (ppArg . fmap ppAny) declArgs)
 
 ppMathDecl :: MathDcl -> ShowS
 ppMathDecl (MathDcl declName) = ppDecl declName ø
@@ -75,12 +87,11 @@ ppMathDecl (MathDcl declName) = ppDecl declName ø
 pp :: LatexItm -> ShowS
 
 pp (LatexCmdArgs cmdName args) = ppCmdArgs cmdName $ map (fmap pp) args
+pp (LatexCmdAnyArgs cmdName args) = ppCmdArgs cmdName $ map (fmap ppAny) args
 
 pp (LatexLength texLength) = ppTexLength texLength
 
 pp (LatexCoord (Coord x y)) = ppTexLength x ⊕ text " " ⊕ ppTexLength y
-
-pp (LatexKeys keys) = text . concat . intersperse "," $ map getKey keys
 
 pp (TexDecls decls) = foldMap ppTexDecl decls
 
@@ -89,7 +100,7 @@ pp (TexCmdNoArg cmdName) = braces $ ppCmdArgs cmdName []
 pp (TexCmdArg cmdName contents)
  = braces (backslash ⊕ text cmdName ⊕ text " " ⊕ pp contents)
 
-pp (Environment envName args contents) = ppEnv envName (map (fmap pp) args) $ pp contents
+pp (Environment envName args contents) = ppEnv envName (map (fmap ppAny) args) $ pp contents
 
 pp (LatexParMode pm) = ppParMode pm
 
@@ -109,33 +120,29 @@ pp (LatexNote key note t) = ppNote key note pp t
 
 ppParMode :: ParItm -> ShowS
 ppParMode (Para t) = pp t
-ppParMode (ParCmdArgs cmdName args) = ppCmdArgs cmdName $ map (fmap pp) args
+ppParMode (ParCmdArgs cmdName args) = ppCmdArgs cmdName $ map (fmap ppAny) args
 ppParMode (RawParMode x) = text x
 ppParMode (ParGroup p) = braces $ ppParMode p
 ppParMode (ParEnv envName args contents)
-  = ppEnv envName (map (fmap pp) args) $ ppAny contents
+  = ppEnv envName (map (fmap ppAny) args) $ ppAny contents
 ppParMode (DisplayMath m) = text "\\[ " ⊕ ppMath m ⊕ text " \\]"
-ppParMode (Equation m) = ppEnv "equation" [] . vcat $ map ppMath m
 ppParMode (Tabular specs rows) =
-  ppEnv "tabular" [Mandatory . mconcat $ map (ppRowSpec . fmap pp) specs] (ppRows pp rows)
-ppParMode (FigureLike name locs body) = ppEnv name [Optional . text $ map locSpecChar locs] $ ppParMode body
-
+  ppEnv "tabular" [Mandatory . (:[]) . mconcat $ map (ppRowSpec . fmap pp) specs] (ppRows pp rows)
 ppParMode (ParConcat contents) = vcat $ map ppParMode contents
 ppParMode (ParNote key note t) = ppNote key note ppParMode t
 
 ppMath :: MathItm -> ShowS
 ppMath (MathDecls decls) = foldMap ppMathDecl decls
-ppMath (MathCmdArgs cmdName args) = ppCmdArgs cmdName $ map (fmap ppMath) args
+ppMath (MathCmdArgs cmdName args) = ppCmdArgs cmdName $ map (fmap ppAny) args
 ppMath (RawMath s) = text s
 ppMath (MathRat r) | denominator r == 1 = shows (numerator r)
                      | otherwise          = shows (numerator r) ⊕ text " / " ⊕ shows (denominator r)
 ppMath (MathArray specs rows) = 
-  ppEnv "array" [Mandatory . mconcat $ map (ppRowSpec . fmap ppMath) specs] (ppRows ppMath rows)
+  ppEnv "array" [Mandatory . (:[]) . mconcat $ map (ppRowSpec . fmap ppMath) specs] (ppRows ppMath rows)
 ppMath (MathGroup m) = braces $ ppMath m
 ppMath (MathConcat ms) = mconcat $ map ppMath ms
 ppMath (MathUnOp op m) = text op ⊕ sp ⊕ ppMath m
 ppMath (MathBinOp op l r) = parens (ppMath l ⊕ sp ⊕ text op ⊕ sp ⊕ ppMath r)
-ppMath (MathToLR cmdName args) = ppCmdArgs cmdName $ map (fmap pp) args
 ppMath (MathNote key note m) = ppNote key note ppMath m
 
 ppAny :: AnyItm -> ShowS
@@ -143,6 +150,9 @@ ppAny (PreambleItm x) = ppPreamble x
 ppAny (LatexItm    x) = pp x
 ppAny (MathItm     x) = ppMath x
 ppAny (ParItm      x) = ppParMode x
+ppAny (LocSpecs locs) = text . map locSpecChar $ locs
+ppAny (Key key)       = text . getKey $ key
+
 
 ppRowSpec :: RowSpec ShowS -> ShowS
 ppRowSpec Rc        = text "c"
@@ -162,7 +172,7 @@ ppRows ppCell (Hline : rows)
   = backslash ⊕ text "hline " ⊕ ppRows ppCell rows
 ppRows ppCell (Cline c1 c2 : rows)
   -- No braces here around the \cline, intentionally
-  = ppCmdArgs "cline" [Mandatory . text $ show c1 ++ "-" ++ show c2] ⊕ ppRows ppCell rows
+  = ppCmdArgs "cline" [Mandatory . (:[]) . text $ show c1 ++ "-" ++ show c2] ⊕ ppRows ppCell rows
 
 unitName :: TexUnit -> String
 unitName u =
@@ -184,7 +194,7 @@ ppTexLength :: LatexLength -> ShowS
 ppTexLength s =
   case s of
     LengthCmd cmd          -> ppCmdArgs cmd []
-    LengthCmdRatArg  cmd r -> braces $ ppCmdArgs cmd [Mandatory $ showr r]
+    LengthCmdRatArg  cmd r -> braces $ ppCmdArgs cmd [Mandatory . (:[]) $ showr r]
     LengthScaledBy _ (LengthScaledBy _ _) ->
       error "broken invariant: nested LengthScaledBy"
     LengthScaledBy r l     -> showr r ⊕ ppTexLength l
@@ -193,16 +203,16 @@ ppTexLength s =
                 | otherwise          = text $ formatRealFloat FFFixed (Just 2) (fromRational r :: Double)
 
 ppPreamble :: PreambleItm -> ShowS
-ppPreamble (PreambleCmdArgs cmdName args) = ppCmdArgs cmdName $ map (fmap pp) args
-ppPreamble (PreambleEnv envName args contents) = ppEnv envName (map (fmap pp) args) (ppAny contents)
+ppPreamble (PreambleCmdArgs cmdName args) = ppCmdArgs cmdName $ map (fmap ppAny) args
+ppPreamble (PreambleEnv envName args contents) = ppEnv envName (map (fmap ppAny) args) (ppAny contents)
 ppPreamble (PreambleConcat ps) = vcat $ map ppPreamble ps
 ppPreamble (Usepackage pkg opts)
-  = ppCmdArgs "usepackage" [Optionals (map pp opts), Mandatory (text $ getPkgName pkg)]
+  = ppCmdArgs "usepackage" [optionals (map ppAny opts), Mandatory [text $ getPkgName pkg]]
 ppPreamble (RawPreamble raw) = text raw
 ppPreamble (PreambleNote key note p) = ppNote key note ppPreamble p
 
 ppNote :: Key -> Note -> (a -> ShowS) -> a -> ShowS
-ppNote (Key key) note ppElt elt = nl' ⊕ comment (key ⊕ ": " ⊕ showNote note) ⊕ ppElt elt ⊕ nl'
+ppNote (MkKey key) note ppElt elt = nl' ⊕ comment (key ⊕ ": " ⊕ showNote note) ⊕ ppElt elt ⊕ nl'
   where nl' = text "%\n"
         showNote (TextNote s) = s
         showNote (IntNote  i) = show i
@@ -223,7 +233,7 @@ showDocClassKind (OtherDocumentClassKind x) = x
 preambOfDocClass :: DocumentClss -> PreambleItm
 preambOfDocClass (DocClass kind opts) =
   PreambleCmdArgs "documentclass"
-    [Optionals opts, Mandatory . RawTex $ showDocClassKind kind]
+    [optionals opts, Mandatory . (:[]) . LatexItm . RawTex $ showDocClassKind kind]
 
 ppDocument :: Document -> ShowS
 ppDocument (Document docClass preamb doc) =

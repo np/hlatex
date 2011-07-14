@@ -13,13 +13,11 @@ where
 
 import Language.LaTeX.Types hiding (Loc)
 import Language.LaTeX.Builder.Internal (parCmdArgs, texLength, bool, coord, packageDependency,
-                                        rat, rawTex, optional, mandatory)
+                                        rat, rawTex, namedOpts, latexItem, mandatoryLatexItem)
 import Language.LaTeX.Builder.MonoidUtils ((⊕))
 import Control.Arrow ((***))
 import Data.Maybe
 import Data.String
-import Data.List
-import Data.Monoid
 
 data Loc = C   -- ^ Center
          | T   -- ^ Top
@@ -133,11 +131,10 @@ pkg = PkgName "graphicx"
 -- @
 includegraphics :: (IncludeGraphicsOpts -> IncludeGraphicsOpts) -> FilePath -> ParItem
 includegraphics f fp =
-   parCmdArgs "includegraphics" $ opt ++ [packageDependency pkg, mandatory $ fromString fp]
-  where h (name, item) = rawTex (name ++ "=") ⊕ item
-        opts = map h $ includeGraphicsOpts $ f defaultOpts
+   parCmdArgs "includegraphics" $ opt ++ [packageDependency pkg, mandatoryLatexItem $ fromString fp]
+  where opts = includeGraphicsOpts $ f defaultOpts
         opt | null opts = []
-            | otherwise = [optional $ mconcat $ intersperse (rawTex ",") opts]
+            | otherwise = [namedOpts opts]
 
 defaultOpts :: IncludeGraphicsOpts
 defaultOpts = IncludeGraphicsOpts
@@ -156,7 +153,7 @@ defaultOpts = IncludeGraphicsOpts
   , hiresbb = False -- I think that's the default.
   }
 
-includeGraphicsOpts :: IncludeGraphicsOpts -> [(String, LatexItem)]
+includeGraphicsOpts :: IncludeGraphicsOpts -> [Named AnyItem]
 includeGraphicsOpts o =
   catMaybes [ f "scale" scale rat
             , f "width" width (texLength . fromJust)
@@ -164,7 +161,7 @@ includeGraphicsOpts o =
             , f "totalheight" totalheight (texLength . fromJust)
             , f "keepaspectratio" keepaspectratio bool
             , f "angle" angle rat
-            , f "origin" origin (rawTex . showGrLoc)
+            , f "origin" origin (latexItem . rawTex . showGrLoc)
             , f "draft" draft bool
             , f "clip" clip bool
             , f "bb" bb maybeCoords
@@ -172,9 +169,9 @@ includeGraphicsOpts o =
             , f "trim" trim maybeCoords
             , f "hiresbb" hiresbb bool
             ]
-  where f :: Eq a => String -> (IncludeGraphicsOpts -> a) -> (a -> LatexItem) -> Maybe (String, LatexItem)
-        f name proj toLatexItem
+  where f :: Eq a => String -> (IncludeGraphicsOpts -> a) -> (a -> AnyItem) -> Maybe (Named AnyItem)
+        f name proj toAnyItem
             | proj defaultOpts == proj o = Nothing
-            | otherwise                  = Just (name, toLatexItem $ proj o)
+            | otherwise                  = Just (Named name (toAnyItem $ proj o))
         maybeCoords = g . (coord *** coord) . fromJust
-        g (x, y) = x ⊕ rawTex " " ⊕ y
+        g (x, y) = latexItem $ x ⊕ rawTex " " ⊕ y
