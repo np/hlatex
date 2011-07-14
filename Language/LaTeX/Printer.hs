@@ -44,6 +44,7 @@ vcat = mconcat . intersperse (nl ⊕ nl)
 ppNamed :: Named ShowS -> ShowS
 ppNamed (Named name val) = text name ⊕ text "=" ⊕ val
 
+commas :: [ShowS] -> ShowS
 commas = mconcat . intersperse (text ",")
 
 ppArg :: Arg ShowS -> ShowS
@@ -85,47 +86,29 @@ ppMathDecl :: MathDcl -> ShowS
 ppMathDecl (MathDcl declName) = ppDecl declName ø
 
 pp :: LatexItm -> ShowS
-
 pp (LatexCmdArgs cmdName args) = ppCmdArgs cmdName $ map (fmap pp) args
 pp (LatexCmdAnyArgs cmdName args) = ppCmdArgs cmdName $ map (fmap ppAny) args
-
-pp (LatexLength texLength) = ppTexLength texLength
-
-pp (LatexCoord (Coord x y)) = ppTexLength x ⊕ text " " ⊕ ppTexLength y
-
 pp (TexDecls decls) = foldMap ppTexDecl decls
-
 pp (TexCmdNoArg cmdName) = braces $ ppCmdArgs cmdName []
-
 pp (TexCmdArg cmdName contents)
  = braces (backslash ⊕ text cmdName ⊕ text " " ⊕ pp contents)
-
-pp (Environment envName args contents) = ppEnv envName (map (fmap ppAny) args) $ pp contents
-
-pp (LatexParMode pm) = ppParMode pm
-
+pp (Environment envName args contents) = ppEnv envName (map (fmap ppAny) args) $ ppAny contents
 pp (RawTex s) = text s
-
--- One produce $...$ since \(...\) is fragile
-pp (MathInline m) = text "$ " ⊕ ppMath m ⊕ text " $"
-
-pp (LatexSaveBin bin) = text $ "\\hlatexSaveBin" ++ (map enc . show $ unsafeGetSaveBin bin)
-  where enc i = chr (ord 'a' + digitToInt i) -- hackish but numbers are prohibited
-
+-- One produces $...$ since \(...\) is ``fragile''
+pp (LatexCast (MathItm m)) = text "$ " ⊕ ppMath m ⊕ text " $"
+pp (LatexCast x) = ppAny x
 pp (TexGroup t) = braces $ pp t
-
 pp (LatexConcat contents) = mconcat $ map pp contents
-
 pp (LatexNote key note t) = ppNote key note pp t
 
 ppParMode :: ParItm -> ShowS
-ppParMode (Para t) = pp t
+ppParMode (ParCast (MathItm m)) = text "\\[ " ⊕ ppMath m ⊕ text " \\]"
+ppParMode (ParCast t) = ppAny t
 ppParMode (ParCmdArgs cmdName args) = ppCmdArgs cmdName $ map (fmap ppAny) args
 ppParMode (RawParMode x) = text x
 ppParMode (ParGroup p) = braces $ ppParMode p
 ppParMode (ParEnv envName args contents)
   = ppEnv envName (map (fmap ppAny) args) $ ppAny contents
-ppParMode (DisplayMath m) = text "\\[ " ⊕ ppMath m ⊕ text " \\]"
 ppParMode (Tabular specs rows) =
   ppEnv "tabular" [Mandatory . (:[]) . mconcat $ map (ppRowSpec . fmap pp) specs] (ppRows pp rows)
 ppParMode (ParConcat contents) = vcat $ map ppParMode contents
@@ -135,6 +118,7 @@ ppMath :: MathItm -> ShowS
 ppMath (MathDecls decls) = foldMap ppMathDecl decls
 ppMath (MathCmdArgs cmdName args) = ppCmdArgs cmdName $ map (fmap ppAny) args
 ppMath (RawMath s) = text s
+ppMath (MathCast x) = ppAny x
 ppMath (MathRat r) | denominator r == 1 = shows (numerator r)
                      | otherwise          = shows (numerator r) ⊕ text " / " ⊕ shows (denominator r)
 ppMath (MathArray specs rows) = 
@@ -152,7 +136,11 @@ ppAny (MathItm     x) = ppMath x
 ppAny (ParItm      x) = ppParMode x
 ppAny (LocSpecs locs) = text . map locSpecChar $ locs
 ppAny (Key key)       = text . getKey $ key
-
+ppAny (Length len)    = ppTexLength len
+ppAny (Coord (MkCoord x y)) = ppTexLength x ⊕ text " " ⊕ ppTexLength y
+ppAny (SaveBin bin) = text $ "\\hlatexSaveBin" ++ (map enc . show $ unsafeGetSaveBin bin)
+  where enc i = chr (ord 'a' + digitToInt i) -- hackish but numbers are prohibited
+ppAny (PackageName pkg) = text $ getPkgName pkg
 
 ppRowSpec :: RowSpec ShowS -> ShowS
 ppRowSpec Rc        = text "c"
@@ -205,6 +193,7 @@ ppTexLength s =
 ppPreamble :: PreambleItm -> ShowS
 ppPreamble (PreambleCmdArgs cmdName args) = ppCmdArgs cmdName $ map (fmap ppAny) args
 ppPreamble (PreambleEnv envName args contents) = ppEnv envName (map (fmap ppAny) args) (ppAny contents)
+ppPreamble (PreambleCast x) = ppAny x
 ppPreamble (PreambleConcat ps) = vcat $ map ppPreamble ps
 ppPreamble (Usepackage pkg opts)
   = ppCmdArgs "usepackage" [optionals (map ppAny opts), Mandatory [text $ getPkgName pkg]]

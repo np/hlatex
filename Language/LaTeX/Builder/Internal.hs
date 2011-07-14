@@ -130,10 +130,10 @@ rawPreamble :: String -> PreambleItem
 rawPreamble = mapNonEmpty $ pure . RawPreamble
 
 texLength :: LatexLength -> AnyItem
-texLength = latexItem . pure . LatexLength
+texLength = AnyItem . pure . Length
 
 optTexLength :: LatexLength -> Arg AnyItem
-optTexLength = optional . latexItem . pure . LatexLength
+optTexLength = optional . texLength
 
 latexItem :: LatexItem -> AnyItem
 latexItem = AnyItem . fmap LatexItm
@@ -169,28 +169,39 @@ latexPaper = latexItem . rawTex . showPaper
 otherDocumentClassKind :: String -> DocumentClassKind
 otherDocumentClassKind = OtherDocumentClassKind
 
--- use with care
-latexParMode :: ParItem -> LatexItem
-latexParMode = fmap LatexParMode
-
 bool :: Bool -> AnyItem
 bool True  = latexItem $ rawTex "true"
 bool False = latexItem $ rawTex "false"
 
-coord :: Coord -> LatexItem
-coord = pure . LatexCoord
+coord :: Coord -> AnyItem
+coord = AnyItem . pure . Coord
 
 latexSaveBin :: SaveBin -> AnyItem
-latexSaveBin = latexItem . pure . LatexSaveBin
+latexSaveBin = AnyItem . pure . SaveBin
+
+latexCast :: AnyItem -> LatexItem
+latexCast = fmap LatexCast . anyItmM
+
+mathCast :: AnyItem -> MathItem
+mathCast = MathItem . fmap MathCast . anyItmM
+
+parCast :: AnyItem -> ParItem
+parCast = fmap ParCast . anyItmM
+
+preambleCast :: AnyItem -> PreambleItem
+preambleCast = fmap PreambleCast . anyItmM
+
+latexEnvironmentAny :: String -> [Arg AnyItem] -> AnyItem -> LatexItem
+latexEnvironmentAny x ys = liftM2 (Environment x) (mapM (mapM anyItmM) ys) . anyItmM
 
 latexEnvironment :: String -> [Arg AnyItem] -> LatexItem -> LatexItem
-latexEnvironment x ys = liftM2 (Environment x) $ mapM (mapM anyItmM) ys
+latexEnvironment x ys = latexEnvironmentAny x ys . latexItem
 
 latexEnvironmentPar :: String -> [Arg AnyItem] -> ParItem -> LatexItem
-latexEnvironmentPar x ys z = liftM2 (Environment x) (mapM (mapM anyItmM) ys) (LatexParMode `liftM` z)
+latexEnvironmentPar x ys = latexEnvironmentAny x ys . parItem
 
-latexParModeArgs :: String -> [Arg LatexItem] -> ParItem -> LatexItem
-latexParModeArgs x ys z = latexCmdArgs x (ys ++ [mandatory (LatexParMode <$> z)])
+latexParModeArgs :: String -> [Arg AnyItem] -> ParItem -> LatexItem
+latexParModeArgs x ys z = latexCmdAnyArgs x (ys ++ [mandatory (parItem z)])
 
 parEnv :: String -> [Arg AnyItem] -> AnyItem -> ParItem
 parEnv x ys = liftM2 (ParEnv x) (mapM (mapM anyItmM) ys) . anyItmM

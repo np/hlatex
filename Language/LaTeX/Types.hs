@@ -59,12 +59,16 @@ data AnyItm = PreambleItm PreambleItm
             | LocSpecs    [LocSpec]
             | Key         Key
             | PackageName PackageName
+            | Coord       Coord
+            | Length      LatexLength
+            | SaveBin     SaveBin
   deriving (Show, Eq, Typeable, Data)
 
 data PreambleItm = PreambleCmdArgs String [Arg AnyItm]
                  | PreambleEnv String [Arg AnyItm] AnyItm
-                 | PreambleConcat [PreambleItm]
                  | Usepackage PackageName [AnyItm]
+                 | PreambleCast AnyItm
+                 | PreambleConcat [PreambleItm]
                  | RawPreamble String
                  | PreambleNote Key Note PreambleItm
   deriving (Show, Eq, Typeable, Data)
@@ -92,13 +96,9 @@ data LatexItm
            | TexDecls [TexDcl]
            | TexCmdNoArg String
            | TexCmdArg String LatexItm
-           | Environment String [Arg AnyItm] LatexItm
-           | MathInline MathItm
-           | LatexCoord Coord
-           | LatexLength LatexLength
-           | LatexSaveBin SaveBin
-           | LatexParMode ParItm
+           | Environment String [Arg AnyItm] AnyItm
            | RawTex String
+           | LatexCast AnyItm -- a cast from math induce $...$
            | TexGroup LatexItm
            | LatexConcat [LatexItm]
            | LatexNote Key Note LatexItm
@@ -139,17 +139,16 @@ instance Monoid Star where
   NoStar `mappend` x      = x
   x      `mappend` _      = x
 
-data Coord = Coord LatexLength LatexLength
+data Coord = MkCoord LatexLength LatexLength
   deriving (Show, Eq, Typeable, Data)
 
 newtype Percentage = Percentage { percentage :: Int } deriving (Eq,Show,Ord,Num)
 
-data ParItm  = Para LatexItm -- Here LatexItm does not mean LR mode
-             | ParCmdArgs String [Arg AnyItm]
+data ParItm  = ParCmdArgs String [Arg AnyItm]
              | ParEnv String [Arg AnyItm] AnyItm
-             | DisplayMath MathItm
              | Tabular [RowSpec LatexItm] [Row LatexItm]
              | RawParMode String
+             | ParCast AnyItm -- a cast from Math induce \[...\]
              | ParGroup ParItm -- check validity of this
              | ParConcat [ParItm]
              | ParNote Key Note ParItm
@@ -173,6 +172,7 @@ data MathItm   = MathDecls [MathDcl]
                | MathCmdArgs String [Arg AnyItm]
                | MathArray [RowSpec MathItm] [Row MathItm]
                | RawMath String
+               | MathCast AnyItm
                | MathRat Rational
                | MathGroup MathItm
                | MathConcat [MathItm]

@@ -102,10 +102,10 @@ infixr 0 !$?
 (!$?) f m = tell $ f $ execWriter m
 
 math :: MathItem -> LatexItem
-math = liftM MathInline . mathItmM
+math = latexCast . mathItem
 
 displaymath :: MathItem -> ParItem
-displaymath = liftM DisplayMath . mathItmM
+displaymath = parCast . mathItem
 
 decls :: [TexDecl] -> LatexItem -> LatexItem
 decls ds x = group (rawDecls ds ⊕ x)
@@ -620,9 +620,9 @@ part', chapter', section', subsection', subsubsection', paragraph',
 (subparagraph , subparagraph')  = sectioning "subparagraph"
 
 -- | Don't confuse 'paragraph' with 'para', 'para' is to make a paragraph,
--- 'paragraph' is to group a set of paragraphs.
+-- 'paragraph' is to name a set of paragraphs.
 para :: LatexItem -> ParItem
-para = liftM Para
+para = parCast . latexItem
 
 bibliography :: LatexItem -> ParItem
 bibliography = parCmdArg "bibliography" . latexItem

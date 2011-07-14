@@ -12,8 +12,7 @@ module Language.LaTeX.Builder.Graphics
 where
 
 import Language.LaTeX.Types hiding (Loc)
-import Language.LaTeX.Builder.Internal (parCmdArgs, texLength, bool, coord, packageDependency,
-                                        rat, rawTex, namedOpts, latexItem, mandatoryLatexItem)
+import qualified Language.LaTeX.Builder.Internal as BI
 import Language.LaTeX.Builder.MonoidUtils ((⊕))
 import Control.Arrow ((***))
 import Data.Maybe
@@ -131,10 +130,10 @@ pkg = PkgName "graphicx"
 -- @
 includegraphics :: (IncludeGraphicsOpts -> IncludeGraphicsOpts) -> FilePath -> ParItem
 includegraphics f fp =
-   parCmdArgs "includegraphics" $ opt ++ [packageDependency pkg, mandatoryLatexItem $ fromString fp]
+   BI.parCmdArgs "includegraphics" $ opt ++ [BI.packageDependency pkg, BI.mandatoryLatexItem $ fromString fp]
   where opts = includeGraphicsOpts $ f defaultOpts
         opt | null opts = []
-            | otherwise = [namedOpts opts]
+            | otherwise = [BI.namedOpts opts]
 
 defaultOpts :: IncludeGraphicsOpts
 defaultOpts = IncludeGraphicsOpts
@@ -155,23 +154,23 @@ defaultOpts = IncludeGraphicsOpts
 
 includeGraphicsOpts :: IncludeGraphicsOpts -> [Named AnyItem]
 includeGraphicsOpts o =
-  catMaybes [ f "scale" scale rat
-            , f "width" width (texLength . fromJust)
-            , f "height" height (texLength . fromJust)
-            , f "totalheight" totalheight (texLength . fromJust)
-            , f "keepaspectratio" keepaspectratio bool
-            , f "angle" angle rat
-            , f "origin" origin (latexItem . rawTex . showGrLoc)
-            , f "draft" draft bool
-            , f "clip" clip bool
+  catMaybes [ f "scale" scale BI.rat
+            , f "width" width (BI.texLength . fromJust)
+            , f "height" height (BI.texLength . fromJust)
+            , f "totalheight" totalheight (BI.texLength . fromJust)
+            , f "keepaspectratio" keepaspectratio BI.bool
+            , f "angle" angle BI.rat
+            , f "origin" origin (BI.latexItem . BI.rawTex . showGrLoc)
+            , f "draft" draft BI.bool
+            , f "clip" clip BI.bool
             , f "bb" bb maybeCoords
             , f "viewport" viewport maybeCoords
             , f "trim" trim maybeCoords
-            , f "hiresbb" hiresbb bool
+            , f "hiresbb" hiresbb BI.bool
             ]
   where f :: Eq a => String -> (IncludeGraphicsOpts -> a) -> (a -> AnyItem) -> Maybe (Named AnyItem)
         f name proj toAnyItem
             | proj defaultOpts == proj o = Nothing
             | otherwise                  = Just (Named name (toAnyItem $ proj o))
-        maybeCoords = g . (coord *** coord) . fromJust
-        g (x, y) = latexItem $ x ⊕ rawTex " " ⊕ y
+        maybeCoords = g . (BI.coord *** BI.coord) . fromJust
+        g (x, y) = BI.latexItem $ BI.latexCast x ⊕ BI.rawTex " " ⊕ BI.latexCast y
