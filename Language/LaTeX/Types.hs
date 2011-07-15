@@ -126,9 +126,9 @@ data PackageAction = PackageDependency PackageName
 data Arg a = NoArg
            | StarArg             -- `*'
            | Mandatory [a]       -- surrounded by `{' `}', separated by `,'
-           | Optional [a]        -- surrounded by `[' `]', separated by `,' or empty is null
+           | Optional [a]        -- surrounded by `[' `]', separated by `,' or empty if null
            | NamedArgs [Named a] -- surrounded by `{' `}', separated by `=` and `,'
-           | NamedOpts [Named a] -- surrounded by `[' `]', separated by `=' and `,' or empty is null
+           | NamedOpts [Named a] -- surrounded by `[' `]', separated by `=' and `,' or empty if null
            | Coordinates a a     -- surrounded by `(' `)', separated by ` '
            | RawArg String
            | PackageAction PackageAction
