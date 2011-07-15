@@ -3,14 +3,12 @@ module Language.LaTeX.Printer where
 import Data.Monoid
 import Data.List (intersperse)
 import Data.Ratio (numerator, denominator)
-import Data.Generics.Uniplate.Data (universe, universeBi)
 import Data.Foldable (foldMap)
-import Data.Set (Set)
 import Data.Char
-import qualified Data.Set as Set
 import GHC.Float (formatRealFloat, FFFormat(FFFixed))
 
 import Language.LaTeX.Types
+import Language.LaTeX.Checker (checkDocument)
 import Language.LaTeX.Builder.MonoidUtils
 
 optionals :: [a] -> Arg a
@@ -58,7 +56,7 @@ ppArg (NamedArgs xs)    = braces   . commas . map ppNamed $ xs
 ppArg (NamedOpts xs)    = brackets . commas . map ppNamed $ xs
 ppArg (Coordinates x y) = parens (x ⊕ text " " ⊕ y)
 ppArg (RawArg x)        = text x
-ppArg (PackageDependency _) = id
+ppArg (PackageAction _) = id
 
 ppEnv :: String -> [Arg ShowS] -> ShowS -> ShowS
 ppEnv envName args contents =
@@ -195,8 +193,6 @@ ppPreamble (PreambleCmdArgs cmdName args) = ppCmdArgs cmdName $ map (fmap ppAny)
 ppPreamble (PreambleEnv envName args contents) = ppEnv envName (map (fmap ppAny) args) (ppAny contents)
 ppPreamble (PreambleCast x) = ppAny x
 ppPreamble (PreambleConcat ps) = vcat $ map ppPreamble ps
-ppPreamble (Usepackage pkg opts)
-  = ppCmdArgs "usepackage" [optionals (map ppAny opts), Mandatory [text $ getPkgName pkg]]
 ppPreamble (RawPreamble raw) = text raw
 ppPreamble (PreambleNote key note p) = ppNote key note ppPreamble p
 
@@ -229,21 +225,11 @@ ppDocument (Document docClass preamb doc) =
   ppPreamble (preambOfDocClass docClass ⊕ preamb) $$
   ppEnv "document" [] (ppParMode doc)
 
-usedPackages :: PreambleItm -> Set PackageName
-usedPackages x = Set.fromList [ pkg | Usepackage pkg _ <- universe x ]
-
-neededPackages :: Document -> Set PackageName
-neededPackages x = Set.fromList [ pkg | pkg@(PkgName _) <- universeBi x ]
-
-showsLaTeX :: LatexM Document -> Either String ShowS
+showsLaTeX :: LatexM Document -> Either ErrorMessage ShowS
 showsLaTeX mdoc = do
   doc <- runLatexM mdoc
-  let preamb      = documentPreamble doc
-      usedPkgs    = usedPackages preamb
-      neededPkgs  = neededPackages doc
-      missingPkgs = Set.toList $ neededPkgs `Set.difference` usedPkgs
-      preamb'     = preamb ⊕ foldMap (`Usepackage` []) missingPkgs
-  return . ppDocument $ doc { documentPreamble = preamb' }
+  maybe (return ()) Left $ checkDocument doc
+  return . ppDocument $ doc
 
-showLaTeX :: LatexM Document -> Either String String
+showLaTeX :: LatexM Document -> Either ErrorMessage String
 showLaTeX = fmap ($"") . showsLaTeX

@@ -66,7 +66,6 @@ data AnyItm = PreambleItm PreambleItm
 
 data PreambleItm = PreambleCmdArgs String [Arg AnyItm]
                  | PreambleEnv String [Arg AnyItm] AnyItm
-                 | Usepackage PackageName [AnyItm]
                  | PreambleCast AnyItm
                  | PreambleConcat [PreambleItm]
                  | RawPreamble String
@@ -120,6 +119,10 @@ instance IsString LatexItm where
 data Named a = Named String a
   deriving (Show, Eq, Typeable, Data)
 
+data PackageAction = PackageDependency PackageName
+                   | ProvidePackage    PackageName
+  deriving (Show, Eq, Typeable, Data)
+
 data Arg a = NoArg
            | StarArg             -- `*'
            | Mandatory [a]       -- surrounded by `{' `}', separated by `,'
@@ -128,7 +131,7 @@ data Arg a = NoArg
            | NamedOpts [Named a] -- surrounded by `[' `]', separated by `=' and `,' or empty is null
            | Coordinates a a     -- surrounded by `(' `)', separated by ` '
            | RawArg String
-           | PackageDependency PackageName
+           | PackageAction PackageAction
   deriving (Show, Eq, Typeable, Data)
 
 data Star = Star | NoStar
@@ -384,9 +387,11 @@ instance (Error a, Eq a, Show a, Fractional b) => Fractional (Either a b) where
   (/) = liftM2 (/)
   fromRational = pure . fromRational
 
-newtype LatexM a = LatexM { runLatexM :: Either String a } 
+type ErrorMessage = String
+
+newtype LatexM a = LatexM { runLatexM :: Either ErrorMessage a }
   deriving (Functor, Applicative, Monad, MonadPlus,
-            MonadError String, Show, Eq, Num, Fractional,
+            MonadError ErrorMessage, Show, Eq, Num, Fractional,
             Typeable, Data)
 
 instance Monoid a => Monoid (LatexM a) where

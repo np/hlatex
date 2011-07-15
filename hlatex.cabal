@@ -37,6 +37,7 @@ library
                  Language.LaTeX.Builder.Babel,
                  Language.LaTeX.Printer,
                  Language.LaTeX.Slicer,
+                 Language.LaTeX.Checker,
                  Language.LaTeX.Unicode
     ghc-options: -Wall
 

@@ -62,7 +62,9 @@ optionalLatexItems :: [LatexItem] -> Arg AnyItem
 optionalLatexItems = optionals . map latexItem
 
 usepackage :: [AnyItem] -> PackageName -> PreambleItem
-usepackage opts pkg = Usepackage pkg <$> mapM anyItmM opts
+usepackage opts pkg =
+  preambleCmdArgs "usepackage"
+    [providePackage pkg, optionals opts, mandatory (packageName pkg)]
 
 stringNote :: String -> Note
 stringNote = TextNote
@@ -147,6 +149,9 @@ parItem = AnyItem . fmap ParItm
 preambleItem :: PreambleItem -> AnyItem
 preambleItem = AnyItem . fmap PreambleItm
 
+packageName :: PackageName -> AnyItem
+packageName = AnyItem . pure . PackageName
+
 locSpecs :: [LocSpec] -> AnyItem
 locSpecs = AnyItem . pure . LocSpecs
 
@@ -157,7 +162,14 @@ pkgName :: String -> PackageName
 pkgName = PkgName
 
 packageDependency :: PackageName -> Arg a
-packageDependency = PackageDependency
+packageDependency = PackageAction . PackageDependency
+
+-- This phantom argument states that the given package
+-- is considered provided from now on.
+-- This especially make sense when building the usepackage
+-- command.
+providePackage :: PackageName -> Arg a
+providePackage = PackageAction . ProvidePackage
 
 showPaper :: LatexPaperSize -> String
 showPaper A4paper = "a4paper"
