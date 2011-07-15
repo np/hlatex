@@ -776,7 +776,7 @@ charToMath ch
       , ('·', cdotp)
       , ('∘', circ)
       , ('⊕', oplus)
-      , ('⊛', otimes)
+      , ('⊗', otimes)
       , ('∧', wedge)
       --, ('', bigwedge)
       , ('∨', vee)
