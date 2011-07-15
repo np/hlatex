@@ -47,13 +47,15 @@ mandatoryList :: [a] -> Arg a
 mandatoryList = Mandatory
 
 optionals :: [a] -> Arg a
-optionals = Optional
+optionals [] = NoArg
+optionals xs = Optional xs
 
 named :: String -> a -> Named a
 named = Named
 
 namedOpts :: [Named a] -> Arg a
-namedOpts = NamedOpts
+namedOpts [] = NoArg
+namedOpts xs = NamedOpts xs
 
 namedArgs :: [Named a] -> Arg a
 namedArgs = NamedArgs
