@@ -125,7 +125,7 @@ body = execWriter $ do
 
   subsection «Commands with optional arguments»
 
-  p «Since {haskell} does not support optional arguments, and that we do not want
+  p «OUTDATED TODO Since {haskell} does not support optional arguments, and that we do not want
     to add extra burden on the document writer we have choosen to expose two
     variants of some commands. Therefore {ltxcode "\\newline"} is exposed as
     {hcode "B.newline"} and to give the optional size argument one use the

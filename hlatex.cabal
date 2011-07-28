@@ -1,5 +1,5 @@
 name:            hlatex
-cabal-Version:   >=1.2
+cabal-version:   >= 1.8
 version:         0.1
 license:         BSD3
 license-File:    LICENSE
@@ -18,7 +18,7 @@ flag build_doc
 library
     build-depends:
                  base>=3.0&&<5, containers>=0.1, process, filepath, directory,
-                 template-haskell >= 2.5,
+                 template-haskell >= 2.5, base-unicode-symbols,
                  transformers>=0.2.1&&<1, monads-fd>=0.1.0,
                  uniplate>=1.4&&<1.7, derive, utf8-string
     exposed-modules:
@@ -42,8 +42,13 @@ library
     ghc-options: -Wall
 
 executable generate_hlatex_user_guide
-    Build-depends: base>=3.0, containers>=0.1, frquotes,
-                   transformers, monads-fd, base-unicode-symbols
+    Build-depends: base>=3.0&&<5, base-unicode-symbols, monads-fd>=0.1.0,
+                 containers>=0.1, process, filepath,
+                 template-haskell, transformers>=0.2.0,
+                 uniplate, derive, utf8-string,
+                 frquotes
+    -- hs-source-dirs: doc
+    -- main-is: user_guide.hs
     main-is: doc/user_guide.hs
     ghc-options: -Wall
   if !flag(build_doc)

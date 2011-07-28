@@ -385,6 +385,23 @@ appendix = BI.parCmdArgs "appendix" []
 
 -- \setbeamercolor*{titlelike}{parent=structure}
 
+{-
+footline :: PreambleItem
+footline =
+  BI.rawPreamble $
+  [$str|
+        \defbeamertemplate*{footline}{}
+        {
+          \leavevmode%
+          \hbox{%
+            \begin{beamercolorbox}[wd=.80\paperwidth,ht=2.25ex,dp=1.125ex,right]{}%
+              \insertframenumber{}\hspace*{2ex}
+            \end{beamercolorbox}}%
+          \vskip0pt%
+        }
+  |]
+    -}
+
 data Footline = Footline { authorPercent    :: Percentage
                          , titlePercent     :: Percentage
                          , datePercent      :: Maybe Percentage

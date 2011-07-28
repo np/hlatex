@@ -17,9 +17,13 @@ import Language.LaTeX.Types (Key(..))
 import Language.LaTeX.Builder.Internal (rawTex, rawPreamble)
 import Language.LaTeX.Builder.Math (mstring)
 
+-- class Monoid a => FrQuoteTop a
 frTop :: a -> a
 frTop = id
 
+{-
+class FrAntiq
+  -}
 frAntiq :: a -> a
 frAntiq = id
 

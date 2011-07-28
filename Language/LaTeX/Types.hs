@@ -103,11 +103,47 @@ data LatexItm
            | LatexNote Key Note LatexItm
   deriving (Show, Eq, Typeable, Data)
 
+{-
+-- (+++) :: Monoid m => [m] -> [m] -> [m]
+(+++) :: [LatexItm] -> [LatexItm] -> [LatexItm]
+[x]    +++ (y:ys) = unLatexConcat $ mconcat (x : y : ys)
+[]     +++ xs     = xs
+(x:xs) +++ ys     = x : (xs +++ ys)
+
+unLatexConcat :: LatexItm -> [LatexItm]
+unLatexConcat (LatexConcat xs) = xs
+unLatexConcat x                = [x]
+
+mappendAny :: AnyItm -> AnyItm -> [AnyItm]
+mappendAny (PreambleItm x) (PreambleItm y) = [PreambleItm (x `mappend` y)]
+mappendAny (LatexItm x)    (LatexItm y) = [LatexItm (x `mappend` y)]
+mappendAny (MathItm x)     (MathItm y) = [MathItm (x `mappend` y)]
+mappendAny (ParItm x)      (ParItm y) = [ParItm (x `mappend` y)]
+mappendAny (LocSpecs x)    (LocSpecs y) = [LocSpecs (x `mappend` y)]
+-- this lengthy matching is to get a warning when we extend the AnyItm type
+mappendAny x@PreambleItm{} y = [x, y]
+mappendAny x@LatexItm{}    y = [x, y]
+mappendAny x@MathItm{}     y = [x, y]
+mappendAny x@ParItm{}      y = [x, y]
+mappendAny x@LocSpecs{}    y = [x, y]
+mappendAny x@Key{}         y = [x, y]
+mappendAny x@PackageName{} y = [x, y]
+mappendAny x@Coord{}       y = [x, y]
+mappendAny x@Length{}      y = [x, y]
+mappendAny x@SaveBin{}     y = [x, y]
+-}
+
 instance Monoid LatexItm where
   mempty  = LatexConcat []
-  LatexConcat xs `mappend` LatexConcat ys = LatexConcat (xs ++ ys)
-  LatexConcat xs `mappend` y              = LatexConcat (xs ++ [y])
-  x              `mappend` LatexConcat ys = LatexConcat (x : ys)
+{-
+  LatexConcat xs `mappend` LatexConcat ys = LatexConcat (xs  +++ ys)
+  LatexConcat xs `mappend` y              = LatexConcat (xs  +++ [y])
+  x              `mappend` LatexConcat ys = LatexConcat ([x] +++ ys)
+  LatexCast x    `mappend` LatexCast y    = LatexConcat (map LatexCast (mappendAny x y))
+-}
+  LatexConcat xs `mappend` LatexConcat ys = LatexConcat (xs  ++ ys)
+  LatexConcat xs `mappend` y              = LatexConcat (xs  ++ [y])
+  x              `mappend` LatexConcat ys = LatexConcat ([x] ++ ys)
   x              `mappend` y              = LatexConcat [x, y]
 
 instance IsString LatexItm where

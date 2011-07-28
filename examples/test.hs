@@ -24,6 +24,25 @@ doc = B.document dc preamb body
     preamb = ø
           -- B.usepackage [B.optional "francais"] (B.pkgName "babel")
 
+-- lam x t = "λ"⊕x⊕". "⊕t
+-- app t u = ...
+-- var x = ...
+
+-- rep :: Int -> LatexItem -> LatexItem
+-- rep x y = mconcat (replicate x y)
+
+-- latexToInt :: LatexItem -> Int
+-- latexToInt (LatexLength ...)
+
+-- rep' :: LatexItem -> LatexItem -> LatexItem
+-- rep' x y = mconcat (replicate (latexToInt x) y)
+
+newcommand nargs name body = latexCmd "newcommand" name [optional nargs, mandatory (body $ map (('#':).show) [1..nargs-1])]
+
+newcommand2 name body = newcommand name (\[x,y] -> body x y)
+
+lib = newcommand "lam" lam ⊕ ...
+
 body = id $? do
   tell B.tableofcontents
   B.part !$ "The prologue"

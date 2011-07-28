@@ -3,7 +3,7 @@
 import Language.LaTeX
 import qualified Language.LaTeX.Builder as B
 import qualified Language.LaTeX.Builder.Babel as B
-import qualified Language.LaTeX.Length as L
+import {-qualified-} Language.LaTeX.Length as L
 import qualified Language.LaTeX.Builder.Internal as BI
 -- import qualified Language.LaTeX.Builder.Math as M
 -- import qualified Language.LaTeX.Builder.Graphics as G
@@ -23,6 +23,11 @@ import System.Environment
 import qualified Safe
 import System.IO (stdout,hSetEncoding,utf8)
 
+(</>) :: String -> String -> String
+[] </> xs = xs
+xs </> [] = xs
+xs </> ys = xs ⊕ " " ⊕ ys
+
 data Env = Env { rows :: Int, cols :: Int }
 
 mainArgs env ("-c":n:args) | all isDigit n = mainArgs env{cols=read n} args
@@ -39,22 +44,47 @@ main = mainArgs Env{rows=7,cols=3} =<< getArgs
 
 -- paraNoindent = B.para . (B.noindent ⊕)
 
+
+someTexLens :: [LatexLength]
+someTexLens = [
+  marginparwidth,
+  marginparsep, marginparpush, topskip, {-footheight,-} footskip,
+  topsep, partopsep{-,
+  jot, abovedisplayskip, belowdisplayskip, abovedisplayshortskip,
+  belowdisplayshortskip, floatsep, textfloatsep, intextsep, dblfloatsep, dbltextfloatsep,
+{-textfraction, floatpagefraction, dbltopfaction, dblfloatpagefraction,-} arraycolsep,
+  tabcolsep, arrayrulewidth, doublerulesep, {-arraystretch,-} bigskipamount, medskipamount,
+  smallskipamount, fboxrule, fboxsep
+  -}
+  ]
+
 preamb = B.useBabel B.francais []
        ⊕ BI.usepackage ["utf8"] (BI.pkgName "inputenc")
-       ⊕ setlength L.topmargin zero
-       ⊕ setlength L.headheight zero
-       ⊕ setlength L.headsep zero
-       ⊕ setlength L.oddsidemargin zero
-       ⊕ setlength L.evensidemargin zero
-       ⊕ setlength L.leftmargin zero
-       ⊕ setlength L.rightmargin zero
-       ⊕ addtolength L.textwidth (L.inch 3.75)
-       ⊕ addtolength L.textheight (L.inch 3.75)
+       -- ⊕ BI.usepackage [] (BI.pkgName "fullpage")
+fullpage
+  = B.pagestyle "empty"
+  ⊕ clearlengths [L.topmargin
+                 ,L.parskip
+                 ,L.headheight
+                 ,L.headsep
+                 ,L.oddsidemargin
+                 ,L.evensidemargin
+                 ,L.leftmargin
+                 ,L.rightmargin
+                 ]
+  -- ⊕ clearlengths someTexLens
+  ⊕ setA4text
+  -- ⊕ addtolength L.textwidth (L.inch 3.75)
+  -- ⊕ addtolength L.textheight (L.inch 3.75)
   where setlength var len =
-          BI.preambleCmdArgs "setlength" . map (BI.mandatory . BI.texLength) $ [var, len]
+          BI.parCmdArgs "setlength" . map (BI.mandatory . BI.texLength) $ [var, len]
         addtolength var len =
-          BI.preambleCmdArgs "addtolength" . map (BI.mandatory . BI.texLength) $ [var, len]
+          BI.parCmdArgs "addtolength" . map (BI.mandatory . BI.texLength) $ [var, len]
+        setA4text = setlength L.textheight (L.cm 29.7)
+                  ⊕ setlength L.textwidth  (L.cm 21)
+                  ⊕ setlength L.linewidth  (L.cm 21)
         zero = L.inch 0
+        clearlengths = foldMap (`setlength` zero)
 
 data Addr = Addr { name    :: String
                  , street  :: String
@@ -92,8 +122,7 @@ texAddrs Env{rows,cols}
       B.newpage
 
     texAddrRow a =
-      take cols (map (B.minipage wi . texAddr) a
-                 ++ repeat ø)
+      take cols (map (B.minipage wi . texAddr) a ⊕ repeat ø)
 
 {-
 -- think more about this
@@ -123,14 +152,14 @@ addrLoaderFromCSV header =
         street    <- sel "Adresse"
         zipcode   <- sel "Code Postal"
         city      <- sel "Ville"
-        let build r = Addr { name    = name r ++ " " ++ firstname r
-                           , street  = (if null prer then "" else prer ++ " ") ++ street r
+        let build r = Addr { name    = name r </> firstname r
+                           , street  = pre r </> street r
                            , zipcode = zipcode r
                            , city    = city r
                            , country = Nothing }
-              where prer = pre r
         return build
   where sel = csvSelector header
 
-body env addrs = B.document dc preamb (B.pagestyle "empty" ⊕ texAddrs env addrs)
+body env addrs = B.document dc preamb (fullpage ⊕ texAddrs env addrs)
+body env addrs = B.document dc preamb (fullpage ⊕ texAddrs env addrs)
   where dc = B.article (Just (L.pt 12)) (Just B.a4paper) []

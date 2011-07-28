@@ -851,6 +851,16 @@ succ
       , ('⟶', longrightarrow)
       , ('⟵', longleftarrow)
       , ('▹', vartriangleright)
+      -- , ('ƛ', textrclambda)
+      -- These two declarations are from the tipa package.
+      -- However importing the packages breaks the document.
+      -- Note that we require T3 fonts here.
+      -- usepackage ["T3","OT1"] "fontenc"
+      -- ⊕ [qp|\DeclareTextSymbol\textcrlambda{T3}{172}|]
+      -- ⊕ [qp|\DeclareTextSymbolDefault\textcrlambda{T3}|]
+
+      --, ('⟦', llbracket) -- stmaryrd package
+      --, ('⟧', rrbracket)
       -- black board
       , ('ℕ', mathbb _N)
       , ('ℍ', mathbb _H)
