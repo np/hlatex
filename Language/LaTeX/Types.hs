@@ -103,6 +103,24 @@ data LatexItm
            | LatexNote Key Note LatexItm
   deriving (Show, Eq, Typeable, Data)
 
+appendAny :: AnyItm -> AnyItm -> [AnyItm]
+appendAny (PreambleItm x) (PreambleItm y) = [PreambleItm (x `mappend` y)]
+appendAny (LatexItm x)    (LatexItm y) = [LatexItm (x `mappend` y)]
+appendAny (MathItm x)     (MathItm y) = [MathItm (x `mappend` y)]
+appendAny (ParItm x)      (ParItm y) = [ParItm (x `mappend` y)]
+appendAny (LocSpecs x)    (LocSpecs y) = [LocSpecs (x `mappend` y)]
+-- this lengthy matching is to get a warning when we extend the AnyItm type
+appendAny x@PreambleItm{} y = [x, y]
+appendAny x@LatexItm{}    y = [x, y]
+appendAny x@MathItm{}     y = [x, y]
+appendAny x@ParItm{}      y = [x, y]
+appendAny x@LocSpecs{}    y = [x, y]
+appendAny x@Key{}         y = [x, y]
+appendAny x@PackageName{} y = [x, y]
+appendAny x@Coord{}       y = [x, y]
+appendAny x@Length{}      y = [x, y]
+appendAny x@SaveBin{}     y = [x, y]
+
 instance Monoid LatexItm where
   mempty  = LatexConcat []
   LatexConcat xs `mappend` LatexConcat ys = LatexConcat (xs ++ ys)
