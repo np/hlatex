@@ -66,7 +66,7 @@ group = liftMath MathGroup
 
 -- | Same as 'group'
 mathGroup :: MathItem -> MathItem
-mathGroup = liftMath MathGroup
+mathGroup = group
 
 mathCmdArgs :: String -> [Arg AnyItem] -> MathItem
 mathCmdArgs name args = MathItem $ MathCmdArgs name <$> mapM (mapM anyItmM) args
