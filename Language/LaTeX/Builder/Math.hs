@@ -713,7 +713,7 @@ type MXChar = Char -> MathItem
 -- For instance 'a' will be displayed in text mode.
 mchar :: XChar -> XChar
 mchar xchar ch = maybe (xchar ch) B.math m'
-  where m' | isAscii ch && isAlphaNum ch = Nothing
+  where m' | isAscii ch && (isAlphaNum ch || isSpace ch) = Nothing
            | otherwise                   = charToMath ch
 
 -- find a better name and export
