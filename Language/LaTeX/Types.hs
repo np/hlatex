@@ -456,7 +456,8 @@ type PreambleItemW = Writer PreambleItem ()
 -- TODO: Maybe one should handle quotes in a less LaTeX
 -- way: provide a replacement for ``...'' and escape `'"
 --
--- Don't confuse this function with ttchar
+-- NOTE: Don't confuse this function with ttchar
+-- NOTE: this raw Tex is ugly
 rawhchar :: Char -> String
 rawhchar '\\'  = "\\textbackslash{}"
 rawhchar '~'   = "\\~{}"
