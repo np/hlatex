@@ -194,16 +194,24 @@ latexSaveBin :: SaveBin -> AnyItem
 latexSaveBin = AnyItem . pure . SaveBin
 
 latexCast :: AnyItem -> LatexItem
-latexCast = fmap LatexCast . anyItmM
+latexCast = fmap cast . anyItmM
+  where cast (LatexItm x) = x
+        cast x            = LatexCast x
 
 mathCast :: AnyItem -> MathItem
-mathCast = MathItem . fmap MathCast . anyItmM
+mathCast = MathItem . fmap cast . anyItmM
+  where cast (MathItm x) = x
+        cast x           = MathCast x
 
 parCast :: AnyItem -> ParItem
-parCast = fmap ParCast . anyItmM
+parCast = fmap cast . anyItmM
+  where cast (ParItm x) = x
+        cast x          = ParCast x
 
 preambleCast :: AnyItem -> PreambleItem
-preambleCast = fmap PreambleCast . anyItmM
+preambleCast = fmap cast . anyItmM
+  where cast (PreambleItm x) = x
+        cast x               = PreambleCast x
 
 latexEnvironmentAny :: String -> [Arg AnyItem] -> AnyItem -> LatexItem
 latexEnvironmentAny x ys = liftM2 (Environment x) (mapM (mapM anyItmM) ys) . anyItmM
