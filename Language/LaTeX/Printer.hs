@@ -96,7 +96,8 @@ pp (RawTex s) = text s
 pp (LatexCast (MathItm m)) = text "$ " ⊕ ppMath m ⊕ text " $"
 pp (LatexCast x) = ppAny x
 pp (TexGroup t) = braces $ pp t
-pp (LatexConcat contents) = mconcat $ map pp contents
+pp LatexEmpty = ø
+pp (LatexAppend x y) = pp x ⊕ pp y
 pp (LatexNote key note t) = ppNote key note pp t
 
 ppParMode :: ParItm -> ShowS

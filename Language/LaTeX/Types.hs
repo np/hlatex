@@ -1,4 +1,5 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving, TemplateHaskell, DeriveDataTypeable #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, TemplateHaskell,
+             DeriveDataTypeable, PatternGuards #-}
 
 -- Those extensions are required by the Uniplate instances.
 --{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
@@ -99,34 +100,48 @@ data LatexItm
            | RawTex String
            | LatexCast AnyItm -- a cast from math induce $...$
            | TexGroup LatexItm
-           | LatexConcat [LatexItm]
+           | LatexEmpty
+           | LatexAppend LatexItm LatexItm
            | LatexNote Key Note LatexItm
   deriving (Show, Eq, Typeable, Data)
 
-appendAny :: AnyItm -> AnyItm -> [AnyItm]
-appendAny (PreambleItm x) (PreambleItm y) = [PreambleItm (x `mappend` y)]
-appendAny (LatexItm x)    (LatexItm y) = [LatexItm (x `mappend` y)]
-appendAny (MathItm x)     (MathItm y) = [MathItm (x `mappend` y)]
-appendAny (ParItm x)      (ParItm y) = [ParItm (x `mappend` y)]
-appendAny (LocSpecs x)    (LocSpecs y) = [LocSpecs (x `mappend` y)]
+appendAny :: AnyItm -> AnyItm -> Maybe AnyItm
+appendAny (PreambleItm x) (PreambleItm y) = Just $ PreambleItm (x `mappend` y)
+appendAny (LatexItm x)    (LatexItm y)    = Just $ LatexItm (x `mappend` y)
+appendAny (MathItm x)     (MathItm y)     = Just $ MathItm (x `mappend` y)
+appendAny (ParItm x)      (ParItm y)      = Just $ ParItm (x `mappend` y)
+appendAny (LocSpecs x)    (LocSpecs y)    = Just $ LocSpecs (x `mappend` y)
 -- this lengthy matching is to get a warning when we extend the AnyItm type
-appendAny x@PreambleItm{} y = [x, y]
-appendAny x@LatexItm{}    y = [x, y]
-appendAny x@MathItm{}     y = [x, y]
-appendAny x@ParItm{}      y = [x, y]
-appendAny x@LocSpecs{}    y = [x, y]
-appendAny x@Key{}         y = [x, y]
-appendAny x@PackageName{} y = [x, y]
-appendAny x@Coord{}       y = [x, y]
-appendAny x@Length{}      y = [x, y]
-appendAny x@SaveBin{}     y = [x, y]
+appendAny PreambleItm{} _ = Nothing
+appendAny LatexItm{}    _ = Nothing
+appendAny MathItm{}     _ = Nothing
+appendAny ParItm{}      _ = Nothing
+appendAny LocSpecs{}    _ = Nothing
+appendAny Key{}         _ = Nothing
+appendAny PackageName{} _ = Nothing
+appendAny Coord{}       _ = Nothing
+appendAny Length{}      _ = Nothing
+appendAny SaveBin{}     _ = Nothing
 
 instance Monoid LatexItm where
-  mempty  = LatexConcat []
+  mempty  = LatexEmpty -- LatexConcat []
+  RawTex xs       `mappend` RawTex ys = RawTex (xs ++ ys)
+  LatexCast x     `mappend` LatexCast y | Just z <- appendAny x y = LatexCast z
+  LatexEmpty      `mappend` x = x
+  x               `mappend` LatexEmpty = x
+  LatexAppend x y `mappend` z = x `mappend` (y `mappend` z) -- TODO complexity issue?
+  x `mappend` LatexAppend y z =
+    case x `mappend` y of
+      LatexAppend x' y' -> x' `LatexAppend` (y' `mappend` z) -- TODO complexity issue?
+      xy                -> xy `mappend` z
+  x               `mappend` y = x `LatexAppend` y
+
+{-
   LatexConcat xs `mappend` LatexConcat ys = LatexConcat (xs ++ ys)
   LatexConcat xs `mappend` y              = LatexConcat (xs ++ [y])
   x              `mappend` LatexConcat ys = LatexConcat (x : ys)
   x              `mappend` y              = LatexConcat [x, y]
+-}
 
 instance IsString LatexItm where
   fromString s
