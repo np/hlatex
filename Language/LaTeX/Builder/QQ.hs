@@ -16,6 +16,7 @@ import Language.Haskell.TH.Quote
 import Language.LaTeX.Types (Key(..))
 import Language.LaTeX.Builder.Internal (rawTex, rawPreamble)
 import Language.LaTeX.Builder.Math (mstring)
+import Language.LaTeX.Builder (hstring)
 
 frTop :: a -> a
 frTop = id
@@ -34,10 +35,9 @@ quasiQuoter qqName =
 -- endif
   where err kind _ = error $ qqName ++ ": not available in " ++ kind
 
-frQQ = (quasiQuoter "frQQ"){ quoteExp = TH.stringE
-                           , quotePat = TH.litP . TH.stringL }
 
-str = frQQ
+str = (quasiQuoter "str"){ quoteExp = TH.stringE
+                         , quotePat = TH.litP . TH.stringL }
 
 istr = (quasiQuoter "istr"){ quoteExp = TH.stringE . stripIdent }
   where stripIdent = unlines' . skipFirst (map (dropBar . dropWhile isSpace)) . lines
@@ -51,9 +51,10 @@ istr = (quasiQuoter "istr"){ quoteExp = TH.stringE . stripIdent }
 mkQQ :: String -> TH.Name -> QuasiQuoter
 mkQQ qqName qqFun = (quasiQuoter qqName){ quoteExp = TH.appE (TH.varE qqFun) . TH.stringE }
 
-tex = mkQQ "tex" 'rawTex
-qm  = mkQQ "qm"  'mstring
-qp  = mkQQ "qp"  'rawPreamble
+frQQ = mkQQ "frQQ" 'hstring
+tex  = mkQQ "tex"  'rawTex
+qm   = mkQQ "qm"   'mstring
+qp   = mkQQ "qp"   'rawPreamble
 
 keys = (quasiQuoter "keys"){ quoteDec = fs } where
   fs = sequence . concatMap f . words
