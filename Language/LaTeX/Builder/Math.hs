@@ -10,7 +10,7 @@ module Language.LaTeX.Builder.Math
    cot, csc, cup, ddot, ddots, delta, det, diamond, dim, displaystyle, divide,
    dot, downarrow, emptyset, epsilon, eq, neq, equiv, eta, exists, forall_, frac,
    gamma, gcd, ge, geq, grave, group, hat, iff, imath, implies, in_, inf,
-   infty, int, iota, jmath, kappa, lambda, langle, lbrace, lceiling, lcm,
+   infty, int, iota, jmath, kappa, lambda, langle, lbrace, lceil, lcm,
    ldots, ldotp, le, leftarrow, leftrightarrow, leq, lfloor, lim, liminf, limsup, ln,
    log, lparen, mathBinOp, longleftarrow, longrightarrow, longleftrightarrow,
    mathBinOps, mathCmd, mathCmdArg, mathCmdArgs, mathCmdMathArg, mathCmdMathArgs, mathCmdsArg,
@@ -20,7 +20,7 @@ module Language.LaTeX.Builder.Math
    negthinspace, mod, models, mrat, mright, msup, thickspace,
    thinspace, mu, nabla, ne, neg, notin, nu, oint, omega, omicron, oplus, otimes,
    overbrace, overline, parenChar, parens, partial, phi, pi, pm, pmod, prec,
-   prod, propto, psi, quad, rangle, rawMath, rawMathChar, rbrace, rceiling,
+   prod, propto, psi, quad, rangle, rawMath, rawMathChar, rbrace, rceil,
    rfloor, rho, rightarrow, rparen, scriptscriptstyle, scriptstyle, sec, sigma, sin, sinh,
    space, sqrt, sqrt', square, stackrel, sub, subset, subseteq, succ, sum, sup,
    supset, supseteq, tan, tanh, tau, text, textstyle, theta, tilde, times, to, top,
@@ -384,10 +384,10 @@ lfloor :: MathItem
 lfloor = mathCmd "lfloor"
 rfloor :: MathItem
 rfloor = mathCmd "rfloor"
-lceiling :: MathItem
-lceiling = mathCmd "lceiling"
-rceiling :: MathItem
-rceiling = mathCmd "rceiling"
+lceil :: MathItem
+lceil = mathCmd "lceil"
+rceil :: MathItem
+rceil = mathCmd "rceil"
 sin :: MathItem
 sin = mathCmd "sin"
 cos :: MathItem
@@ -658,7 +658,7 @@ allMathItems =
    notin, subset, supset, subseteq, supseteq, equiv, cong, approx, propto, neg, implies,
    iff, exists, bot, top, vdash, models, langle, rangle, int, oint, partial, nabla, pm,
    emptyset, infty, aleph, ldots, cdots, vdots, ddots, quad, diamond, square, lfloor,
-   rfloor, lceiling, rceiling, sin, cos, tan, csc, sec, cot, sinh, cosh, tanh, log, ln,
+   rfloor, lceil, rceil, sin, cos, tan, csc, sec, cot, sinh, cosh, tanh, log, ln,
    det, dim, lim, mod, gcd, lcm, liminf, inf, limsup, max, min, _Pr, uparrow, downarrow,
    rightarrow, to, leftarrow, leftrightarrow, _Rightarrow, _Leftarrow, _Leftrightarrow
   ,longrightarrow,longrightarrow,longleftrightarrow
@@ -749,7 +749,8 @@ charToMath ch
       , ('κ', kappa)
       , ('λ', lambda)
       , ('Λ', _Lambda)
-      , ('μ', mu)
+      , ('μ', mu) -- '\956' mu
+      , ('µ', mu) -- '\181' micro sign, is there a specific latex macro for it?
       , ('ν', nu)
       , ('ω', omega)
       , ('Ω', _Omega)
@@ -810,9 +811,9 @@ charToMath ch
       , ('⊤', top)
       , ('⊢', vdash)
       , ('⊩', models)
+      , ('⟨', langle)
+      , ('⟩', rangle)
       {-
-      , ('', langle)
-      , ('', rangle)
       , ('', int)
       , ('', oint)
       , ('', partial)
@@ -830,11 +831,11 @@ charToMath ch
       , ('', quad)
       , ('', diamond)
       , ('', square)
-      , ('', lfloor)
-      , ('', rfloor)
-      , ('', lceiling)
-      , ('', rceiling)
       -}
+      , ('⌈', lceil)
+      , ('⌉', rceil)
+      , ('⌊', lfloor)
+      , ('⌋', rfloor)
       , ('↑', uparrow)
       {-
       , ('', downarrow)
