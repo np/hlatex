@@ -183,8 +183,8 @@ verb :: String -> LatexItem
 verb = texttt . protector ttchar
 
 -- A comment put in the generated LaTeX document
-comment :: String -> ParItem
-comment s = parNote (MkKey "comment") (stringNote s) ø
+comment :: String -> LatexItem
+comment s = latexNote (MkKey "comment") (stringNote s) ø
 
 href :: LatexItem -> LatexItem -> LatexItem
 href x y = latexCmdArgs "href" [mandatory x,mandatory y]
