@@ -1,12 +1,12 @@
 module Language.LaTeX.Builder.Math
-  
+
   -- NOTE: do not forget to update allMathItems, allMathDecls
   (amsmath,
    charToMath, stringToMath, mchar, mstring, mathlift, protect, protector, verb,
    _Delta, _Gamma, _Lambda, _Leftarrow, _Leftrightarrow, _Omega, _Phi, _Pi, _Pr,
    _Rightarrow, _Sigma, _Theta, _Xi, acute, aleph, alpha, approx, array, at,
    backslash, bar, beta, between, bigcap, bigcup, bigvee, bigwedge, bmod, bot,
-   braces, brackets, breve, cal, cap, cdots, cdotp, check, chi, circ, cong, cos, cosh,
+   braces, brackets, breve, bullet, cal, cap, cdots, cdotp, check, chi, circ, cong, cos, cosh,
    cot, csc, cup, ddot, ddots, delta, det, diamond, dim, displaystyle, divide,
    dot, downarrow, emptyset, epsilon, eq, neq, equiv, eta, exists, forall_, frac,
    gamma, gcd, ge, geq, grave, group, hat, iff, imath, implies, in_, inf,
@@ -334,6 +334,8 @@ iff :: MathItem
 iff = mathCmd "iff"
 exists :: MathItem
 exists = mathCmd "exists"
+bullet :: MathItem
+bullet = mathCmd "bullet"
 bot :: MathItem
 bot = mathCmd "bot"
 top :: MathItem
@@ -656,7 +658,7 @@ allMathItems =
    xi, _Xi, zeta, backslash, times, divide, circ, oplus, otimes, sum, prod, wedge,
    bigwedge, vee, bigvee, cup, bigcup, cap, bigcap, ne, le, leq, ge, geq, prec, succ,
    notin, subset, supset, subseteq, supseteq, equiv, cong, approx, propto, neg, implies,
-   iff, exists, bot, top, vdash, models, langle, rangle, int, oint, partial, nabla, pm,
+   iff, exists, bullet, bot, top, vdash, models, langle, rangle, int, oint, partial, nabla, pm,
    emptyset, infty, aleph, ldots, cdots, vdots, ddots, quad, diamond, square, lfloor,
    rfloor, lceil, rceil, sin, cos, tan, csc, sec, cot, sinh, cosh, tanh, log, ln,
    det, dim, lim, mod, gcd, lcm, liminf, inf, limsup, max, min, _Pr, uparrow, downarrow,
@@ -813,6 +815,7 @@ charToMath ch
       , ('⊩', models)
       , ('⟨', langle)
       , ('⟩', rangle)
+      , ('●', bullet)
       {-
       , ('', int)
       , ('', oint)
@@ -824,9 +827,9 @@ charToMath ch
       , ('∞', infty)
       , ('…', ldots)
       , ('⋯', cdots)
+      , ('⋮', vdots)
       {-
       , ('', aleph)
-      , ('', vdots)
       , ('', ddots)
       , ('', quad)
       , ('', diamond)
