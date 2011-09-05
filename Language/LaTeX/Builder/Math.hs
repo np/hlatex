@@ -7,7 +7,7 @@ module Language.LaTeX.Builder.Math
    _Rightarrow, _Sigma, _Theta, _Xi, acute, aleph, alpha, approx, array, at,
    backslash, bar, beta, between, bigcap, bigcup, bigvee, bigwedge, bmod, bot,
    braces, brackets, breve, bullet, cal, cap, cdots, cdotp, check, chi, circ, cong, cos, cosh,
-   cot, csc, cup, ddot, ddots, delta, det, diamond, dim, displaystyle, divide,
+   cot, csc, cup, ddot, ddots, delta, det, diamond, dim, displaystyle, div, divide,
    dot, downarrow, emptyset, epsilon, eq, neq, equiv, eta, exists, forall_, frac,
    gamma, gcd, ge, geq, grave, group, hat, iff, imath, implies, in_, inf,
    infty, int, iota, jmath, kappa, lambda, langle, lbrace, lceil, lcm,
@@ -37,7 +37,7 @@ module Language.LaTeX.Builder.Math
   ) where
 
 import Prelude hiding (sqrt, min, max, lcm, gcd, log, mod, tanh, cosh, tan, sinh,
-                       sin, cos, succ, sum, pi, mapM)
+                       sin, cos, succ, sum, pi, mapM, div)
 import Data.Char
 import Data.Maybe (fromMaybe)
 import Data.Foldable (foldMap)
@@ -266,8 +266,8 @@ backslash :: MathItem
 backslash = mathCmd "backslash"
 times :: MathItem
 times = mathCmd "times"
-divide :: MathItem
-divide = mathCmd "divide"
+div :: MathItem
+div = mathCmd "div"
 circ :: MathItem
 circ = mathCmd "circ"
 oplus :: MathItem
@@ -646,6 +646,10 @@ mathlift :: (LatexItem -> LatexItem) -> MathItem -> MathItem
 mathlift fun = text . fun . B.math
 {-# DEPRECATED mathlift "The use of M.text should be done with care (mbox is an alternative)" #-}
 
+divide :: MathItem
+divide = mathCmd "div"
+{-# DEPRECATED divide "Use div instead" #-}
+
 allMathDecls :: [MathDecl]
 allMathDecls = [displaystyle, textstyle, scriptstyle, scriptscriptstyle, mit, cal]
 
@@ -655,7 +659,7 @@ allMathItems =
    thickspace, msup, alpha, beta, chi, delta, _Delta, epsilon, varepsilon, eta,
    gamma, _Gamma, iota, kappa, lambda, _Lambda, mu, nu, omega, _Omega, phi, varphi,
    _Phi, pi, _Pi, psi, rho, sigma, _Sigma, tau, theta, vartheta, _Theta, upsilon,
-   xi, _Xi, zeta, backslash, times, divide, circ, oplus, otimes, sum, prod, wedge,
+   xi, _Xi, zeta, backslash, times, div, circ, oplus, otimes, sum, prod, wedge,
    bigwedge, vee, bigvee, cup, bigcup, cap, bigcap, ne, le, leq, ge, geq, prec, succ,
    notin, subset, supset, subseteq, supseteq, equiv, cong, approx, propto, neg, implies,
    iff, exists, bullet, bot, top, vdash, models, langle, rangle, int, oint, partial, nabla, pm,
@@ -775,7 +779,7 @@ charToMath ch
       --, ('', _Xi)
       , ('ζ', zeta)
       , ('×', times)
-      , ('÷', divide)
+      , ('÷', div)
       , ('·', cdotp)
       , ('∘', circ)
       , ('⊕', oplus)
