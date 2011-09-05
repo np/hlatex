@@ -6,6 +6,7 @@ module Language.LaTeX
   ,CharNumber
   ,Loc
   ,Note
+  ,Named
   ,DocumentClassKind
   ,DocumentClss
   ,Star
