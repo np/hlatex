@@ -77,10 +77,15 @@ intNote = IntNote
 locNote :: Loc -> Note
 locNote = LocNote
 
--- Note that @rawArg ""@ reduces to ø.
-rawArg :: String -> Arg a
-rawArg s | null s    = NoArg
-         | otherwise = RawArg s
+-- Note that @rawArg ø@ reduces to ø.
+rawArg :: String -> Arg m
+rawArg "" = NoArg
+rawArg x  = RawArg x
+
+-- Note that @liftArg ø@ reduces to ø.
+liftArg :: (Eq m, Monoid m) => m -> Arg m
+liftArg x | x == ø    = NoArg
+          | otherwise = LiftArg x
 
 rawDecls :: [TexDecl] -> LatexItem
 rawDecls = mapNonEmpty $ fmap TexDecls . sequenceA

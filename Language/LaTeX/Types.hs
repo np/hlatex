@@ -164,6 +164,7 @@ data Arg a = NoArg
            | NamedOpts [Named a] -- surrounded by `[' `]', separated by `=' and `,' or empty if null
            | Coordinates a a     -- surrounded by `(' `)', separated by ` '
            | RawArg String
+           | LiftArg a
            | PackageAction PackageAction
   deriving (Show, Eq, Typeable, Data)
 

@@ -55,6 +55,7 @@ ppArg (Optional xs)     = brackets . commas $ xs
 ppArg (NamedArgs xs)    = braces   . commas . map ppNamed $ xs
 ppArg (NamedOpts xs)    = brackets . commas . map ppNamed $ xs
 ppArg (Coordinates x y) = parens (x ⊕ text " " ⊕ y)
+ppArg (LiftArg x)       = x
 ppArg (RawArg x)        = text x
 ppArg (PackageAction _) = id
 
