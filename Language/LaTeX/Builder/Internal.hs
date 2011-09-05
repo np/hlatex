@@ -178,14 +178,14 @@ showPaper A4paper = "a4paper"
 showPaper (OtherPaperSize s) = s
 
 latexPaper :: LatexPaperSize -> AnyItem
-latexPaper = latexItem . rawTex . showPaper
+latexPaper = rawAnyTex . showPaper
 
 otherDocumentClassKind :: String -> DocumentClassKind
 otherDocumentClassKind = OtherDocumentClassKind
 
 bool :: Bool -> AnyItem
-bool True  = latexItem $ rawTex "true"
-bool False = latexItem $ rawTex "false"
+bool True  = rawAnyTex "true"
+bool False = rawAnyTex "false"
 
 coord :: Coord -> AnyItem
 coord = AnyItem . pure . Coord
@@ -244,6 +244,9 @@ listLikeEnv name opts items =
 
 rawTex :: String -> LatexItem
 rawTex = mapNonEmpty $ pure . RawTex
+
+rawAnyTex :: String -> AnyItem
+rawAnyTex = latexItem . rawTex
 
 texCmdNoArg :: String -> LatexItem
 texCmdNoArg = pure . TexCmdNoArg

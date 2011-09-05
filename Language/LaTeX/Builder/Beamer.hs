@@ -39,7 +39,7 @@ beamer :: Maybe LatexLength -> [DocClassOption] -> [AnyItem] -> DocumentClass
 beamer msize opts
   = B.documentclass documentclasskind
   . (maybeToList (BI.texLength <$> msize) ++)
-  . (map (BI.latexItem . BI.rawTex . showDocClassOption) opts ++)
+  . (map (BI.rawAnyTex . showDocClassOption) opts ++)
 
 type TargetName = String
 type Label = String
@@ -259,7 +259,7 @@ altenv ov b e ab ae =
 
 beamerOpts :: [BeamerOpt] -> Arg AnyItem
 beamerOpts = BI.namedOpts . map f
-  where f (x,y) = Named x (BI.latexItem . BI.rawTex $ y)
+  where f (x,y) = Named x (BI.rawAnyTex $ y)
 
 beamerPreambleCmdArgs :: String -> [BeamerOpt] -> LatexItem -> PreambleItem
 beamerPreambleCmdArgs name opts arg = BI.preambleCmdArgs name [beamerOpts opts, BI.mandatoryLatexItem arg]

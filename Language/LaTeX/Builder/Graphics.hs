@@ -160,7 +160,7 @@ includeGraphicsOpts o =
             , f "totalheight" totalheight (BI.texLength . fromJust)
             , f "keepaspectratio" keepaspectratio BI.bool
             , f "angle" angle BI.rat
-            , f "origin" origin (BI.latexItem . BI.rawTex . showGrLoc)
+            , f "origin" origin (BI.rawAnyTex . showGrLoc)
             , f "draft" draft BI.bool
             , f "clip" clip BI.bool
             , f "bb" bb maybeCoords

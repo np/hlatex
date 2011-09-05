@@ -397,7 +397,7 @@ hyphen = rawTex "{\\-}" -- check if {...} does not cause trouble here
 -- robust
 -- http://www.personal.ceu.hu/tex/breaking.htm#hyphw
 hyphenation :: [String] -> ParItem
-hyphenation = parCmdArg "hyphenation" . latexItem . rawTex . L.unwords -- rawTex is a bit rough here
+hyphenation = parCmdArg "hyphenation" . rawAnyTex . L.unwords -- rawAnyTex is a bit rough here
 
 sloppy, fussy :: TexDecl
 sloppy = texDecl "sloppy"
@@ -485,7 +485,7 @@ mbox :: LatexItem -> LatexItem
 mbox = latexCmdArg "mbox"
 
 posArg :: Pos -> Arg AnyItem
-posArg = optional . latexItem . rawTex . pure . charPos
+posArg = optional . rawAnyTex . pure . charPos
 
 -- fragile
 -- http://www.personal.ceu.hu/tex/spacebox.htm#makebox
@@ -537,8 +537,8 @@ data VPos = Normal
 
 vposArg :: VPos -> Arg AnyItem
 vposArg Normal = noArg
-vposArg Top    = optional . latexItem . rawTex $ "t"
-vposArg Bot    = optional . latexItem . rawTex $ "b"
+vposArg Top    = optional . rawAnyTex $ "t"
+vposArg Bot    = optional . rawAnyTex $ "b"
 
 -- fragile
 -- http://www.personal.ceu.hu/tex/spacebox.htm#parbox
