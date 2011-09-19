@@ -403,23 +403,23 @@ footline Footline{authorPercent=authorp,titlePercent=titlep,datePercent=maydatep
       maytotalframes = if stf then [qp| / \inserttotalframenumber|] else ø
   in
   [qp|
-        \defbeamertemplate*{footline}{infolines theme without institution}
-        {
-          \leavevmode%
-          \hbox{%
-            \begin{beamercolorbox}[wd=.|] ⊕ f authorp ⊕ [qp|\paperwidth,ht=2.25ex,dp=1.125ex,center]{author in head/foot}%
-              \usebeamerfont{author in head/foot}
-              \insertshortauthor
-            \end{beamercolorbox}%
-            \begin{beamercolorbox}[wd=.|] ⊕ f titlep ⊕ [qp|\paperwidth,ht=2.25ex,dp=1.125ex,center]{title in head/foot}%
-              \usebeamerfont{title in head/foot}
-              \insertshorttitle
-            \end{beamercolorbox}%
-            \begin{beamercolorbox}[wd=.|] ⊕ f datep ⊕ [qp|\paperwidth,ht=2.25ex,dp=1.125ex,right]{date  in head/foot}%
-              \usebeamerfont{date in head/foot}
-              \insertshortdate{}\hspace*{2em}
-              \insertframenumber{}|] ⊕ maytotalframes ⊕ [qp|\hspace*{2ex}
-            \end{beamercolorbox}}%
-          \vskip0pt%
-        }
-  |]
+     |  \defbeamertemplate*{footline}{infolines theme without institution}
+     |  {
+     |    \leavevmode%
+     |    \hbox{%
+     |      \begin{beamercolorbox}[wd=.|] ⊕ f authorp ⊕ [qp|\paperwidth,ht=2.25ex,dp=1.125ex,center]{author in head/foot}%
+     |        \usebeamerfont{author in head/foot}
+     |        \insertshortauthor
+     |      \end{beamercolorbox}%
+     |      \begin{beamercolorbox}[wd=.|] ⊕ f titlep ⊕ [qp|\paperwidth,ht=2.25ex,dp=1.125ex,center]{title in head/foot}%
+     |        \usebeamerfont{title in head/foot}
+     |        \insertshorttitle
+     |      \end{beamercolorbox}%
+     |      \begin{beamercolorbox}[wd=.|] ⊕ f datep ⊕ [qp|\paperwidth,ht=2.25ex,dp=1.125ex,right]{date  in head/foot}%
+     |        \usebeamerfont{date in head/foot}
+     |        \insertshortdate{}\hspace*{2em}
+     |        \insertframenumber{}|] ⊕ maytotalframes ⊕ [qp|\hspace*{2ex}
+     |      \end{beamercolorbox}}%
+     |    \vskip0pt%
+     |  }
+     |]

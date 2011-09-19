@@ -4,7 +4,8 @@ module Language.LaTeX.Builder.QQ
    frQQ,frQQFile,str,strFile,istr,istrFile,tex,texFile,qm,qmFile,qp,qpFile,
    keys,keysFile,
    -- * Building new Quasi Quoters
-   mkQQ,
+   mkQQ, mkQQnoIndent,
+   stripIdentQQ,
    -- * Misc functions used by the frquotes expander of «...»
    frTop, frAntiq,
   ) where
@@ -35,23 +36,31 @@ quasiQuoter qqName =
 -- endif
   where err kind _ = error $ qqName ++ ": not available in " ++ kind
 
+stripIdentQQ :: String -> String
+stripIdentQQ = unlines' . skipFirst (map dropBar . dropLastWhen null . map (dropWhile isSpace)) . lines
+  where unlines'   = intercalate "\n"
+        skipFirst _ []     = []
+        skipFirst f (x:xs) = x : f xs
+        dropLastWhen _ [] = []
+        dropLastWhen p (x:xs) | null xs && p x = []
+                              | otherwise      = x:dropLastWhen p xs
+        dropBar ('|':xs) = xs
+        dropBar []       = error "stripIdentQQ: syntax error '|' expected after spaces (unexpected empty string)"
+        dropBar (c:xs)   = error $ "stripIdentQQ: syntax error '|' expected after spaces (unexpected "++show c++")"
 
 str = (quasiQuoter "str"){ quoteExp = TH.stringE
                          , quotePat = TH.litP . TH.stringL }
 
-istr = (quasiQuoter "istr"){ quoteExp = TH.stringE . stripIdent }
-  where stripIdent = unlines' . skipFirst (map (dropBar . dropWhile isSpace)) . lines
-        unlines'   = intercalate "\n"
-        skipFirst _ []     = []
-        skipFirst f (x:xs) = x : f xs
-        dropBar []       = []
-        dropBar ('|':xs) = xs
-        dropBar _        = error "istr: syntax error '|' expected after spaces"
+mkQQnoIndent :: String -> TH.Name -> QuasiQuoter
+mkQQnoIndent qqName qqFun = (quasiQuoter qqName){ quoteExp = TH.appE (TH.varE qqFun) . TH.stringE }
 
 mkQQ :: String -> TH.Name -> QuasiQuoter
-mkQQ qqName qqFun = (quasiQuoter qqName){ quoteExp = TH.appE (TH.varE qqFun) . TH.stringE }
+mkQQ qqName qqFun = (quasiQuoter qqName){ quoteExp = TH.appE (TH.varE qqFun) . TH.stringE . stripIdentQQ }
 
-frQQ = mkQQ "frQQ" 'hstring
+-- istr ≡ mkQQ "istr" 'id
+istr = (quasiQuoter "istr"){ quoteExp = TH.stringE . stripIdentQQ }
+
+frQQ = mkQQnoIndent "frQQ" 'hstring
 tex  = mkQQ "tex"  'rawTex
 qm   = mkQQ "qm"   'mstring
 qp   = mkQQ "qp"   'rawPreamble
