@@ -3,6 +3,7 @@ module Language.LaTeX.Builder.Babel
    (Lang, BabelOpt
    ,useBabel
    ,langName
+   ,otherlanguage
    -- langs
    ,francais
    ,french
@@ -37,3 +38,7 @@ pkg = BI.pkgName "babel"
 useBabel :: Lang -> [BabelOpt] -> PreambleItem
 useBabel lang opts = BI.usepackage (BI.latexItem (fromString (langName lang))
                                    : map babelOpt opts) pkg
+
+-- | Switch locally to another language
+otherlanguage :: Lang -> ParItem -> ParItem
+otherlanguage lang = BI.parEnvironmentPar "otherlanguage" [BI.mandatoryLatexItem (fromString (langName lang))]
