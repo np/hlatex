@@ -46,7 +46,7 @@ stripIdentQQ = unlines' . skipFirst (map dropBar . dropLastWhen null . map (drop
                               | otherwise      = x:dropLastWhen p xs
         dropBar ('|':xs) = xs
         dropBar []       = error "stripIdentQQ: syntax error '|' expected after spaces (unexpected empty string)"
-        dropBar (c:xs)   = error $ "stripIdentQQ: syntax error '|' expected after spaces (unexpected "++show c++")"
+        dropBar (c:_)    = error $ "stripIdentQQ: syntax error '|' expected after spaces (unexpected "++show c++")"
 
 str = (quasiQuoter "str"){ quoteExp = TH.stringE
                          , quotePat = TH.litP . TH.stringL }
