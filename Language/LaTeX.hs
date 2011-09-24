@@ -66,6 +66,7 @@ module Language.LaTeX
   )
 where
 import Data.Monoid (Monoid(..))
+import Data.List (intercalate)
 import Language.LaTeX.Types
 import Language.LaTeX.Printer (showLaTeX)
 import Language.LaTeX.Builder.MonoidUtils
@@ -82,12 +83,14 @@ import qualified System.IO.UTF8 as U
 data ViewOpts = ViewOpts { basedir   :: FilePath
                          , pdflatex  :: String
                          , pdfviewer :: String
+                         , inputdirs :: [FilePath]
                          , showoutput :: Bool }
 
 myViewOpts, testViewOpts :: ViewOpts
 myViewOpts = ViewOpts { basedir   = ""
                       , pdflatex  = "texi2pdf"
                       , pdfviewer = "open"
+                      , inputdirs = []
                       , showoutput = True }
 
 testViewOpts = myViewOpts { basedir = "tests" }
@@ -110,7 +113,12 @@ quickView vo basename doc =
   where s = either error id $ showLaTeX doc
         pdf = basename <.> "pdf"
         ltx = basename <.> "ltx"
-        cmd = unwords ["cd", basedir vo, "&&", pdflatex vo, ltx, "&&", pdfviewer vo, pdf]
+        inputdirsStr = intercalate ":" $ inputdirs vo
+        texinputs = "TEXINPUTS=" ++ inputdirsStr
+        bstinputs = "BSTINPUTS=" ++ inputdirsStr
+        cmd = unwords ["cd", basedir vo, "&&"
+                      , texinputs, bstinputs, pdflatex vo, ltx, "&&"
+                      , pdfviewer vo, pdf]
 
 printLatexDocument :: LatexM Document -> IO ()
 printLatexDocument = putStr . either error id . showLaTeX
