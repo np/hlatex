@@ -7,7 +7,7 @@ module Language.LaTeX.Types where
 
 import Prelude hiding (and, foldr, foldl, foldr1, foldl1, elem, concatMap, concat)
 import Data.Monoid (Monoid(..))
-import Data.List (intersperse)
+import Data.List (intercalate)
 import Data.Ratio ((%))
 import Data.Traversable
 import Data.Foldable
