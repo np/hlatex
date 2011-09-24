@@ -147,7 +147,7 @@ instance IsString LatexItm where
   fromString s
     | null s    = mempty
     | otherwise = f s
-    where f = RawTex . concatMap rawhchar . concat . intersperse "\n" . filter (not . null) . lines
+    where f = RawTex . concatMap rawhchar . intercalate "\n" . filter (not . null) . lines
 
 data Named a = Named String a
   deriving (Show, Eq, Typeable, Data)

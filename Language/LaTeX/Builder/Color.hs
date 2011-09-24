@@ -74,11 +74,11 @@ color = BI.texDecl' "color" . colorArgs
 
 -- | 'textcolor' sets the text of its argument in the given colour
 textcolor :: Color -> LatexItem -> LatexItem
-textcolor c x = BI.latexCmdAnyArgs "textcolor" (colorArgs c ++ [BI.mandatoryLatexItem $ x])
+textcolor c x = BI.latexCmdAnyArgs "textcolor" (colorArgs c ++ [BI.mandatoryLatexItem x])
 
 -- | 'colorbox' sets its argument in a box with the given colour as background
 colorbox :: Color -> LatexItem -> LatexItem
-colorbox c x = BI.latexCmdAnyArgs "colorbox" (colorArgs c ++ [BI.mandatoryLatexItem $ x])
+colorbox c x = BI.latexCmdAnyArgs "colorbox" (colorArgs c ++ [BI.mandatoryLatexItem x])
 
 -- | @fcolorbox c1 c2 text@ is like 'colorbox', with a frame of @c1@ around a box
 --   of background colour @c2@.

@@ -520,7 +520,7 @@ sbox bin txt = latexCmdAnyArgs "sbox" [mandatory $ latexSaveBin bin, mandatoryLa
 savebox :: SaveBin -> Maybe LatexLength -> Maybe (Either () ()) -> LatexItem -> LatexItem
 savebox bin width dir txt =
   latexCmdAnyArgs "savebox" [mandatory $ latexSaveBin bin
-                            ,maybe noArg (optTexLength) width
+                            ,maybe noArg optTexLength width
                             ,maybe noArg (optionalLatexItem . either ll rr) dir
                             ,mandatoryLatexItem txt]
   where ll _ = rawTex "l"

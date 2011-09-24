@@ -259,7 +259,7 @@ altenv ov b e ab ae =
 
 beamerOpts :: [BeamerOpt] -> Arg AnyItem
 beamerOpts = BI.namedOpts . map f
-  where f (x,y) = Named x (BI.rawAnyTex $ y)
+  where f (x,y) = Named x $ BI.rawAnyTex y
 
 beamerPreambleCmdArgs :: String -> [BeamerOpt] -> LatexItem -> PreambleItem
 beamerPreambleCmdArgs name opts arg = BI.preambleCmdArgs name [beamerOpts opts, BI.mandatoryLatexItem arg]
