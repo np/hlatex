@@ -20,6 +20,7 @@ import Language.LaTeX.Builder.MonoidUtils
     - generating a doc with examples:
          [...("sum", [| sum⊕sub(i⊕eq⊕0)⊕sup infty⊕i⊕sup 2 |])...]
     - pictures
+    - choose between optFoo and optionalFoo
  -}
 
 noArg :: Arg a
