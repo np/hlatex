@@ -12,7 +12,7 @@ module Language.LaTeX.Builder.Color
   ,preamblecolor
   ,normalcolor
   -- * Making colors
-  ,named, rgb, cymk, gray
+  ,named, rgb, cmyk, gray, html, rgb256
   -- * Predefined colors
   ,red, green, blue, black, white, cyan, magenta, yellow, orange
   -- * Package name
@@ -20,27 +20,39 @@ module Language.LaTeX.Builder.Color
 where
 
 import Data.String
+import Data.Word
 import Language.LaTeX.Types
 import qualified Language.LaTeX.Builder.Internal as BI
 import Control.Monad.Error (throwError)
 
+-- Some HTML docs at http://en.wikibooks.org/wiki/LaTeX/Colors
+
 data Color = BaseColor String
            | NamedColor String
            | RGB Rational Rational Rational
-           | CYMK Rational Rational Rational Rational
+           | RGB256 Word8 Word8 Word8
+           | HTML String
+           | CMYK Rational Rational Rational Rational
            | Gray Rational
 
 colorArgs :: Color -> [Arg AnyItem]
 colorArgs = (BI.packageDependency pkg:) . f
   where f (BaseColor n)  = [man n]
         f (NamedColor n) = [opt "named", man n]
-        f (RGB r g b)    = model "rgb" [r,g,b]
-        f (CYMK c y m k) = model "cymk" [c,y,m,k]
-        f (Gray g)       = model "gray" [g]
+        f (RGB r g b)    = model "rgb" (checkRatios [r,g,b])
+        f (RGB256 r g b) = model "RGB" [r,g,b]
+        f (CMYK c m y k) = model "cmyk" (checkRatios [c,m,y,k])
+        f (Gray g)       = model "gray" (checkRatios [g])
+        f (HTML s)       = [opt "HTML", man . checkHTML $ s]
         opt = BI.optionalLatexItem . fromString
         man = BI.mandatoryLatexItem . fromString
         model name cs    = [opt name,
                             BI.mandatoryList . map BI.num $ cs]
+        check msg p x | p x       = x
+                      | otherwise = error msg
+        checkHTML = check "Not a HTML color (6 hex digits)" (\s -> length s == 6 && all (`elem` (['0'..'9']++['a'..'F']++['A'..'F'])) s)
+        checkRatios = check "Not a rational number between 0 and 1" (all checkRatio)
+        checkRatio x = x >= 0 && x <= 1
 
 red, green, blue, black, white, cyan, magenta, yellow :: Color
 [red, green, blue, black, white, cyan, magenta, yellow] =
@@ -58,11 +70,17 @@ named = NamedColor
 rgb :: Rational -> Rational -> Rational -> Color
 rgb = RGB
 
-cymk :: Rational -> Rational -> Rational -> Rational -> Color
-cymk = CYMK
+cmyk :: Rational -> Rational -> Rational -> Rational -> Color
+cmyk = CMYK
 
 gray :: Rational -> Color
 gray = Gray
+
+rgb256 :: Word8 -> Word8 -> Word8 -> Color
+rgb256 = RGB256
+
+html :: String -> Color
+html = HTML
 
 -- | 'pagecolor' sets the background colour for the current and following pages
 pagecolor :: Color -> ParItem
