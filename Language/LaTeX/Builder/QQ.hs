@@ -4,7 +4,7 @@ module Language.LaTeX.Builder.QQ
    frQQ,frQQFile,str,strFile,istr,istrFile,tex,texFile,qm,qmFile,qp,qpFile,
    keys,keysFile,
    -- * Building new Quasi Quoters
-   mkQQ, mkQQnoIndent,
+   mkQQ, mkQQnoIndent, mkQQgen,
    stripIdentQQ,
    -- * Misc functions used by the frquotes expander of «...»
    frTop, frAntiq,
@@ -12,8 +12,11 @@ module Language.LaTeX.Builder.QQ
 
 import Data.List
 import Data.Char
-import qualified Language.Haskell.TH as TH
+import Data.Functor
+import Language.Haskell.TH (Q, Exp, Name, appE, varE, stringE, litP, stringL, valD,
+                            varP, sigD, mkName, normalB, conE)
 import Language.Haskell.TH.Quote
+import Language.Haskell.TH.Syntax (Lift(..))
 import Language.LaTeX.Types (Key(..))
 import Language.LaTeX.Builder.Internal (rawTex, rawPreamble)
 import Language.LaTeX.Builder.Math (mstring)
@@ -34,31 +37,34 @@ quasiQuoter qqName =
 -- if GHC7
               (err "types") (err "declarations")
 -- endif
-  where err kind _ = error $ qqName ++ ": not available in " ++ kind
+  where err kind _ = fail $ qqName ++ ": not available in " ++ kind
 
-stripIdentQQ :: String -> String
-stripIdentQQ = unlines' . skipFirst (map dropBar . dropLastWhen null . map (dropWhile isSpace)) . lines
+stripIdentQQ :: String -> Q String
+stripIdentQQ = fmap unlines' . skipFirst (mapM dropBar . dropLastWhen null . map (dropWhile isSpace)) . lines
   where unlines'   = intercalate "\n"
-        skipFirst _ []     = []
-        skipFirst f (x:xs) = x : f xs
+        skipFirst _ []     = return []
+        skipFirst f (x:xs) = (x :) <$> f xs
         dropLastWhen _ [] = []
         dropLastWhen p (x:xs) | null xs && p x = []
                               | otherwise      = x:dropLastWhen p xs
-        dropBar ('|':xs) = xs
-        dropBar []       = error "stripIdentQQ: syntax error '|' expected after spaces (unexpected empty string)"
-        dropBar (c:_)    = error $ "stripIdentQQ: syntax error '|' expected after spaces (unexpected "++show c++")"
+        dropBar ('|':xs) = return xs
+        dropBar []       = fail "stripIdentQQ: syntax error '|' expected after spaces (unexpected empty string)"
+        dropBar (c:_)    = fail $ "stripIdentQQ: syntax error '|' expected after spaces (unexpected "++show c++")"
 
-str = (quasiQuoter "str"){ quoteExp = TH.stringE
-                         , quotePat = TH.litP . TH.stringL }
+str = (quasiQuoter "str"){ quoteExp = stringE
+                         , quotePat = litP . stringL }
 
-mkQQnoIndent :: String -> TH.Name -> QuasiQuoter
-mkQQnoIndent qqName qqFun = (quasiQuoter qqName){ quoteExp = TH.appE (TH.varE qqFun) . TH.stringE }
+mkQQgen :: (String -> Q Exp) -> String -> Name -> QuasiQuoter
+mkQQgen pre qqName qqFun = (quasiQuoter qqName){ quoteExp = appE (varE qqFun) . pre }
 
-mkQQ :: String -> TH.Name -> QuasiQuoter
-mkQQ qqName qqFun = (quasiQuoter qqName){ quoteExp = TH.appE (TH.varE qqFun) . TH.stringE . stripIdentQQ }
+mkQQ :: String -> Name -> QuasiQuoter
+mkQQ = mkQQgen ((lift =<<) . stripIdentQQ)
+
+mkQQnoIndent :: String -> Name -> QuasiQuoter
+mkQQnoIndent = mkQQgen lift
 
 -- istr ≡ mkQQ "istr" 'id
-istr = (quasiQuoter "istr"){ quoteExp = TH.stringE . stripIdentQQ }
+istr = (quasiQuoter "istr"){ quoteExp = (stringE =<<) . stripIdentQQ }
 
 frQQ = mkQQnoIndent "frQQ" 'hstring
 tex  = mkQQ "tex"  'rawTex
@@ -68,12 +74,12 @@ qp   = mkQQ "qp"   'rawPreamble
 keys = (quasiQuoter "keys"){ quoteDec = fs } where
   fs = sequence . concatMap f . words
   clean = filter isAlphaNum
-  f x = [TH.sigD n [t|Key|]
-        ,TH.valD (TH.varP n)
-                 (TH.normalB (TH.appE (TH.conE 'MkKey) $ TH.stringE x))
-                 []
+  f x = [sigD n [t|Key|]
+        ,valD (varP n)
+              (normalB (appE (conE 'MkKey) $ stringE x))
+              []
         ]
-        where n = TH.mkName (clean x)
+        where n = mkName (clean x)
 
 frQQFile  = quoteFile frQQ
 strFile   = quoteFile str
