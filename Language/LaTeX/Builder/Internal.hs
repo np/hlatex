@@ -141,6 +141,9 @@ rawPreamble = mapNonEmpty $ pure . RawPreamble
 texLength :: LatexLength -> AnyItem
 texLength = AnyItem . pure . Length
 
+mandatoryTexLength :: LatexLength -> Arg AnyItem
+mandatoryTexLength = mandatory . texLength
+
 optTexLength :: LatexLength -> Arg AnyItem
 optTexLength = optional . texLength
 
