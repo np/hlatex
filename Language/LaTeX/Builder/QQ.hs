@@ -5,7 +5,7 @@ module Language.LaTeX.Builder.QQ
    keys,keysFile,
    -- * Building new Quasi Quoters
    mkQQ, mkQQnoIndent, mkQQgen,
-   stripIdentQQ,
+   stripIndentQQ,
    -- * Misc functions used by the frquotes expander of «...»
    frTop, frAntiq,
   ) where
@@ -39,8 +39,8 @@ quasiQuoter qqName =
 -- endif
   where err kind _ = fail $ qqName ++ ": not available in " ++ kind
 
-stripIdentQQ :: String -> Q String
-stripIdentQQ = fmap unlines' . skipFirst (mapM dropBar . dropLastWhen null . map (dropWhile isSpace)) . lines
+stripIndentQQ :: String -> Q String
+stripIndentQQ = fmap unlines' . skipFirst (mapM dropBar . dropLastWhen null . map (dropWhile isSpace)) . lines
   where unlines'   = intercalate "\n"
         skipFirst _ []     = return []
         skipFirst f (x:xs) = (x :) <$> f xs
@@ -48,8 +48,8 @@ stripIdentQQ = fmap unlines' . skipFirst (mapM dropBar . dropLastWhen null . map
         dropLastWhen p (x:xs) | null xs && p x = []
                               | otherwise      = x:dropLastWhen p xs
         dropBar ('|':xs) = return xs
-        dropBar []       = fail "stripIdentQQ: syntax error '|' expected after spaces (unexpected empty string)"
-        dropBar (c:_)    = fail $ "stripIdentQQ: syntax error '|' expected after spaces (unexpected "++show c++")"
+        dropBar []       = fail "stripIndentQQ: syntax error '|' expected after spaces (unexpected empty string)"
+        dropBar (c:_)    = fail $ "stripIndentQQ: syntax error '|' expected after spaces (unexpected "++show c++")"
 
 str = (quasiQuoter "str"){ quoteExp = stringE
                          , quotePat = litP . stringL }
@@ -58,13 +58,13 @@ mkQQgen :: (String -> Q Exp) -> String -> Name -> QuasiQuoter
 mkQQgen pre qqName qqFun = (quasiQuoter qqName){ quoteExp = appE (varE qqFun) . pre }
 
 mkQQ :: String -> Name -> QuasiQuoter
-mkQQ = mkQQgen ((lift =<<) . stripIdentQQ)
+mkQQ = mkQQgen ((lift =<<) . stripIndentQQ)
 
 mkQQnoIndent :: String -> Name -> QuasiQuoter
 mkQQnoIndent = mkQQgen lift
 
 -- istr ≡ mkQQ "istr" 'id
-istr = (quasiQuoter "istr"){ quoteExp = (stringE =<<) . stripIdentQQ }
+istr = (quasiQuoter "istr"){ quoteExp = (stringE =<<) . stripIndentQQ }
 
 frQQ = mkQQnoIndent "frQQ" 'hstring
 tex  = mkQQ "tex"  'rawTex
