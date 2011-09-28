@@ -1,7 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 module Language.LaTeX.Builder.QQ
   (-- * Quasi Quoters
-   frQQ,frQQFile,str,strFile,istr,istrFile,tex,texFile,qm,qmFile,qp,qpFile,
+   frQQ,frQQFile,str,strFile,istr,istrFile,tex,texFile,texm,texmFile,qm,qmFile,qp,qpFile,
    keys,keysFile,
    -- * Building new Quasi Quoters
    mkQQ, mkQQnoIndent, mkQQgen,
@@ -18,7 +18,7 @@ import Language.Haskell.TH (Q, Exp, Name, appE, varE, stringE, litP, stringL, va
 import Language.Haskell.TH.Quote
 import Language.Haskell.TH.Syntax (Lift(..))
 import Language.LaTeX.Types (Key(..))
-import Language.LaTeX.Builder.Internal (rawTex, rawPreamble)
+import Language.LaTeX.Builder.Internal (rawTex, rawPreamble, rawMath)
 import Language.LaTeX.Builder.Math (mstring)
 import Language.LaTeX.Builder (hstring)
 
@@ -66,8 +66,12 @@ mkQQnoIndent = mkQQgen lift
 -- istr ≡ mkQQ "istr" 'id
 istr = (quasiQuoter "istr"){ quoteExp = (stringE =<<) . stripIndentQQ }
 
+-- | Quasiquoter for raw TeX in math mode
+texm, texmFile :: QuasiQuoter
+
 frQQ = mkQQnoIndent "frQQ" 'hstring
 tex  = mkQQ "tex"  'rawTex
+texm = mkQQ "texm" 'rawMath
 qm   = mkQQ "qm"   'mstring
 qp   = mkQQ "qp"   'rawPreamble
 
@@ -85,6 +89,7 @@ frQQFile  = quoteFile frQQ
 strFile   = quoteFile str
 istrFile  = quoteFile istr
 texFile   = quoteFile tex
+texmFile  = quoteFile texm
 qmFile    = quoteFile qm
 qpFile    = quoteFile qp
 keysFile  = quoteFile keys
