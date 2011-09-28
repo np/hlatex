@@ -20,7 +20,7 @@ module Language.LaTeX.Builder.Math
    negthinspace, mod, models, mrat, mright, msup, thickspace,
    thinspace, mu, nabla, ne, neg, notin, nu, oint, omega, omicron, oplus, otimes,
    overbrace, overline, parenChar, parens, partial, phi, pi, pm, pmod, prec,
-   prod, propto, psi, quad, rangle, rawMath, rawMathChar, rbrace, rceil,
+   prod, propto, psi, quad, rangle, rbrace, rceil,
    rfloor, rho, rightarrow, rparen, scriptscriptstyle, scriptstyle, sec, sigma, sin, sinh,
    space, sqrt, sqrt', square, stackrel, sub, subset, subseteq, succ, sum, sup,
    supset, supseteq, tan, tanh, tau, text, textstyle, theta, tilde, times, to, top,
@@ -52,6 +52,7 @@ import Control.Monad.Error (throwError)
 import Language.LaTeX.Types
 import Language.LaTeX.Builder.MonoidUtils
 import Language.LaTeX.Builder (XChar, cell, cells, vline, hline, cline)
+import Language.LaTeX.Builder.Internal (rawMath, rawMathChar)
 import qualified Language.LaTeX.Builder as B
 import qualified Language.LaTeX.Builder.Internal as B
 
@@ -97,12 +98,6 @@ mathCmd = MathItem . pure . (`MathCmdArgs` [])
 
 mathBinOp :: String -> MathItem -> MathItem -> MathItem
 mathBinOp = liftMath2 . MathBinOp
-
-rawMath :: String -> MathItem
-rawMath = MathItem . pure . RawMath
-
-rawMathChar :: Char -> MathItem
-rawMathChar = rawMath . ('{':) . (:"}")
 
 mrat :: Rational -> MathItem
 mrat = fromRational

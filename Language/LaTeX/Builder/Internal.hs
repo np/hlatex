@@ -257,6 +257,12 @@ rawTex = mapNonEmpty $ pure . RawTex
 rawAnyTex :: String -> AnyItem
 rawAnyTex = latexItem . rawTex
 
+rawMath :: String -> MathItem
+rawMath = MathItem . pure . RawMath
+
+rawMathChar :: Char -> MathItem
+rawMathChar = rawMath . ('{':) . (:"}")
+
 texCmdNoArg :: String -> LatexItem
 texCmdNoArg = pure . TexCmdNoArg
 
