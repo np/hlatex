@@ -29,7 +29,19 @@ f ^$ x = marker (f x)
 slice :: Functor f => f ParItm -> f ParItm
 slice = fmap $ mconcat . comb [maySlice1, maySlice2] . uncatParItm
   where notMark = (/= marknote)
+
+        -- Is there a mark in a subterm?
         isMarked = any (== marknote) . U.universe
+
+        -- slicing strategy (1): drop until the mark,
+        --                       drop the mark,
+        --                       take until the next mark
         maySlice1 = takeWhile notMark . drop 1 . dropWhile notMark
+
+        -- slicing strategy (2):
+        -- keep only items which contains a mark as a subterm
         maySlice2 = filter isMarked
-        comb fs xs = fromMaybe xs . find (not . null) $ map ($xs) fs
+
+        -- Combine multiple strategies:
+        --   takes the result of the first succeeding strategy
+        comb fs xs = take 1 . filter (not . null) $ map ($xs) fs
