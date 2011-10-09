@@ -3,15 +3,14 @@ module Language.LaTeX.Slicer
 where
 
 import Data.Monoid
-import Data.Maybe
-import Data.List (find)
 import Control.Monad.Writer
 import Language.LaTeX.Types
 import Language.LaTeX.Builder.MonoidUtils
+import qualified Language.LaTeX.Builder.Internal as BI
 import qualified Data.Generics.Uniplate.Data as U
 
 marknote :: ParItm
-marknote = ParNote (MkKey "slicemark") (TextNote "") ø
+marknote = ParNote (MkKey "slicemark") BI.nilNote ø
 
 mark :: ParItemW
 mark = tell $ return marknote
@@ -27,7 +26,7 @@ infixr 0 ^$
 f ^$ x = marker (f x)
 
 slice :: Functor f => f ParItm -> f ParItm
-slice = fmap $ mconcat . comb [maySlice1, maySlice2] . uncatParItm
+slice = fmap $ mconcat . mconcat . comb [maySlice1, maySlice2] . uncatParItm
   where notMark = (/= marknote)
 
         -- Is there a mark in a subterm?
@@ -44,4 +43,4 @@ slice = fmap $ mconcat . comb [maySlice1, maySlice2] . uncatParItm
 
         -- Combine multiple strategies:
         --   takes the result of the first succeeding strategy
-        comb fs xs = take 1 . filter (not . null) $ map ($xs) fs
+        comb fs xs = take 1 . filter (not . null) . map ($xs) $ fs

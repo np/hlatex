@@ -198,6 +198,10 @@ instance Monoid ParItm where
   x            `mappend` ParConcat ys = ParConcat (x : ys)
   x            `mappend` y            = ParConcat [x, y]
 
+unParNote :: ParItm -> Maybe (Key, Note, ParItm)
+unParNote (ParNote k n p) = Just (k, n, p)
+unParNote _               = Nothing
+
 uncatParItm :: ParItm -> [ParItm]
 uncatParItm (ParConcat pars) = pars
 uncatParItm par              = [par]

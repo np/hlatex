@@ -69,6 +69,9 @@ usepackage opts pkg =
   preambleCmdArgs "usepackage"
     [providePackage pkg, optionals opts, mandatory (packageName pkg)]
 
+nilNote :: Note
+nilNote = stringNote ""
+
 stringNote :: String -> Note
 stringNote = TextNote
 
