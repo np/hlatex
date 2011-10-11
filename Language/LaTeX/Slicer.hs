@@ -26,7 +26,7 @@ infixr 0 ^$
 f ^$ x = marker (f x)
 
 slice :: Functor f => f ParItm -> f ParItm
-slice = fmap $ mconcat . mconcat . comb [maySlice1, maySlice2] . uncatParItm
+slice = fmap $ mconcat . mconcat . comb [maySlice1, maySlice2, id] . uncatParItm
   where notMark = (/= marknote)
 
         -- Is there a mark in a subterm?
