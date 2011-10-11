@@ -36,7 +36,7 @@ verb = B.texttt . B.protector (myXchar (M.mchar B.ttchar))
 
 -- let's customize the rendering of some charcters in `verb' mode
 myXchar xchar x
-  | x `elem` "_"   = B.makebox (L.ex 1.22) Centered (xchar x)
+  | x `elem` "_"   = B.makebox (L.ex 1.22) B.centered (xchar x)
   | x `elem` "="   = B.ttchar x
   | x `elem` "{}"  = M.mchar B.hchar x
 myXchar xchar x    = xchar x
