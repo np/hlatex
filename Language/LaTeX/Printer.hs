@@ -171,12 +171,12 @@ ppRows ppCell (Cline c1 c2 : rows)
 unitName :: TexUnit -> String
 unitName u =
   case u of
-    Cm -> "cm" 
-    Mm -> "mm" 
-    Em -> "em" 
-    Ex -> "ex" 
-    Pt -> "pt" 
-    Pc -> "pc" 
+    Cm -> "cm"
+    Mm -> "mm"
+    Em -> "em"
+    Ex -> "ex"
+    Pt -> "pt"
+    Pc -> "pc"
     In -> "in"
     Sp -> "sp"
     Bp -> "bp"
