@@ -1,4 +1,4 @@
-{-# LANGUAGE QuasiQuotes, OverloadedStrings, UnicodeSyntax #-}
+{-# LANGUAGE QuasiQuotes, OverloadedStrings #-}
 {-# OPTIONS_GHC -F -pgmF frquotes #-}
 {-# OPTIONS -Wall -fno-warn-missing-signatures -fno-warn-unused-imports #-}
 
