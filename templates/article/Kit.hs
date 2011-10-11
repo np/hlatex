@@ -50,8 +50,13 @@ put = tell
 p = put . B.para
 itemize block = B.itemize ø !$? block
 description block = B.description ø !$? block
+
+item :: (MonadWriter (f ListItem) m, Monad f) => LatexItem -> m ()
 item = tell . return . B.item . B.para
+
+itemD :: (MonadWriter (f ListItem) m, Monad f) => LatexItem -> LatexItem -> m ()
 itemD x = tell . return . B.item' x . B.para
+
 maketitle = put B.maketitle
 section = put . B.section
 subsection = put . B.subsection
