@@ -19,7 +19,7 @@ library
     build-depends:
                  base>=3.0&&<5, containers>=0.1, process, filepath, directory,
                  template-haskell >= 2.5,
-                 transformers>=0.2.1&&<1, monads-fd>=0.1.0,
+                 transformers>=0.2.1&&<1, mtl>2.0,
                  uniplate>=1.4&&<1.7, derive, utf8-string
     exposed-modules:
                  Language.LaTeX,
@@ -43,7 +43,7 @@ library
 
 executable generate_hlatex_user_guide
     Build-depends: base>=3.0, containers>=0.1, frquotes,
-                   transformers, monads-fd, base-unicode-symbols
+                   transformers, mtl>2.0, base-unicode-symbols
     main-is: doc/user_guide.hs
     ghc-options: -Wall
   if !flag(build_doc)
