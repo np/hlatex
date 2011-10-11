@@ -28,16 +28,21 @@ brackets = between "[" "]"
 parens   = between "(" ")"
 
 
-nl, backslash, sp :: ShowS
+nl, nl2, irrNl, backslash, sp :: ShowS
 backslash = text "\\"
 nl = text "\n"
+nl2 = nl ⊕ nl
 sp = text " "
+irrNl = text "%\n"
 
 ($$) :: ShowS -> ShowS -> ShowS
 ($$) x y = x ⊕ nl ⊕ y
 
+($$$) :: ShowS -> ShowS -> ShowS
+($$$) x y = x ⊕ nl2 ⊕ y
+
 vcat :: [ShowS] -> ShowS
-vcat = mconcat . intersperse (nl ⊕ nl)
+vcat = mconcat . intersperse nl2
 
 ppNamed :: Named ShowS -> ShowS
 ppNamed (Named name val) = text name ⊕ text "=" ⊕ val
@@ -199,9 +204,8 @@ ppPreamble (RawPreamble raw) = text raw
 ppPreamble (PreambleNote key note p) = ppNote key note ppPreamble p
 
 ppNote :: Key -> Note -> (a -> ShowS) -> a -> ShowS
-ppNote (MkKey key) note ppElt elt = nl' ⊕ comment (key ⊕ ": " ⊕ showNote note) ⊕ ppElt elt ⊕ nl'
-  where nl' = text "%\n"
-        showNote (TextNote s) = s
+ppNote (MkKey key) note ppElt elt = irrNl ⊕ comment (key ⊕ ": " ⊕ showNote note) ⊕ ppElt elt ⊕ irrNl
+  where showNote (TextNote s) = s
         showNote (IntNote  i) = show i
         showNote (LocNote  loc) = showLoc loc
         comment = mconcat . map (text . ('%':) . (⊕ "\n") . stripRight) . lines
@@ -224,8 +228,8 @@ preambOfDocClass (DocClass kind opts) =
 
 ppDocument :: Document -> ShowS
 ppDocument (Document docClass preamb doc) =
-  ppPreamble (preambOfDocClass docClass ⊕ preamb) $$
-  ppEnv "document" [] (ppParMode doc)
+  ppPreamble (preambOfDocClass docClass ⊕ preamb) $$$
+  ppEnv "document" [] (nl ⊕ ppParMode doc ⊕ nl)
 
 showsLaTeX :: LatexM Document -> Either ErrorMessage ShowS
 showsLaTeX mdoc = do
