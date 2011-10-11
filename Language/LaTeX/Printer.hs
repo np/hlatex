@@ -41,8 +41,9 @@ irrNl = text "%\n"
 ($$$) :: ShowS -> ShowS -> ShowS
 ($$$) x y = x ⊕ nl2 ⊕ y
 
-vcat :: [ShowS] -> ShowS
-vcat = mconcat . intersperse nl2
+vcat, vcat2 :: [ShowS] -> ShowS
+vcat  = mconcat . intersperse nl
+vcat2 = mconcat . intersperse nl2
 
 ppNamed :: Named ShowS -> ShowS
 ppNamed (Named name val) = text name ⊕ text "=" ⊕ val
@@ -116,7 +117,7 @@ ppParMode (ParEnv envName args contents)
   = ppEnv envName (map (fmap ppAny) args) $ ppAny contents
 ppParMode (Tabular specs rows) =
   ppEnv "tabular" [Mandatory . (:[]) . mconcat $ map (ppRowSpec . fmap pp) specs] (ppRows pp rows)
-ppParMode (ParConcat contents) = vcat $ map ppParMode contents
+ppParMode (ParConcat contents) = vcat2 $ map ppParMode contents
 ppParMode (ParNote key note t) = ppNote key note ppParMode t
 
 ppMath :: MathItm -> ShowS
@@ -228,8 +229,9 @@ preambOfDocClass (DocClass kind opts) =
 
 ppDocument :: Document -> ShowS
 ppDocument (Document docClass preamb doc) =
-  ppPreamble (preambOfDocClass docClass ⊕ preamb) $$$
-  ppEnv "document" [] (nl ⊕ ppParMode doc ⊕ nl)
+  ppPreamble (preambOfDocClass docClass) $$$
+  ppPreamble preamb $$$
+  ppEnv "document" [] (nl ⊕ ppParMode doc ⊕ nl) ⊕ nl
 
 showsLaTeX :: LatexM Document -> Either ErrorMessage ShowS
 showsLaTeX mdoc = do
