@@ -19,7 +19,7 @@ document, documentclass, dot, dotfill, em, emph, enumerate,
 fbox, figure, flushleft, footnote,
 footnotesize, framebox, fussy, grave, group, hat, hchar,
 hfill, hline, hr, href, hrulefill, space, hspace, hspace', hspaces,
-hstring, huge, hyphen, hyphenation, i, institute, it, item,
+hstring, huge, hyphen, hyphenation, hyphenationPar, i, institute, it, item,
 item', itemize, itshape, j, label,
 large, ldots, letter, linebreak, linebr,
 lq, makebox, maketitle,
@@ -392,12 +392,17 @@ newline = para . rawNewline
 -- robust
 -- http://www.personal.ceu.hu/tex/breaking.htm#hyph
 hyphen :: LatexItem
-hyphen = rawTex "{\\-}" -- check if {...} does not cause trouble here
+hyphen = rawTex "{\\-}" -- TODO: check if {...} does not cause trouble here
+                        -- otherwise this may be considered a legit
+                        -- ``concatenation effect''.
 
 -- robust
 -- http://www.personal.ceu.hu/tex/breaking.htm#hyphw
-hyphenation :: [String] -> ParItem
-hyphenation = parCmdArg "hyphenation" . rawAnyTex . L.unwords -- rawAnyTex is a bit rough here
+hyphenation :: [String] -> PreambleItem
+hyphenation = preambleCmdArg "hyphenation" . rawAnyTex . L.unwords -- rawAnyTex is a bit rough here
+
+hyphenationPar :: [String] -> ParItem
+hyphenationPar = parCmdArg "hyphenation" . rawAnyTex . L.unwords -- rawAnyTex is a bit rough here
 
 sloppy, fussy :: TexDecl
 sloppy = texDecl "sloppy"
