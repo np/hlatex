@@ -418,6 +418,7 @@ instance (Error a, Eq a, Show a, Num b) => Num (Either a b) where
   (+)         = liftM2 (+)
   (-)         = liftM2 (-)
   (*)         = liftM2 (*)
+  negate      = liftM negate
   abs         = liftM abs
   signum      = liftM signum
 
@@ -447,6 +448,7 @@ newtype AnyItem   = AnyItem { anyItmM :: LatexM AnyItm }
   deriving (Eq, Show, Typeable, Data)
 newtype MathItem  = MathItem { mathItmM :: LatexM MathItm }
   deriving (Monoid, Eq, Show, Num, Fractional, Typeable, Data)
+
 type ListItem  = LatexM ListItm
 type PreambleItem = LatexM PreambleItm
 type DocumentClass = LatexM DocumentClss
