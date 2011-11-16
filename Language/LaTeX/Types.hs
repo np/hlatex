@@ -467,16 +467,13 @@ type PreambleItemW = Writer PreambleItem ()
 -- NOTE: this raw Tex is ugly
 rawhchar :: Char -> String
 rawhchar '\\'  = "\\textbackslash{}"
-rawhchar '~'   = "\\~{}"
 rawhchar '<'   = "\\textless{}"
 rawhchar '>'   = "\\textgreater{}"
-rawhchar '^'   = "\\^{}"
 rawhchar '|'   = "\\textbar{}"
-rawhchar ':'   = "$:$" -- or maybe "{:}"
-rawhchar '_'   = "\\_"
-rawhchar x  | x `elem` "#&{}$%"  = ['\\',x]
-            | x `elem` "]["      = ['{', x, '}'] -- to avoid mess up optional args
-            | otherwise          = [x]
+rawhchar x
+  | x `elem` "~^_#&{}$%" = ['\\',x,'{','}']
+  | x `elem` ":]["       = ['{', x, '}'] -- '[' and ']' are escaped to avoid mess up optional args
+  | otherwise            = [x]
 
 -- | Type for encodings used in commands like.
 -- @\usepackage[utf8]{inputenc}@, that we can
