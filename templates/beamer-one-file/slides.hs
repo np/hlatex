@@ -43,12 +43,15 @@ body = slice . execWriter $ do
   slide «Writing slides» $ do -- <--- Change this $ to ^$ in order to compile only this slide
     p «First itemize»
     itemize $ do
-      item «First item»
-      item «Second item»
+      itemP «First item»
+      itemP «Second item»
     p «Second itemize»
     itemize $ do
-      item «First item»
-      item «Second item»
+      item $ do
+        p«First item, first paragraph»
+        p«First item, second paragraph»
+      -- itemP is equivalent to item . p
+      itemP «Second item»
 
   slideCB «Big news»
 
@@ -61,8 +64,8 @@ body = slice . execWriter $ do
 
   slide «Descriptions» $ do
     description $ do
-      itemD «Item one:» «bla bla bla»
-      itemD «Item two:» «bli bla blo»
+      item' «Item one:» . p $ «bla bla bla»
+      item' «Item two:» . p $ «bli bla blo»
 
 todo :: a -> a
 todo = id
@@ -106,5 +109,6 @@ example = put . BM.block ø . B.para . code
 
 itemize block = B.itemize ø !$? block
 description block = B.description ø !$? block
-item = tell . return . B.item . B.para
-itemD x = tell . return . B.item' x . B.para
+item' x block = return . B.item' x !$? block
+item = item' ø
+itemP = item . p
