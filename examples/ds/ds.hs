@@ -328,8 +328,8 @@ body Config{ sujet = s, correc = c } = execWriter $ do
           p «{m f} est croissante sur l'intervalle {m$f'pos} car {m f'} est
              positive. {m f} est décroissante sur l'intervalle {m$f'neg}
              car {m f'} est négative.»
-          tabvar3 8 "f" (s [(-1, Low),(3,High),(5,Low)]
-                            [(-3, High),(-1,Low),(3,High)]) vf
+          tabvar3 8 "f" (s [(-1,Low), (3,High),(5,Low)]
+                           [(-3,High), (-1,Low), (3,High)]) vf
         itemW $ tabval3 8 "f" vdomf vf
         let
           fig = s "../courbe1.pdf"
