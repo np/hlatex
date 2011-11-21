@@ -94,7 +94,7 @@ verb = B.texttt . B.protector (myXchar (M.mchar B.ttchar))
 
 -- let's customize the rendering of some charcters in `verb' mode
 myXchar xchar x
-  | x `elem` "_"   = B.makebox (L.ex 1.22) Centered (xchar x)
+  | x `elem` "_"   = B.makebox (L.ex 1.22) B.centered (xchar x)
   | x `elem` "="   = B.ttchar x
   | x `elem` "{}"  = M.mchar B.hchar x
 myXchar xchar x    = xchar x
@@ -105,6 +105,6 @@ example :: String -> ParItemW
 example = put . BM.block ø . B.para . code
 
 itemize block = B.itemize ø !$? block
-description block = B.description !$? block
+description block = B.description ø !$? block
 item = tell . return . B.item . B.para
 itemD x = tell . return . B.item' x . B.para
