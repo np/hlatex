@@ -75,14 +75,23 @@ main = quickView myViewOpts{basedir="out",showoutput=False,pdfviewer="evince"} "
 
 usepackages = mconcat . map (BI.usepackage [] . BI.pkgName)
 
-p = put . B.para
-
-vcenter x = B.vfill ⊕ x ⊕ B.vfill
-
 put :: ParItem -> ParItemW
 put = tell
 
-slide title = put . BM.slide title . mapNonEmpty vcenter . execWriter
+-- We lift a few functions to the writer monad to use
+-- them with the do-notation.
+p = put . B.para
+itemize block = B.itemize ø !$? block
+description block = B.description ø !$? block
+item' x block = return . B.item' x !$? block
+
+-- Shortcuts
+item = item' ø
+itemP = item . p
+
+vcenter x = B.vfill ⊕ x ⊕ B.vfill
+
+slide title block = BM.slide title . mapNonEmpty vcenter !$? block
 
 margins = BM.setbeamersize (BM.TextMarginLeft (L.cm 0.3))
         ⊕ BM.setbeamersize (BM.TextMarginRight (L.cm 0.3))
@@ -106,9 +115,3 @@ code = verb . dropWhile (=='\n')
 
 example :: String -> ParItemW
 example = put . BM.block ø . B.para . code
-
-itemize block = B.itemize ø !$? block
-description block = B.description ø !$? block
-item' x block = return . B.item' x !$? block
-item = item' ø
-itemP = item . p
