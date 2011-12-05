@@ -4,7 +4,7 @@ module Language.LaTeX.Builder.QQ
    frQQ,frQQFile,str,strFile,istr,istrFile,tex,texFile,texm,texmFile,qm,qmFile,qp,qpFile,
    keys,keysFile,
    -- * Building new Quasi Quoters
-   mkQQ, mkQQnoIndent, mkQQgen,
+   mkQQ, mkQQnoIndent, mkQQgen, mkQQFile, indent, noIndent,
    stripIndentQQ,
    -- * Misc functions used by the frquotes expander of «...»
    frTop, frAntiq,
@@ -53,27 +53,36 @@ stripIndentQQ = fmap unlines' . skipFirst (mapM dropBar . dropLastWhen null . ma
 
 str = (quasiQuoter "str"){ quoteExp = stringE
                          , quotePat = litP . stringL }
+strFile = quoteFile str
 
 mkQQgen :: (String -> Q Exp) -> String -> Name -> QuasiQuoter
 mkQQgen pre qqName qqFun = (quasiQuoter qqName){ quoteExp = appE (varE qqFun) . pre }
 
 mkQQ :: String -> Name -> QuasiQuoter
-mkQQ = mkQQgen ((lift =<<) . stripIndentQQ)
+mkQQ = mkQQgen indent
 
 mkQQnoIndent :: String -> Name -> QuasiQuoter
 mkQQnoIndent = mkQQgen lift
 
+mkQQFile :: (String -> Q Exp) -> String -> Name -> (QuasiQuoter, QuasiQuoter)
+mkQQFile pre qqName qqFun = (mkQQgen pre qqName qqFun , quoteFile (mkQQgen lift qqName qqFun))
+
+indent, noIndent :: String -> Q Exp
+indent = (lift =<<) . stripIndentQQ
+noIndent = lift
+
 -- istr ≡ mkQQ "istr" 'id
 istr = (quasiQuoter "istr"){ quoteExp = (stringE =<<) . stripIndentQQ }
+-- istrFile makes no sense, use strFile instead
 
 -- | Quasiquoter for raw TeX in math mode
 texm, texmFile :: QuasiQuoter
 
-frQQ = mkQQnoIndent "frQQ" 'hstring
-tex  = mkQQ "tex"  'rawTex
-texm = mkQQ "texm" 'rawMath
-qm   = mkQQ "qm"   'mstring
-qp   = mkQQ "qp"   'rawPreamble
+frQQ, frQQFile = mkQQFile noIndent "frQQ" 'hstring
+tex,  texFile  = mkQQFile indent   "tex"  'rawTex
+texm, texmFile = mkQQFile indent   "texm" 'rawMath
+qm,   qmFile   = mkQQFile indent   "qm"   'mstring
+qp,   qpFile   = mkQQFile indent   "qp"   'rawPreamble
 
 keys = (quasiQuoter "keys"){ quoteDec = fs } where
   fs = sequence . concatMap f . words
@@ -84,12 +93,4 @@ keys = (quasiQuoter "keys"){ quoteDec = fs } where
               []
         ]
         where n = mkName (clean x)
-
-frQQFile  = quoteFile frQQ
-strFile   = quoteFile str
-istrFile  = quoteFile istr
-texFile   = quoteFile tex
-texmFile  = quoteFile texm
-qmFile    = quoteFile qm
-qpFile    = quoteFile qp
 keysFile  = quoteFile keys
