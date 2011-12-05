@@ -1,7 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 module Language.LaTeX.Builder.QQ
   (-- * Quasi Quoters
-   frQQ,frQQFile,str,strFile,istr,istrFile,tex,texFile,texm,texmFile,qm,qmFile,qp,qpFile,
+   frQQ,frQQFile,str,strFile,istr,tex,texFile,texm,texmFile,qm,qmFile,qp,qpFile,
    keys,keysFile,
    -- * Building new Quasi Quoters
    mkQQ, mkQQnoIndent, mkQQgen, mkQQFile, indent, noIndent,
@@ -28,7 +28,7 @@ frTop = id
 frAntiq :: a -> a
 frAntiq = id
 
-frQQ,frQQFile,str,strFile,istr,istrFile,tex,texFile,qm,qmFile,qp,qpFile,
+frQQ,frQQFile,str,strFile,istr,tex,texFile,qm,qmFile,qp,qpFile,
   keys, keysFile :: QuasiQuoter
 
 quasiQuoter :: String -> QuasiQuoter
@@ -78,11 +78,11 @@ istr = (quasiQuoter "istr"){ quoteExp = (stringE =<<) . stripIndentQQ }
 -- | Quasiquoter for raw TeX in math mode
 texm, texmFile :: QuasiQuoter
 
-frQQ, frQQFile = mkQQFile noIndent "frQQ" 'hstring
-tex,  texFile  = mkQQFile indent   "tex"  'rawTex
-texm, texmFile = mkQQFile indent   "texm" 'rawMath
-qm,   qmFile   = mkQQFile indent   "qm"   'mstring
-qp,   qpFile   = mkQQFile indent   "qp"   'rawPreamble
+(frQQ, frQQFile) = mkQQFile noIndent "frQQ" 'hstring
+(tex,  texFile)  = mkQQFile indent   "tex"  'rawTex
+(texm, texmFile) = mkQQFile indent   "texm" 'rawMath
+(qm,   qmFile)   = mkQQFile indent   "qm"   'mstring
+(qp,   qpFile)   = mkQQFile indent   "qp"   'rawPreamble
 
 keys = (quasiQuoter "keys"){ quoteDec = fs } where
   fs = sequence . concatMap f . words
