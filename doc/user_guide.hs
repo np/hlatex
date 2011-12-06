@@ -8,6 +8,94 @@ import qualified Language.LaTeX.Builder.Math as M
 import Language.LaTeX.Builder.QQ hiding (tex)
 import Control.Monad.Writer
 
+{- OUTLINE (to put up to date)
+
+Conventions DONE
+
+Monoidal structure PLANNED
+
+Injecting strings
+ IsString
+ hstring
+ reduce hstring "" => mempty
+
+Sectioning
+
+List like env
+ how to put a paritem between items
+
+Declarations
+ decls are side effects and {} are scopes
+ in hlatex all declarations are explicitely scoped (effects don't pass through <>)
+ unsafe injection is still available though
+
+Tabulars
+ why lists
+ format spec
+ how put hline
+ missing features
+
+Paragraphs
+ why strong paragraph distintinction
+ no longer double endline meaning
+ don't confuse para and paragraph
+
+Math mode
+ no strings
+ no chars (M.a, M.b...)
+ still low level (sum has only one arg)
+ still the same meaning for <>
+    Ligatures
+ num class
+
+Verbatim mode
+ why not using the latex verbatim mode
+ protect
+   special characters
+   Ligatures
+   Work with fixed width fonts
+
+Figures
+
+Bibliography, glossary and index
+
+Making new commands
+ TODO: wrap these functions to
+           L.L.Builder.Internal
+
+Raw LaTeX
+
+Pictures
+
+Size units and predefs dimensions
+ normalisation, symbolic eval
+ num class
+
+The latexm monad
+ what for
+ how hidden
+ a monad transformer would allow
+   custom initial monad, more state,
+   more control...
+
+The Writer monad
+ how to use it
+
+French quotes
+ fq is a lexical syntax extension enabling lightweight interpolated literal piece of text. Once desugared this extension relies on the quasi-quoting system provided by GHC.
+
+Misc
+ savebins
+
+Packages
+ automatic tracking
+
+ graphicx
+ listings equivalent
+
+ adding new packages
+-}
+
 latex = B._LaTeX
 tex = B._TeX
 hlatex = B.textsc "HLaTeX" -- TODO make a proper symol and provide it in L.L.Builder
