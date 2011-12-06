@@ -826,11 +826,11 @@ rq = texCmdNoArg "rq"
 
 -- | Left (opening) double quotes: ``.
 ldq :: LatexItem
-ldq = rawTex "``"
+ldq = rawTex "{``}"
 
 -- | Right (opening) double quotes: ''.
 rdq :: LatexItem
-rdq = rawTex "''"
+rdq = rawTex "{''}"
 
 -- | Double quote a LaTeX item.
 dquote :: LatexItem -> LatexItem
