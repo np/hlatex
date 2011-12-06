@@ -15,21 +15,21 @@ check, circ, cite, cite', cleardoublepage, clearpage, cline,
 comment, compressSpaces, copyright, corrspace, dag, dash1,
 dash2, dash3, date, ddag,
 description, displaymath,
-document, documentclass, dot, dotfill, em, emph, enumerate,
+document, documentclass, dot, dotfill, dquote, em, emph, enumerate,
 fbox, figure, flushleft, footnote,
 footnotesize, framebox, fussy, grave, group, hat, hchar,
 hfill, hline, hr, href, hrulefill, space, hspace, hspace', hspaces,
 hstring, huge, hyphen, hyphenation, hyphenationPar, i, institute, it, item,
 item', itemize, itshape, j, label,
 large, ldots, letter, linebreak, linebr,
-lq, makebox, maketitle,
+lq, ldq, makebox, maketitle,
 math, mbox, mdseries, medskip,
 minipage, nbsp, negthinspace, newline, rawNewline,
 newpage, nocite, noindent, nolinebreak, nopagebreak, normalfont,
 normalmarginpar, normalsize, num, o, oe, overbar, overdot, pagebreak,
 pageref, pagestyle, para, paragraph, paragraph', parbox, part, part', person, phantom, pounds,
 protect, protector, quotation, quote, raisebox, raisebox',
-rat, ref, report, reversemarginpar, ring, rm, rmfamily, rq,
+rat, ref, report, reversemarginpar, ring, rm, rmfamily, rq, rdq,
 rtext, rule, rule', samepage, savebox, sbox, sc, scriptsize, scshape, section,
 section', sep, setlength, addtolength, settowidth, sf, sffamily, sl, sloppy, sloppypar,
 slshape, small, smallskip, spaceProtector, ss, subparagraph,
@@ -823,6 +823,18 @@ lq = texCmdNoArg "lq"
 -- | Right (closing) quote: '.
 rq :: LatexItem
 rq = texCmdNoArg "rq"
+
+-- | Left (opening) double quotes: ``.
+ldq :: LatexItem
+ldq = rawTex "``"
+
+-- | Right (opening) double quotes: ''.
+rdq :: LatexItem
+rdq = rawTex "''"
+
+-- | Double quote a LaTeX item.
+dquote :: LatexItem -> LatexItem
+dquote x = ldq ⊕ x ⊕ rdq
 
 -- | Paragraph sign (pilcrow).
 _P :: LatexItem
