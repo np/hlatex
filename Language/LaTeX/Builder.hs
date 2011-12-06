@@ -361,13 +361,13 @@ textunderscore = texCmdNoArg "textunderscore"
 
 -- fragile
 -- http://www.personal.ceu.hu/tex/breaking.htm#linebreak
-linebreak :: Int -> TexDecl
-linebreak = texDeclOpt "linebreak" . num
+linebreak :: Maybe Int -> TexDecl
+linebreak = (texDecl' "linebreak" =<<) . check0to4 "linebreak"
 
 -- fragile
 -- http://www.personal.ceu.hu/tex/breaking.htm#nolinebreak
-nolinebreak :: Int -> TexDecl
-nolinebreak = texDeclOpt "nolinebreak" . num
+nolinebreak :: Maybe Int -> TexDecl
+nolinebreak = (texDecl' "nolinebreak" =<<) . check0to4 "nolinebreak"
 
 -- http://www.personal.ceu.hu/tex/breaking.htm#linebr
 linebr :: Star -> Maybe LatexLength -> LatexItem
@@ -414,17 +414,13 @@ sloppypar = parEnvironmentPar "sloppypar" []
 
 -- fragile
 -- http://www.personal.ceu.hu/tex/breaking.htm#pagebreak
-pagebreak :: Int -> TexDecl
+pagebreak :: Maybe Int -> TexDecl
+pagebreak = (texDecl' "pagebreak" =<<) . check0to4 "pagebreak"
 
 -- fragile
 -- http://www.personal.ceu.hu/tex/breaking.htm#nopagebreak
-nopagebreak :: Int -> TexDecl
-
-(pagebreak, nopagebreak) =
-  ((texDeclOpt "pagebreak" =<<) . check0to4 "pagebreak"
-  ,(texDeclOpt "nopagebreak" =<<) . check0to4 "nopagebreak")
-  where check0to4 s n | n >= 0 && n <= 4 = return $ num n
-                      | otherwise        = throwError $ s ++ ": option must be between 0 and 4 not " ++ show i
+nopagebreak :: Maybe Int -> TexDecl
+nopagebreak = (texDecl' "nopagebreak" =<<) . check0to4 "nopagebreak"
 
 -- fragile
 samepage :: TexDecl
@@ -1124,3 +1120,10 @@ allTexDecls = [rm, em, bf, sf, sl, sc, it, tt
               ,tiny, scriptsize, footnotesize, small, normalsize, large
               ,_LARGE, _Large, huge, _Huge]
 
+-- Local definitions
+
+check0to4 :: String -> Maybe Int -> LatexM [Arg AnyItem]
+check0to4 _ Nothing  = return []
+check0to4 s (Just n)
+  | n >= 0 && n <= 4 = return [optional $ num n]
+  | otherwise        = throwError $ s ++ ": option must be between 0 and 4 not " ++ show i
