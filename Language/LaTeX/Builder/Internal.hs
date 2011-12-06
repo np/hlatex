@@ -101,7 +101,7 @@ texDecl' :: String -> [Arg AnyItem] -> TexDecl
 texDecl' s opts = TexDcl s <$> mapM (mapM anyItmM) opts
 
 texDeclOpt :: String -> AnyItem -> TexDecl
-texDeclOpt s (AnyItem opt) = TexDcl s <$> ((:[]) . optional <$> opt)
+texDeclOpt s opt = texDecl' s [optional opt]
 
 parNote :: Key -> Note -> ParItem -> ParItem
 parNote k = fmap . ParNote k
