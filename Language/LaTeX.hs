@@ -106,18 +106,18 @@ quickView :: ViewOpts -> FilePath -> LatexM Document -> IO ()
 quickView vo basename doc =
      do createDirectoryIfMissing False (basedir vo)
         when (showoutput vo) $ putStrLn s
-        -- writeBinaryFile (basedir vo </> ltx) s
-        U.writeFile (basedir vo </> ltx) s
+        -- writeBinaryFile (basedir vo </> tex) s
+        U.writeFile (basedir vo </> tex) s
         exitWith =<< system cmd
   -- where s = encodeString . either error id $ showLaTeX doc
   where s = either error id $ showLaTeX doc
         pdf = basename <.> "pdf"
-        ltx = basename <.> "ltx"
+        tex = basename <.> "tex"
         inputdirsStr = intercalate ":" $ inputdirs vo
         texinputs = "TEXINPUTS=" ++ inputdirsStr
         bstinputs = "BSTINPUTS=" ++ inputdirsStr
         cmd = unwords ["cd", basedir vo, "&&"
-                      , texinputs, bstinputs, pdflatex vo, ltx, "&&"
+                      , texinputs, bstinputs, pdflatex vo, tex, "&&"
                       , pdfviewer vo, pdf]
 
 printLatexDocument :: LatexM Document -> IO ()
