@@ -1,0 +1,27 @@
+
+* About exposing Haskell macros as LaTeX ones
+
+Here are some half-backed ideas
+
+newcommand nargs name body = latexCmd "newcommand" name [optional nargs, mandatory (body $ map (('#':).show) [1..nargs-1])]
+
+newcommand2 name body = newcommand name (\[x,y] -> body x y)
+
+-- library example: exposing replicate
+rep :: Int -> LatexItem -> LatexItem
+rep x y = mconcat (replicate x y)
+
+latexToInt :: LatexItem -> Int
+latexToInt (LatexLength ...)
+
+rep' :: LatexItem -> LatexItem -> LatexItem
+rep' x y = mconcat (replicate (latexToInt x) y)
+
+librep = newcommand2 "rep" rep ...
+
+-- library example
+lam x t = "λ"⊕x⊕". "⊕t
+app t u = ...
+var x = ...
+
+lib = newcommand2 "lam" lam ⊕ ...
