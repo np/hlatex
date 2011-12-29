@@ -46,7 +46,9 @@ vcat  = mconcat . intersperse nl
 vcat2 = mconcat . intersperse nl2
 
 ppNamed :: Named ShowS -> ShowS
-ppNamed (Named name val) = text name ⊕ text "=" ⊕ val
+ppNamed (Named name val)
+  | null name = val
+  | otherwise = text name ⊕ text "=" ⊕ val
 
 commas :: [ShowS] -> ShowS
 commas = mconcat . intersperse (text ",")
