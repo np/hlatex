@@ -21,16 +21,24 @@ pkg = B.pkgName "beamer"
 data DocClassOption = Compress
                     | T
                     | Red
+                    | Handout
+                    | RawDocClassOption String
 
-compress, t, red :: DocClassOption
+compress, t, red, handout :: DocClassOption
 compress = Compress
 t = T
 red = Red
+handout = Handout
+
+rawDocClassOption :: String -> DocClassOption
+rawDocClassOption = RawDocClassOption
 
 showDocClassOption :: DocClassOption -> String
 showDocClassOption Compress  = "compress"
 showDocClassOption T         = "t"
 showDocClassOption Red       = "red"
+showDocClassOption Handout   = "handout"
+showDocClassOption (RawDocClassOption x) = x
 
 documentclasskind :: DocumentClassKind
 documentclasskind =  OtherDocumentClassKind "beamer"
