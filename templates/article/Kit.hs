@@ -28,7 +28,8 @@ todo :: a -> a
 todo = id
 {-# DEPRECATED todo "You have something to do here" #-}
 
-usepackages = mconcat . map (BI.usepackage [] . BI.pkgName)
+usepackage xs = BI.usepackage xs . BI.pkgName
+usepackages = mconcat . map (usepackage [])
 
 vcenter x = B.vfill ⊕ x ⊕ B.vfill
 
@@ -48,6 +49,7 @@ code = verb . dropWhile (=='\n')
 put :: ParItem -> ParItemW
 put = tell
 p = put . B.para
+paragraph = put . B.paragraph
 itemize block = B.itemize ø !$? block
 description block = B.description ø !$? block
 
