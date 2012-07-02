@@ -3,10 +3,6 @@ module Language.LaTeX.Builder.MonoidUtils (ø, (⊕), (<>), (<||>), (<&&>), mapN
 import Data.Monoid
 import Data.Monoid.Unicode ((⊕))
 
-infixr 5 <>
-(<>) :: Monoid m => m -> m -> m
-(<>) = mappend
-
 ø :: Monoid m => m
 ø = mempty
 
