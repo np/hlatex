@@ -1,6 +1,6 @@
 name:            hlatex
 cabal-version:   >= 1.8
-version:         0.1
+version:         0.2
 license:         BSD3
 license-File:    LICENSE
 copyright:       (c) Nicolas Pouillard
