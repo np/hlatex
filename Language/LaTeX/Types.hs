@@ -429,7 +429,7 @@ instance (Error a, Eq a, Show a, Fractional b) => Fractional (Either a b) where
 type ErrorMessage = String
 
 newtype LatexM a = LatexM { runLatexM :: Either ErrorMessage a }
-  deriving (Functor, Applicative, Monad, MonadPlus,
+  deriving (Functor, Applicative, Alternative, Monad, MonadPlus,
             MonadError ErrorMessage, Show, Eq, Num, Fractional,
             Typeable, Data)
 
