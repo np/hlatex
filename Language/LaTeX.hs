@@ -77,8 +77,8 @@ import System.Cmd (system)
 import System.FilePath
 import System.Directory (createDirectoryIfMissing)
 import System.Exit
-import qualified System.IO.UTF8 as U
--- import Codec.Binary.UTF8.String (encodeString)
+import System.IO (withBinaryFile, IOMode(WriteMode), hPutStr)
+import Codec.Binary.UTF8.String (encode)
 
 data ViewOpts = ViewOpts { basedir   :: FilePath
                          , pdflatex  :: String
@@ -95,19 +95,15 @@ myViewOpts = ViewOpts { basedir   = ""
 
 testViewOpts = myViewOpts { basedir = "tests" }
 
-{-
--- | The computation 'writeBinaryFile' @file str@ function writes the string @str@,
--- to the file @file@.
-writeBinaryFile :: FilePath -> String -> IO ()
-writeBinaryFile f txt = withBinaryFile f WriteMode (\ hdl -> hPutStr hdl txt)
--}
+writeFileUTF8 :: FilePath -> String -> IO ()
+writeFileUTF8 n s = withBinaryFile n WriteMode (\hdl -> hPutStr hdl txt)
+   where txt = map (toEnum . fromEnum) (encode s)
 
 quickView :: ViewOpts -> FilePath -> LatexM Document -> IO ()
 quickView vo basename doc =
      do createDirectoryIfMissing False (basedir vo)
         when (showoutput vo) $ putStrLn s
-        -- writeBinaryFile (basedir vo </> tex) s
-        U.writeFile (basedir vo </> tex) s
+        writeFileUTF8 (basedir vo </> tex) s
         exitWith =<< system cmd
   -- where s = encodeString . either error id $ showLaTeX doc
   where s = either error id $ showLaTeX doc
