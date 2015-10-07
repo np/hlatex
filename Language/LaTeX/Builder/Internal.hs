@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 module Language.LaTeX.Builder.Internal where
 
 import Prelude hiding (sqrt, min, max, lcm, gcd, log, mod, tanh, cosh, tan, sinh,
