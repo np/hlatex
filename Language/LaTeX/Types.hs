@@ -80,8 +80,8 @@ instance Monoid PreambleItm where
   x                 `mappend` PreambleConcat ys = PreambleConcat (x : ys)
   x                 `mappend` y                 = PreambleConcat [x, y]
 
-data TexDcl = TexDcl { texDeclName :: String
-                     , texDeclArgs :: [Arg AnyItm]
+data TexDcl = TexDcl { _texDeclName :: String
+                     , _texDeclArgs :: [Arg AnyItm]
                      }
   deriving (Show, Eq, Typeable, Data)
 

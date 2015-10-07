@@ -238,7 +238,7 @@ hspace = hspace' ø
 -- its effect. We expose it as a ParItem since this is its main usage.
 -- http://www.personal.ceu.hu/tex/spacebox.htm#vspace
 vspace' :: Star -> LatexLength -> ParItem
-vspace' s = parCmdArg (starize "vspace" s) . texLength
+vspace' s = texDecl' (starize "vspace" s) . texLength
 
 -- fragile
 -- http://www.personal.ceu.hu/tex/spacebox.htm#vspace
@@ -247,7 +247,7 @@ vspace = vspace' ø
 
 -- http://www.personal.ceu.hu/tex/spacebox.htm#vfill
 vfill :: ParItem
-vfill = parCmdArgs "vfill" [] -- = vspace fill
+vfill = texDecl' "vfill" [] -- = vspace fill
 
 -- http://www.personal.ceu.hu/tex/spacebox.htm#hfill
 hfill :: LatexItem
@@ -637,14 +637,17 @@ pagestyle = parCmdArg "pagestyle" . latexItem
 appendix :: ParItem
 appendix = parCmdArgs "appendix" []
 
+-- TODO setlength,addtolength... are not ParItem, these are TexDecl which can
+-- then be embedded as ParItem or LatexItem...
+
 -- http://www.personal.ceu.hu/tex/length.htm
-setlength :: LatexLength -> LatexLength -> ParItem
+setlength :: LatexLength -> LatexLength -> TexDecl
 setlength lengthName newLength
   | isJust (lengthCst lengthName)
       = throwError "setlength: the first argument should be a length name not a constant"
   | otherwise
-      = parCmdArgs "setlength" [mandatory (texLength lengthName)
-                               ,mandatory (texLength newLength)]
+      = texDecl' "setlength" [mandatory (texLength lengthName)
+                             ,mandatory (texLength newLength)]
 
 -- http://www.personal.ceu.hu/tex/length.htm
 addtolength :: LatexLength -> LatexLength -> ParItem
@@ -652,7 +655,7 @@ addtolength lengthName newLength
   | isJust (lengthCst lengthName)
       = throwError "addtolength: the first argument should be a length name not a constant"
   | otherwise
-      = parCmdArgs "addtolength" [mandatory (texLength lengthName)
+      = texDecl' "addtolength" [mandatory (texLength lengthName)
                                  ,mandatory (texLength newLength)]
 
 -- http://www.personal.ceu.hu/tex/length.htm
@@ -661,7 +664,7 @@ settowidth lengthName text
   | isJust (lengthCst lengthName)
       = throwError "settowidth: the first argument should be a length name not a constant"
   | otherwise
-      = parCmdArgs "settowidth" [mandatory (texLength lengthName)
+      = texDecl' "settowidth" [mandatory (texLength lengthName)
                                 ,mandatoryLatexItem text]
 
 item :: ParItem -> ListItem

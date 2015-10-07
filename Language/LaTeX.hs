@@ -121,4 +121,4 @@ quickView vo basename doc =
                       , pdfviewer vo, pdf]
 
 printLatexDocument :: LatexM Document -> IO ()
-printLatexDocument = putStr . either error id . showLaTeX
+printLatexDocument = either fail putStr . showLaTeX
