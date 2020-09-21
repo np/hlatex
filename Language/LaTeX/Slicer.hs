@@ -2,7 +2,6 @@ module Language.LaTeX.Slicer
   (marknote, mark, marker, (^$), slice)
 where
 
-import Data.Monoid
 import Control.Monad.Writer
 import Language.LaTeX.Types
 import Language.LaTeX.Builder.MonoidUtils

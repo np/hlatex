@@ -45,7 +45,6 @@ import Data.Traversable (sequenceA, mapM)
 import Data.String
 import qualified Data.IntMap as IntMap
 import Control.Arrow
-import Control.Applicative
 import Control.Monad hiding (mapM)
 import Control.Monad.Error (throwError)
 

@@ -12,7 +12,6 @@ module Language.LaTeX.Builder.QQ
 
 import Data.List
 import Data.Char
-import Data.Functor
 import Language.Haskell.TH (Q, Exp, Name, appE, varE, stringE, litP, stringL, valD,
                             varP, sigD, mkName, normalB, conE)
 import Language.Haskell.TH.Quote

@@ -1,14 +1,19 @@
-{ nixpkgs ? import <nixpkgs> {}, compiler ? "ghc7101" }:
-nixpkgs.lib.overrideDerivation
-  (import ./default.nix { inherit nixpkgs compiler; }).env
-  (old:
-   { buildInputs = old.buildInputs ++
-       (with nixpkgs.haskell.packages.${compiler}; [
-       cabal-install
- #     ghc-make
- #     ghc-mod
- #     hlint
- #     stylish-haskell
- #     pointfree
- #     pointful
-    ]);})
+{ nixpkgs ? import <nixpkgs> {}, compiler ? "ghc865", doBenchmark ? false }:
+
+let
+
+  inherit (nixpkgs) pkgs;
+
+  f = import ./hlatex.nix;
+
+  haskellPackages = if compiler == "default"
+                       then pkgs.haskellPackages
+                       else pkgs.haskell.packages.${compiler};
+
+  variant = if doBenchmark then pkgs.haskell.lib.doBenchmark else pkgs.lib.id;
+
+  drv = variant (haskellPackages.callPackage f {});
+
+in
+
+  if pkgs.lib.inNixShell then drv.env else drv

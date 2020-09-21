@@ -1,6 +1,6 @@
 name:            hlatex
-cabal-version:   >= 1.8
-version:         0.3.1
+cabal-version:   >= 1.10
+version:         0.3.2
 license:         BSD3
 license-File:    LICENSE
 copyright:       (c) Nicolas Pouillard
@@ -20,7 +20,7 @@ library
                  base>=3.0&&<5, containers>=0.1, process, filepath, directory,
                  template-haskell >= 2.5,
                  transformers>=0.2.1&&<1, mtl>2.0, base-unicode-symbols,
-                 uniplate>=1.4&&<1.7, derive, utf8-string
+                 uniplate>=1.4&&<1.7, utf8-string
     exposed-modules:
                  Language.LaTeX,
                  Language.LaTeX.Types,
@@ -40,12 +40,14 @@ library
                  Language.LaTeX.Checker,
                  Language.LaTeX.Unicode
     ghc-options: -Wall
+    default-language: Haskell2010
 
 executable generate_hlatex_user_guide
     Build-depends: base>=3.0, containers>=0.1, frquotes,
                    transformers, mtl>2.0, base-unicode-symbols
     main-is: doc/user_guide.hs
     ghc-options: -Wall
+    default-language: Haskell2010
   if !flag(build_doc)
     Buildable: False
 

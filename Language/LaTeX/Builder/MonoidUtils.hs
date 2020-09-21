@@ -1,6 +1,5 @@
 module Language.LaTeX.Builder.MonoidUtils (ø, (⊕), (<>), (<||>), (<&&>), mapNonEmpty) where
 
-import Data.Monoid
 import Data.Monoid.Unicode ((⊕))
 
 ø :: Monoid m => m

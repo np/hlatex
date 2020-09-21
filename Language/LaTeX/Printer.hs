@@ -1,6 +1,5 @@
 module Language.LaTeX.Printer where
 
-import Data.Monoid
 import Data.List (intersperse)
 import Data.Ratio (numerator, denominator)
 import Data.Foldable (foldMap)

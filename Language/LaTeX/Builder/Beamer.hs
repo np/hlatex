@@ -8,10 +8,8 @@ import Language.LaTeX.Types
 import qualified Language.LaTeX.Builder.Internal as BI
 import qualified Language.LaTeX.Builder as B
 import Language.LaTeX.Builder.QQ
-import Control.Applicative
 import Data.List (intersperse)
 import Data.Maybe
-import Data.Monoid
 
 {-
 pkg :: PackageName

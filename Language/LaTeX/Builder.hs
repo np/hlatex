@@ -55,13 +55,11 @@ import Prelude hiding (sqrt, min, max, lcm, gcd, log, mod, tanh, cosh, tan, sinh
 import Data.List hiding (sum, and, group, unwords)
 import qualified Data.List as L
 import Data.Ratio
-import Data.Monoid
 import Data.Char
 import Data.Maybe
 import Data.Foldable (foldMap)
 import Data.Traversable
 import Data.String (IsString(..))
-import Control.Applicative hiding (optional)
 import Control.Monad hiding (mapM)
 import Control.Monad.Error (throwError)
 import Control.Monad.Writer (Writer, execWriter, tell)

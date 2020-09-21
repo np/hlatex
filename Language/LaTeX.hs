@@ -65,7 +65,6 @@ module Language.LaTeX
   ,runLatexM
   )
 where
-import Data.Monoid (Monoid(..))
 import Data.List (intercalate)
 import Language.LaTeX.Types
 import Language.LaTeX.Printer (showLaTeX)

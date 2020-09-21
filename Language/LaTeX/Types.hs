@@ -1,5 +1,6 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving, TemplateHaskell,
-             DeriveDataTypeable, PatternGuards #-}
+             DeriveDataTypeable, PatternGuards,
+             DeriveFunctor, DeriveFoldable, DeriveTraversable #-}
 
 -- Those extensions are required by the Uniplate instances.
 --{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
@@ -9,12 +10,10 @@ import Prelude hiding (and, foldr, foldl, foldr1, foldl1, elem, concatMap, conca
 import Data.Monoid (Monoid(..))
 import Data.List (intercalate)
 import Data.Ratio ((%))
-import Data.Traversable
 import Data.Foldable
 import Data.String (IsString(..))
 -- import Data.Generics.PlateTypeable
 import Data.Data
-import Data.DeriveTH
 import Control.Applicative
 import Control.Arrow (second)
 import Control.Monad.Writer (Writer)
@@ -73,12 +72,14 @@ data PreambleItm = PreambleCmdArgs String [Arg AnyItm]
                  | PreambleNote Key Note PreambleItm
   deriving (Show, Eq, Typeable, Data)
 
+instance Semigroup PreambleItm where
+  PreambleConcat xs <> PreambleConcat ys = PreambleConcat (xs ++ ys)
+  PreambleConcat xs <> y                 = PreambleConcat (xs ++ [y])
+  x                 <> PreambleConcat ys = PreambleConcat (x : ys)
+  x                 <> y                 = PreambleConcat [x, y]
+
 instance Monoid PreambleItm where
-  mempty  = PreambleConcat []
-  PreambleConcat xs `mappend` PreambleConcat ys = PreambleConcat (xs ++ ys)
-  PreambleConcat xs `mappend` y                 = PreambleConcat (xs ++ [y])
-  x                 `mappend` PreambleConcat ys = PreambleConcat (x : ys)
-  x                 `mappend` y                 = PreambleConcat [x, y]
+  mempty = PreambleConcat []
 
 data TexDcl = TexDcl { texDeclName :: String
                      , texDeclArgs :: [Arg AnyItm]
@@ -123,18 +124,20 @@ appendAny Coord{}       _ = Nothing
 appendAny Length{}      _ = Nothing
 appendAny SaveBin{}     _ = Nothing
 
+instance Semigroup LatexItm where
+  RawTex xs       <> RawTex ys = RawTex (xs ++ ys)
+  LatexCast x     <> LatexCast y | Just z <- appendAny x y = LatexCast z
+  LatexEmpty      <> x = x
+  x               <> LatexEmpty = x
+  LatexAppend x y <> z = x <> (y <> z) -- TODO complexity issue?
+  x <> LatexAppend y z =
+    case x <> y of
+      LatexAppend x' y' -> x' `LatexAppend` (y' <> z) -- TODO complexity issue?
+      xy                -> xy <> z
+  x               <> y = x `LatexAppend` y
+
 instance Monoid LatexItm where
   mempty  = LatexEmpty -- LatexConcat []
-  RawTex xs       `mappend` RawTex ys = RawTex (xs ++ ys)
-  LatexCast x     `mappend` LatexCast y | Just z <- appendAny x y = LatexCast z
-  LatexEmpty      `mappend` x = x
-  x               `mappend` LatexEmpty = x
-  LatexAppend x y `mappend` z = x `mappend` (y `mappend` z) -- TODO complexity issue?
-  x `mappend` LatexAppend y z =
-    case x `mappend` y of
-      LatexAppend x' y' -> x' `LatexAppend` (y' `mappend` z) -- TODO complexity issue?
-      xy                -> xy `mappend` z
-  x               `mappend` y = x `LatexAppend` y
 
 {-
   LatexConcat xs `mappend` LatexConcat ys = LatexConcat (xs ++ ys)
@@ -150,7 +153,7 @@ instance IsString LatexItm where
     where f = RawTex . concatMap rawhchar . intercalate "\n" . filter (not . null) . lines
 
 data Named a = Named String a
-  deriving (Show, Eq, Typeable, Data)
+  deriving (Show, Eq, Typeable, Data, Functor, Foldable, Traversable)
 
 data PackageAction = PackageDependency PackageName
                    | ProvidePackage    PackageName
@@ -166,15 +169,17 @@ data Arg a = NoArg
            | RawArg String
            | LiftArg a
            | PackageAction PackageAction
-  deriving (Show, Eq, Typeable, Data)
+  deriving (Show, Eq, Typeable, Data, Functor, Foldable, Traversable)
 
 data Star = Star | NoStar
   deriving (Show, Eq, Typeable, Data)
 
+instance Semigroup Star where
+  NoStar <> x      = x
+  x      <> _      = x
+
 instance Monoid Star where
   mempty = NoStar
-  NoStar `mappend` x      = x
-  x      `mappend` _      = x
 
 data Coord = MkCoord LatexLength LatexLength
   deriving (Show, Eq, Typeable, Data)
@@ -191,12 +196,14 @@ data ParItm  = ParCmdArgs String [Arg AnyItm]
              | ParNote Key Note ParItm
   deriving (Show, Eq, Typeable, Data)
 
+instance Semigroup ParItm where
+  ParConcat xs <> ParConcat ys = ParConcat (xs ++ ys)
+  ParConcat xs <> y            = ParConcat (xs ++ [y])
+  x            <> ParConcat ys = ParConcat (x : ys)
+  x            <> y            = ParConcat [x, y]
+
 instance Monoid ParItm where
-  mempty  = ParConcat []
-  ParConcat xs `mappend` ParConcat ys = ParConcat (xs ++ ys)
-  ParConcat xs `mappend` y            = ParConcat (xs ++ [y])
-  x            `mappend` ParConcat ys = ParConcat (x : ys)
-  x            `mappend` y            = ParConcat [x, y]
+  mempty = ParConcat []
 
 unParNote :: ParItm -> Maybe (Key, Note, ParItm)
 unParNote (ParNote k n p) = Just (k, n, p)
@@ -222,12 +229,14 @@ data MathItm   = MathDecls [MathDcl]
                | MathNote Key Note MathItm
   deriving (Show, Eq, Typeable, Data)
 
+instance Semigroup MathItm where
+  MathConcat xs <> MathConcat ys = MathConcat (xs ++ ys)
+  MathConcat xs <> y             = MathConcat (xs ++ [y])
+  x             <> MathConcat ys = MathConcat (x : ys)
+  x             <> y             = MathConcat [x, y]
+
 instance Monoid MathItm where
-  mempty  = MathConcat []
-  MathConcat xs `mappend` MathConcat ys = MathConcat (xs ++ ys)
-  MathConcat xs `mappend` y              = MathConcat (xs ++ [y])
-  x              `mappend` MathConcat ys = MathConcat (x : ys)
-  x              `mappend` y              = MathConcat [x, y]
+  mempty = MathConcat []
 
 instance Num MathItm where
   (+) = MathBinOp "+"
@@ -305,9 +314,11 @@ instance Num LatexLength where
   signum = error "LatexLength.signum is undefined"
   fromInteger = LengthCst Nothing . (%1)
 
+instance Semigroup LatexLength where
+  (<>) = (+)
+
 instance Monoid LatexLength where
   mempty = 0
-  mappend = (+)
 
 instance Fractional LatexLength where
   x / LengthCst Nothing ry = scaleBy (1/ry) x
@@ -323,7 +334,7 @@ data RowSpec a = Rc --- ^ Centered
                | Rr --- ^ Right
                | Rvline --- ^ A vertical line
                | Rtext a --- ^ A fixed text column (@-expression in LaTeX parlance)
-  deriving (Show, Eq, Typeable, Data)
+  deriving (Show, Eq, Typeable, Data, Functor, Foldable, Traversable)
 
 {-
 instance Functor RowSpec where
@@ -381,7 +392,7 @@ data LatexPaperSize = A4paper | OtherPaperSize String
 data Row cell = Cells [cell]
               | Hline
               | Cline Int Int
-  deriving (Show, Eq, Typeable, Data)
+  deriving (Show, Eq, Typeable, Data, Functor, Foldable, Traversable)
 
 {-
 instance Functor Row where
@@ -433,10 +444,12 @@ newtype LatexM a = LatexM { runLatexM :: Either ErrorMessage a }
             MonadError ErrorMessage, Show, Eq, Num, Fractional,
             Typeable, Data)
 
+instance Semigroup a => Semigroup (LatexM a) where
+  (<>) = liftM2 (<>)
+-- sconcat = liftM sconcat . sequenceA
+
 instance Monoid a => Monoid (LatexM a) where
   mempty = pure mempty
-  mappend = liftM2 mappend
-  mconcat = liftM mconcat . sequenceA
 
 instance IsString a => IsString (LatexM a) where fromString = pure . fromString
 
@@ -447,7 +460,7 @@ type MathDecl  = LatexM MathDcl
 newtype AnyItem   = AnyItem { anyItmM :: LatexM AnyItm }
   deriving (Eq, Show, Typeable, Data)
 newtype MathItem  = MathItem { mathItmM :: LatexM MathItm }
-  deriving (Monoid, Eq, Show, Num, Fractional, Typeable, Data)
+  deriving (Semigroup, Monoid, Eq, Show, Num, Fractional, Typeable, Data)
 
 type ListItem  = LatexM ListItm
 type PreambleItem = LatexM PreambleItm
@@ -483,19 +496,6 @@ newtype Encoding = Encoding { fromEncoding :: String }
 
 -- instance (Integral a, Typeable a, Typeable b, PlateAll a b) => PlateAll (Ratio a) b where
 --   plateAll r = plate (%) |+ numerator r |+ denominator r
-
-$(derive makeFunctor     ''Named)
-$(derive makeFoldable    ''Named)
-$(derive makeTraversable ''Named)
-$(derive makeFunctor     ''Arg)
-$(derive makeFoldable    ''Arg)
-$(derive makeTraversable ''Arg)
-$(derive makeFunctor     ''RowSpec)
-$(derive makeFoldable    ''RowSpec)
-$(derive makeTraversable ''RowSpec)
-$(derive makeFunctor     ''Row)
-$(derive makeFoldable    ''Row)
-$(derive makeTraversable ''Row)
 
 {-
 $(derive makeUniplateTypeable ''SaveBin)

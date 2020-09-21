@@ -5,9 +5,7 @@ import Prelude hiding (sqrt, min, max, lcm, gcd, log, mod, tanh, cosh, tan, sinh
                        sin, cos, succ, sum, pi, mapM)
 import qualified Data.List as L
 import Data.Maybe
-import Data.Monoid
 import Data.Traversable (sequenceA, mapM)
-import Control.Applicative hiding (optional)
 import Control.Monad hiding (mapM)
 import Control.Monad.Error (throwError)
 
